@@ -1,4 +1,127 @@
-# Main entrypoint of the workflow. 
-# Please follow the best practices: 
-# https://snakemake.readthedocs.io/en/stable/snakefiles/best_practices.html,
-# in particular regarding the standardized folder structure mentioned there. 
+import json
+from snakebids import bids
+from pathlib import Path
+import pandas as pd
+import os
+
+
+configfile: "config/config.yml"
+
+
+container: config["containers"]["spimprep"]
+
+
+# use expandvars so we can use e.g. '$SLURM_TMPDIR'
+root = os.path.expandvars(config["root"])
+work = os.path.expandvars(config["work"])
+
+# read datasets tsv
+datasets = pd.read_csv(
+    config["datasets"],
+    sep="\t",
+    dtype={
+        "subject": str,
+        "sample": str,
+        "acq": str,
+        "stain_0": str,
+        "stain_1": str,
+        "num_tiles": int,
+    },
+)
+
+
+def get_all_targets():
+    targets = []
+    for i in range(len(datasets)):
+        targets.extend(
+            expand(
+                bids(
+                    root=root,
+                    subject="{subject}",
+                    datatype="micr",
+                    sample="{sample}",
+                    acq="{acq}",
+                    desc="{desc}",
+                    stain="{stain}",
+                    suffix="spim.ome.zarr.zip",
+                ),
+                subject=datasets.loc[i, "subject"],
+                sample=datasets.loc[i, "sample"],
+                acq=datasets.loc[i, "acq"],
+                desc=config["targets"]["desc"],
+                stain=[datasets.loc[i, "stain_0"], datasets.loc[i, "stain_1"]],
+            )
+        )
+        targets.extend(
+            expand(
+                bids(
+                    root=root,
+                    subject="{subject}",
+                    datatype="micr",
+                    sample="{sample}",
+                    acq="{acq}",
+                    desc="{desc}",
+                    from_="{template}",
+                    suffix="dseg.ome.zarr.zip",
+                ),
+                subject=datasets.loc[i, "subject"],
+                sample=datasets.loc[i, "sample"],
+                acq=datasets.loc[i, "acq"],
+                desc=config["targets"]["desc"],
+                template=config["templates"],
+                stain=[datasets.loc[i, "stain_0"], datasets.loc[i, "stain_1"]],
+            )
+        )
+        targets.extend(
+            expand(
+                bids(
+                    root=root,
+                    subject="{subject}",
+                    datatype="micr",
+                    sample="{sample}",
+                    acq="{acq}",
+                    desc="{desc}",
+                    stain="{stain}",
+                    level="{level}",
+                    suffix="spim.nii",
+                ),
+                subject=datasets.loc[i, "subject"],
+                sample=datasets.loc[i, "sample"],
+                acq=datasets.loc[i, "acq"],
+                desc=config["targets"]["desc"],
+                level=config["nifti"]["levels"],
+                stain=[datasets.loc[i, "stain_0"], datasets.loc[i, "stain_1"]],
+            )
+        )
+
+    return targets
+
+
+def get_dataset_path(wildcards):
+    df = datasets.query(
+        f"subject=='{wildcards.subject}' and sample=='{wildcards.sample}' and acq=='{wildcards.acq}'"
+    )
+    return df.dataset_path.to_list()[0]
+
+
+def get_stains(wildcards):
+    df = datasets.query(
+        f"subject=='{wildcards.subject}' and sample=='{wildcards.sample}' and acq=='{wildcards.acq}'"
+    )
+
+    return [
+        df.stain_0.to_list()[0],
+        df.stain_1.to_list()[0],
+    ]
+
+
+rule all:
+    input:
+        get_all_targets(),
+
+
+include: "rules/import.smk"
+include: "rules/flatfield_corr.smk"
+include: "rules/bigstitcher.smk"
+include: "rules/ome_zarr.smk"
+include: "rules/atlasreg.smk"

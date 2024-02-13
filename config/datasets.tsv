@@ -1,0 +1,2 @@
+subject	sample	acq	stain_0	stain_1	dataset_path
+mouse1	brain	1x	abeta	autof	input_data/test_lightsheet_ome.tar

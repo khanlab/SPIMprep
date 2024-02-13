@@ -1,0 +1,74 @@
+datasets: 'config/datasets.tsv'
+
+
+root: 'results'
+work: 'work' 
+
+targets:
+  desc:
+    - stitchedflatcorr  #e.g. can be stitchedraw to skip flatfield correction
+
+import:
+  raw_tif_pattern: "{prefix}_Blaze[{tilex} x {tiley}]_C{channel}_xyz-Table Z{zslice}.ome.tif"
+  raw_tif_glob: "{prefix}_Blaze[[]{tilex} x {tiley}[]]_C{channel}_xyz-Table Z{zslice}.ome.tif"
+  intensity_rescaling: 0.5 #raw images seem to be at the upper end of uint16 (over-saturated) -- causes wrapping issues when adjusting with flatfield correction etc. this rescales the raw data as it imports it..
+
+
+
+basic_flatfield_corr:
+  max_n_images: 500
+  fitting_opts:
+    get_darkfield: True
+    smoothness_flatfield: 1.0
+    smoothness_darkfield: 1.0
+    sparse_cost_darkfield: 0.01
+
+
+bigstitcher:
+  calc_pairwise_shifts:
+    downsample_in_x: 4
+    downsample_in_y: 4
+    downsample_in_z: 1
+  filter_pairwise_shifts:
+    min_r: 0.7
+  fuse_dataset:
+    downsampling: 1
+    block_size_x: 1024 # for storage
+    block_size_y: 1024
+    block_size_z: 1
+    block_size_factor_x: 2 #e.g. 2 will use 2*block_size for computation
+    block_size_factor_y: 2
+    block_size_factor_z: 1
+
+ome_zarr:
+  max_downsampling_layers: 4 # e.g. 4 levels: { 0: orig, 1: ds2, 2: ds4, 3: ds8, 4: ds16}
+  rechunk_size: #z, y, x
+    - 1 
+    - 1024
+    - 1024
+  scaling_method: 'local_mean' #can be nearest, gaussian, local_mean, zoom (zoom uses spline interp)
+
+nifti:
+  levels: #cannot be higher than max_downsampling_layers in ome_zarr
+    - 3
+    - 4
+
+templates: 
+  - ABAv3
+
+atlases:
+  ABAv3:
+    anat: 'resources/ABAv3/P56_Atlas.nii.gz'
+    dseg: 'resources/ABAv3/P56_Annotation.nii.gz'
+    lut: 'resources/ABAv3/labelmapper_ABAv3_to_all.json'
+
+atlasreg:
+  stain: autof
+  level: 4
+  desc: stitchedflatcorr
+
+
+
+containers:
+  spimprep: 'docker://khanlab/spimprep-deps:main'
+  miracl: 'docker://mgoubran/miracl:2.2.5'
