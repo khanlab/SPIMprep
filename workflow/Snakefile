@@ -9,7 +9,7 @@ configfile: "config/config.yml"
 
 
 container: config["containers"]["spimprep"]
-
+conda: config["conda_envs"]["global"]
 
 # use expandvars so we can use e.g. '$SLURM_TMPDIR'
 root = os.path.expandvars(config["root"])

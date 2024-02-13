@@ -3,7 +3,7 @@
 [![Snakemake](https://img.shields.io/badge/snakemake-≥6.3.0-brightgreen.svg)](https://snakemake.github.io)
 [![GitHub actions status](https://github.com/<owner>/<repo>/workflows/Tests/badge.svg?branch=main)](https://github.com/<owner>/<repo>/actions?query=branch%3Amain+workflow%3ATests)
 
-A Snakemake workflow forp re-processing single plane illumination microscopy (SPIM, aka lightsheet microscopy)
+A Snakemake workflow for pre-processing single plane illumination microscopy (SPIM, aka lightsheet microscopy)
 
 Takes datasets produced by the Biotec UltraMicroscope Blaze (as a folder of tif images), and outputs a BIDS-like dataset, with multiscale ome zarr files along with downsampled nifti images. 
 

@@ -57,7 +57,7 @@ rule ome_zarr_to_zipstore:
 rule ome_zarr_to_nii:
     input:
         zarr=bids(
-            root=work,
+            root=root,
             subject="{subject}",
             datatype="micr",
             sample="{sample}",

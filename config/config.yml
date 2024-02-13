@@ -72,3 +72,6 @@ atlasreg:
 containers:
   spimprep: 'docker://khanlab/spimprep-deps:main'
   miracl: 'docker://mgoubran/miracl:2.2.5'
+
+conda_envs:
+  global: 'envs/global.yml'
