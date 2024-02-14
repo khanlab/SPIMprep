@@ -1,6 +1,0 @@
-channels:
-  - nodefaults
-dependencies:
-  - pip:
-    - snakebids=0.10.2
-

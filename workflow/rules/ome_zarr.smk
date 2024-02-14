@@ -32,6 +32,17 @@ rule zarr_to_ome_zarr:
             )
         ),
     threads: 32
+    log:
+        bids(
+            root="logs",
+            subject="{subject}",
+            datatype="zarr_to_ome_zarr",
+            sample="{sample}",
+            acq="{acq}",
+            desc="{desc}",
+            stain="{stain}",
+            suffix="log.txt",
+        ),
     container:
         config["containers"]["spimprep"]
     group:
@@ -90,6 +101,18 @@ rule ome_zarr_to_nii:
             level="{level}",
             suffix="benchmark.tsv",
         )
+    log:
+        bids(
+            root="logs",
+            datatype="ome_zarr_to_nifti",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            desc="{desc}",
+            stain="{stain}",
+            level="{level}",
+            suffix="log.txt",
+        ),
     group:
         "preproc"
     threads: 32
@@ -97,25 +120,3 @@ rule ome_zarr_to_nii:
         config["containers"]["spimprep"]
     script:
         "../scripts/ome_zarr_to_nii.py"
-
-
-rule zarr_masking_wip:
-    input:
-        zarr=rules.zarr_to_ome_zarr.output.zarr,
-    output:
-        zarr=directory(
-            bids(
-                root=root,
-                subject="{subject}",
-                datatype="micr",
-                sample="{sample}",
-                acq="{acq}",
-                desc="{desc}",
-                stain="{stain}",
-                suffix="mask.ome.zarr",
-            )
-        ),
-    container:
-        config["containers"]["spimprep"]
-    notebook:
-        "../notebooks/zarr_masking.py.ipynb"

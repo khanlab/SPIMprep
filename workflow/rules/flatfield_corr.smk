@@ -13,7 +13,7 @@ rule fit_basic_flatfield_corr:
         ),
     params:
         channel=lambda wildcards: get_stains(wildcards).index(wildcards.stain),
-        max_n_images=config["basic_flatfield_corr"]["max_n_images"],  #sets maximum number of images to use for fitting (selected randomly)
+        max_n_images=config["basic_flatfield_corr"]["max_n_images"],
         basic_opts=config["basic_flatfield_corr"]["fitting_opts"],
     output:
         model_dir=temp(
@@ -30,7 +30,7 @@ rule fit_basic_flatfield_corr:
             )
         ),
     resources:
-        runtime=90,  #this should be proportional to the number of images and image size
+        runtime=90,
         mem_mb=64000,
     threads: 8
     benchmark:
@@ -43,6 +43,16 @@ rule fit_basic_flatfield_corr:
             stain="{stain}",
             suffix="benchmark.tsv",
         )
+    log:
+        bids(
+            root="logs",
+            datatype="fit_basic_flatfield",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            stain="{stain}",
+            suffix="log.txt",
+        ),
     group:
         "preproc"
     container:
@@ -91,8 +101,17 @@ rule apply_basic_flatfield_corr:
             acq="{acq}",
             suffix="benchmark.tsv",
         )
+    log:
+        bids(
+            root="logs",
+            datatype="apply_basic_flatfield",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="log.txt",
+        ),
     resources:
-        runtime=60,  #this should be proportional to the number of images and image size
+        runtime=60,
         mem_mb=32000,
     threads: 32
     group:
