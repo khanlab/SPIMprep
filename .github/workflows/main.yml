@@ -28,7 +28,7 @@ jobs:
       uses: snakemake/snakemake-github-action@v1.24.0
       with:
         directory: .
-        stagein: "pip install --no-deps -r ../.github/snakemake_action_requirements.txt"
+        stagein: "pip install --no-deps -r .github/snakemake_action_requirements.txt"
         snakefile: workflow/Snakefile
         args: "--lint"
 
@@ -44,6 +44,7 @@ jobs:
       uses: snakemake/snakemake-github-action@v1.24.0
       with:
         directory: .test
+        stagein: "pip install --no-deps -r .github/snakemake_action_requirements.txt"
         snakefile: workflow/Snakefile
         args: "--sdm apptainer --show-failed-logs --cores 1 --all-temp"
 
@@ -51,5 +52,6 @@ jobs:
       uses: snakemake/snakemake-github-action@v1.24.0
       with:
         directory: .test
+        stagein: "pip install --no-deps -r .github/snakemake_action_requirements.txt"
         snakefile: workflow/Snakefile
         args: "--report report.zip"

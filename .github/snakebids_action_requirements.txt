@@ -1,0 +1,6 @@
+snakebids @ git+https://github.com/khanlab/snakebids#8acbd9f
+typing-extensions = ">=3.10.0"
+attrs = ">=21.2.0"
+boutiques = "^0.5.25"
+more-itertools = ">=8"
+pvandyken-deprecated = "0.0.4" 
