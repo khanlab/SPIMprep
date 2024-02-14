@@ -28,7 +28,7 @@ jobs:
       uses: snakemake/snakemake-github-action@v1.24.0
       with:
         directory: .
-        stagein: "pip install --no-deps -r .github/snakemake_action_requirements.txt"
+        stagein: "ls -a . && ls -a * && pip install --no-deps -r .github/snakemake_action_requirements.txt"
         snakefile: workflow/Snakefile
         args: "--lint"
 
