@@ -5,10 +5,10 @@ import re
 from itertools import product
 from snakemake.io import glob_wildcards
 
-in_tif_glob = snakemake.params.in_tif_glob
+in_tif_pattern = snakemake.params.in_tif_pattern
 
 #parse the filenames to get number of channels, tiles etc..
-prefix, tilex, tiley, channel, zslice = glob_wildcards(in_tif_glob)
+prefix, tilex, tiley, channel, zslice = glob_wildcards(in_tif_pattern)
 
 tiles_x = sorted(list(set(tilex)))
 tiles_y = sorted(list(set(tiley)))
@@ -17,7 +17,7 @@ zslices = sorted(list(set(zslice)))
 prefixes = sorted(list(set(prefix)))
 
 #read in series metadata from first file
-in_tif = in_tif_glob.format(tilex=tiles_x[0],tiley=tiles_y[0],prefix=prefixes[0],channel=channels[0],zslice=zslices[0])
+in_tif = in_tif_pattern.format(tilex=tiles_x[0],tiley=tiles_y[0],prefix=prefixes[0],channel=channels[0],zslice=zslices[0])
 
 raw_tif = tifffile.TiffFile(in_tif)
 

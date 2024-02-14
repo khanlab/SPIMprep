@@ -5,11 +5,25 @@ import dask.array.image
 from itertools import product
 from dask.diagnostics import ProgressBar
 
-in_tif_glob = snakemake.params.in_tif_glob
+def replace_square_brackets(pattern):
+    """replace all [ and ] in the string (have to use 
+    intermediate variable to avoid conflicts)"""
+    pattern = pattern.replace('[','##LEFTBRACKET##')
+    pattern = pattern.replace(']','##RIGHTBRACKET##')
+    pattern = pattern.replace('##LEFTBRACKET##','[[]')
+    pattern = pattern.replace('##RIGHTBRACKET##','[]]')
+    return pattern
 
-#create function handle to tifffile.imread that sets key=0
+
 def single_imread(*args):
+    """create function handle to tifffile.imread 
+    that sets key=0"""
     return tifffile.imread(*args,key=0)
+
+
+#use tif pattern but replace the [ and ] with [[] and []] so glob doesn't choke
+in_tif_glob = replace_square_brackets(str(snakemake.params.in_tif_pattern))
+
 
 #read metadata json
 with open(snakemake.input.metadata_json) as fp:

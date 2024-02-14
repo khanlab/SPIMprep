@@ -10,7 +10,6 @@ targets:
 
 import:
   raw_tif_pattern: "{prefix}_Blaze[{tilex} x {tiley}]_C{channel}_xyz-Table Z{zslice}.ome.tif"
-  raw_tif_glob: "{prefix}_Blaze[[]{tilex} x {tiley}[]]_C{channel}_xyz-Table Z{zslice}.ome.tif"
   intensity_rescaling: 0.5 #raw images seem to be at the upper end of uint16 (over-saturated) -- causes wrapping issues when adjusting with flatfield correction etc. this rescales the raw data as it imports it..
 
 

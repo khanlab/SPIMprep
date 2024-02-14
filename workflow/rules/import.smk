@@ -38,7 +38,7 @@ rule raw_to_metadata:
     input:
         ome_dir=rules.get_dataset.output.ome_dir,
     params:
-        in_tif_glob=lambda wildcards, input: os.path.join(
+        in_tif_pattern=lambda wildcards, input: os.path.join(
             input.ome_dir,
             config["import"]["raw_tif_pattern"],
         ),
@@ -85,9 +85,9 @@ rule tif_to_zarr:
         ome_dir=rules.get_dataset.output.ome_dir,
         metadata_json=rules.raw_to_metadata.output.metadata_json,
     params:
-        in_tif_glob=lambda wildcards, input: os.path.join(
+        in_tif_pattern=lambda wildcards, input: os.path.join(
             input.ome_dir,
-            config["import"]["raw_tif_glob"],
+            config["import"]["raw_tif_pattern"],
         ),
         intensity_rescaling=config["import"]["intensity_rescaling"],
     output:
