@@ -15,7 +15,7 @@ container: config["containers"]["spimprep"]
 root = os.path.expandvars(config["root"])
 work = os.path.expandvars(config["work"])
 
-#this is needed to use the latest bids spec with the pre-release snakebids
+# this is needed to use the latest bids spec with the pre-release snakebids
 set_bids_spec("v0_10_1")
 
 # read datasets tsv
@@ -33,89 +33,7 @@ datasets = pd.read_csv(
 )
 
 
-def get_all_targets():
-    targets = []
-    for i in range(len(datasets)):
-        targets.extend(
-            expand(
-                bids(
-                    root=root,
-                    subject="{subject}",
-                    datatype="micr",
-                    sample="{sample}",
-                    acq="{acq}",
-                    desc="{desc}",
-                    stain="{stain}",
-                    suffix="spim.ome.zarr.zip",
-                ),
-                subject=datasets.loc[i, "subject"],
-                sample=datasets.loc[i, "sample"],
-                acq=datasets.loc[i, "acq"],
-                desc=config["targets"]["desc"],
-                stain=[datasets.loc[i, "stain_0"], datasets.loc[i, "stain_1"]],
-            )
-        )
-        targets.extend(
-            expand(
-                bids(
-                    root=root,
-                    subject="{subject}",
-                    datatype="micr",
-                    sample="{sample}",
-                    acq="{acq}",
-                    desc="{desc}",
-                    from_="{template}",
-                    suffix="dseg.ome.zarr.zip",
-                ),
-                subject=datasets.loc[i, "subject"],
-                sample=datasets.loc[i, "sample"],
-                acq=datasets.loc[i, "acq"],
-                desc=config["targets"]["desc"],
-                template=config["templates"],
-                stain=[datasets.loc[i, "stain_0"], datasets.loc[i, "stain_1"]],
-            )
-        )
-        targets.extend(
-            expand(
-                bids(
-                    root=root,
-                    subject="{subject}",
-                    datatype="micr",
-                    sample="{sample}",
-                    acq="{acq}",
-                    desc="{desc}",
-                    stain="{stain}",
-                    level="{level}",
-                    suffix="spim.nii",
-                ),
-                subject=datasets.loc[i, "subject"],
-                sample=datasets.loc[i, "sample"],
-                acq=datasets.loc[i, "acq"],
-                desc=config["targets"]["desc"],
-                level=config["nifti"]["levels"],
-                stain=[datasets.loc[i, "stain_0"], datasets.loc[i, "stain_1"]],
-            )
-        )
-
-    return targets
-
-
-def get_dataset_path(wildcards):
-    df = datasets.query(
-        f"subject=='{wildcards.subject}' and sample=='{wildcards.sample}' and acq=='{wildcards.acq}'"
-    )
-    return df.dataset_path.to_list()[0]
-
-
-def get_stains(wildcards):
-    df = datasets.query(
-        f"subject=='{wildcards.subject}' and sample=='{wildcards.sample}' and acq=='{wildcards.acq}'"
-    )
-
-    return [
-        df.stain_0.to_list()[0],
-        df.stain_1.to_list()[0],
-    ]
+include: "rules/common.smk"
 
 
 rule all:

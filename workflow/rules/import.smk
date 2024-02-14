@@ -1,29 +1,3 @@
-def cmd_get_dataset(wildcards, input, output):
-    cmds = []
-    import tarfile
-
-    # supports tar, tar.gz, tgz, zip, or folder name
-    dataset_path = Path(input.dataset_path)
-    suffix = dataset_path.suffix
-    if dataset_path.is_dir():
-        # we have a directory:
-        # return command to copy folder
-        cmds.append(f"ln -sr {input} {output}")
-
-    elif tarfile.is_tarfile(dataset_path):
-        # we have a tar file
-        # check if gzipped:
-        cmds.append(f"mkdir -p {output}")
-        if suffix == "gz" or suffix == "tgz":
-            cmds.append(f"tar -xzf {input} -C {output}")
-        else:
-            cmds.append(f"tar -xf {input} -C {output}")
-
-    else:
-        print(f"unsupported input: {dataset_path}")
-
-    return " && ".join(cmds)
-
 
 rule get_dataset:
     input:
@@ -46,6 +20,16 @@ rule get_dataset:
         ),
     group:
         "preproc"
+    log:
+        bids(
+            root="logs",
+            subject="{subject}",
+            datatype="get_dataset",
+            sample="{sample}",
+            acq="{acq}",
+            desc="raw",
+            suffix="log.txt",
+        ),
     shell:
         "{params.cmd}"
 
@@ -76,6 +60,15 @@ rule raw_to_metadata:
             acq="{acq}",
             suffix="benchmark.tsv",
         )
+    log:
+        bids(
+            root="logs",
+            datatype="raw_to_metdata",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="log.txt",
+        ),
     group:
         "preproc"
     container:
@@ -120,6 +113,15 @@ rule tif_to_zarr:
             acq="{acq}",
             suffix="benchmark.tsv",
         )
+    log:
+        bids(
+            root="logs",
+            datatype="tif_to_zarr",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="log.txt",
+        ),
     group:
         "preproc"
     threads: 32
