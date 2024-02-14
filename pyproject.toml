@@ -8,8 +8,9 @@ packages = []
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.13"
-snakemake = "^8.4.2"
-snakebids = "^0.10.0"
+snakemake = "<8.0.0"
+pulp = "2.7.0"
+snakebids = {git = "https://github.com/khanlab/snakebids", rev = "main"}
 
 [build-system]
 requires = ["poetry-core"]
