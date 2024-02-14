@@ -12,8 +12,10 @@ in_xfm=snakemake.input.xfm_ras
 in_template_dseg=snakemake.input.dseg
 out_zarr=snakemake.output.zarr
 
+level=0
+
 #load dask array from zarr reference image
-darr = da.from_zarr(in_zarr,component='fused/0')
+darr = da.from_zarr(in_zarr,component=f'/{level}')
 
 #load template dseg
 dseg_nib = nib.load(in_template_dseg)
@@ -30,7 +32,7 @@ grid_points = (np.arange(dseg_vol.shape[0]),
 
 #read coordinate transform from ome-zarr
 zi = zarr.open(in_zarr)
-attrs=zi['fused'].attrs.asdict()
+attrs=zi['/'].attrs.asdict()
 level=0
 transforms = attrs['multiscales'][0]['datasets'][level]['coordinateTransformations']
 

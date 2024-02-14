@@ -2,6 +2,7 @@ import json
 import zarr
 import dask.array as da
 from ome_zarr.writer import write_image
+from ome_zarr.format import format_from_version
 from ome_zarr.scale import Scaler
 from dask.diagnostics import ProgressBar
 
@@ -45,7 +46,7 @@ axes =  [  {'name': ax, 'type': 'space', 'unit': 'micrometer'} for ax in ['z','y
 
 
 store = zarr.DirectoryStore(out_zarr)
-root = zarr.group(store,path='/fused',overwrite=True)
+root = zarr.group(store,path='/',overwrite=True)
 scaler = Scaler(max_layer=max_layer,method=scaling_method)
 
 
@@ -55,6 +56,8 @@ with ProgressBar():
                             group=root,
                             scaler=scaler,
                             coordinate_transformations=coordinate_transformations,
+                            #fmt=format_from_version(0.1),
+#                            fmt=format_from_version(0.4),
                             axes=axes)
 
 

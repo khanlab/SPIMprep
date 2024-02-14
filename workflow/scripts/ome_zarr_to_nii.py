@@ -10,7 +10,7 @@ in_zarr = snakemake.input.zarr
 
 zi = zarr.open(in_zarr)
 
-attrs=zi['fused'].attrs.asdict()
+attrs=zi['/'].attrs.asdict()
 
 level=int(snakemake.wildcards.level)
 
@@ -25,7 +25,7 @@ affine[0,0]=-transforms[0]['scale'][2] #z
 affine[1,1]=-transforms[0]['scale'][1] #y
 affine[2,2]=-transforms[0]['scale'][0] #x
 
-darr = da.from_zarr(in_zarr,component=f'fused/{level}')
+darr = da.from_zarr(in_zarr,component=f'/{level}')
 
 #input array axes are ZYX 
 #writing to nifti we want XYZ
