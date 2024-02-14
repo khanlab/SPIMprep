@@ -28,6 +28,7 @@ jobs:
       uses: snakemake/snakemake-github-action@v1.24.0
       with:
         directory: .
+        stagein: "pip install ."
         snakefile: workflow/Snakefile
         args: "--lint"
 
