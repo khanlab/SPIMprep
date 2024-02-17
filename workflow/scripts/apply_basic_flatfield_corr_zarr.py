@@ -50,4 +50,4 @@ for i_channel,model in enumerate(snakemake.input.model_dirs):
 arr_stacked = da.stack(chan_arr_list,axis=1)
 
 with ProgressBar():
-    da.to_zarr(arr_stacked,snakemake.output.zarr,overwrite=True)
+    da.to_zarr(arr_stacked,snakemake.output.zarr,overwrite=True,dimension_separator='/')

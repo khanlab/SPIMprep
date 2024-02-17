@@ -64,6 +64,6 @@ darr = darr.astype('uint16')
 #now we can do the computation itself, storing to zarr
 print('writing images to zarr with dask')
 with ProgressBar():
-    da.to_zarr(darr,snakemake.output.zarr,overwrite=True)
+    da.to_zarr(darr,snakemake.output.zarr,overwrite=True,dimension_separator='/')
 
 
