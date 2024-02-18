@@ -10,54 +10,28 @@ def get_all_targets():
                     datatype="micr",
                     sample="{sample}",
                     acq="{acq}",
-                    desc="{desc}",
-                    stain="{stain}",
                     suffix="spim.ome.zarr.zip",
                 ),
                 subject=datasets.loc[i, "subject"],
                 sample=datasets.loc[i, "sample"],
                 acq=datasets.loc[i, "acq"],
-                desc=config["targets"]["desc"],
-                stain=[datasets.loc[i, "stain_0"], datasets.loc[i, "stain_1"]],
             )
         )
         targets.extend(
             expand(
                 bids(
-                    root=root,
+                    root=resampled,
                     subject="{subject}",
                     datatype="micr",
                     sample="{sample}",
                     acq="{acq}",
-                    desc="{desc}",
-                    from_="{template}",
-                    suffix="dseg.ome.zarr.zip",
-                ),
-                subject=datasets.loc[i, "subject"],
-                sample=datasets.loc[i, "sample"],
-                acq=datasets.loc[i, "acq"],
-                desc=config["targets"]["desc"],
-                template=config["templates"],
-                stain=[datasets.loc[i, "stain_0"], datasets.loc[i, "stain_1"]],
-            )
-        )
-        targets.extend(
-            expand(
-                bids(
-                    root=root,
-                    subject="{subject}",
-                    datatype="micr",
-                    sample="{sample}",
-                    acq="{acq}",
-                    desc="{desc}",
+                    res="{level}x",
                     stain="{stain}",
-                    level="{level}",
                     suffix="spim.nii",
                 ),
                 subject=datasets.loc[i, "subject"],
                 sample=datasets.loc[i, "sample"],
                 acq=datasets.loc[i, "acq"],
-                desc=config["targets"]["desc"],
                 level=config["nifti"]["levels"],
                 stain=[datasets.loc[i, "stain_0"], datasets.loc[i, "stain_1"]],
             )

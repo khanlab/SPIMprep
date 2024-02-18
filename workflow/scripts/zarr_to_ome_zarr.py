@@ -7,20 +7,13 @@ from ome_zarr.scale import Scaler
 from dask.diagnostics import ProgressBar
 
 in_zarr=snakemake.input.zarr
+
 metadata_json=snakemake.input.metadata_json
 downsampling=snakemake.params.downsampling
 max_layer=snakemake.params.max_downsampling_layers #number of downsamplings by 2 to include in zarr
 rechunk_size=snakemake.params.rechunk_size
 out_zarr=snakemake.output.zarr
 scaling_method=snakemake.params.scaling_method
-
-#open zarr to get group name
-zi = zarr.open(in_zarr)
-group_name = [g for g in zi.group_keys()][0]
-
-darr = da.from_zarr(in_zarr,component=f'{group_name}/s0',chunks=rechunk_size)
-darr
-
 
 # prepare metadata for ome-zarr
 with open(metadata_json) as fp:
@@ -37,12 +30,25 @@ coordinate_transformations = []
 
 for l in range(max_layer+1):
     
-    coordinate_transformations.append( [{'scale': [voxdim[0],(2**l)*voxdim[1],(2**l)*voxdim[2]], #image-pyramids in XY only
+    coordinate_transformations.append( [{'scale': [1,voxdim[0],(2**l)*voxdim[1],(2**l)*voxdim[2]], #image-pyramids in XY only
                                             'type': 'scale'}]) 
 
 
-axes =  [  {'name': ax, 'type': 'space', 'unit': 'micrometer'} for ax in ['z','y','x'] ] 
+axes =  [{'name': 'c', 'type': 'channel'}] + [{'name': ax, 'type': 'space', 'unit': 'micrometer'} for ax in ['z','y','x'] ] 
 
+
+darr_list=[]
+for zarr_i in range(len(snakemake.input.zarr)):
+
+    #open zarr to get group name
+    in_zarr=snakemake.input.zarr[zarr_i]
+    zi = zarr.open(in_zarr)
+    group_name = [g for g in zi.group_keys()][0]
+
+    darr_list.append(da.from_zarr(in_zarr,component=f'{group_name}/s0',chunks=rechunk_size))
+
+
+darr_channels = da.stack(darr_list)
 
 
 store = zarr.DirectoryStore(out_zarr)
@@ -52,7 +58,7 @@ scaler = Scaler(max_layer=max_layer,method=scaling_method)
 
 
 with ProgressBar():
-    write_image(image=darr,
+    write_image(image=darr_channels,
                             group=root,
                             scaler=scaler,
                             coordinate_transformations=coordinate_transformations,
