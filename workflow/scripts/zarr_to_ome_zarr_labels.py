@@ -67,6 +67,7 @@ with ProgressBar():
                             group=root,
                             scaler=scaler,
                             name=label_name,
+                            storage_options={'dimension_separator': '/'},
                             coordinate_transformations=coordinate_transformations,
                             axes=axes)
 

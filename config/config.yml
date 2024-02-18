@@ -1,12 +1,8 @@
 datasets: 'config/datasets.tsv'
 
 
-root: 'results'
+root: 'bids'
 work: 'work' 
-
-targets:
-  desc:
-    - stitchedflatcorr  #e.g. can be stitchedraw to skip flatfield correction
 
 import:
   raw_tif_pattern: "{prefix}_Blaze[{tilex} x {tiley}]_C{channel}_xyz-Table Z{zslice}.ome.tif"
@@ -40,7 +36,8 @@ bigstitcher:
     block_size_factor_z: 1
 
 ome_zarr:
-  max_downsampling_layers: 4 # e.g. 4 levels: { 0: orig, 1: ds2, 2: ds4, 3: ds8, 4: ds16}
+  desc: stitchedflatcorr
+  max_downsampling_layers: 5 # e.g. 4 levels: { 0: orig, 1: ds2, 2: ds4, 3: ds8, 4: ds16}
   rechunk_size: #z, y, x
     - 1 
     - 1024
@@ -52,6 +49,33 @@ nifti:
     - 3
     - 4
 
+
+bids:
+  raw:
+    Name: Name of the dataset
+    BIDSVersion: v1.9.0
+    DatasetType: raw
+    License: The license for the dataset
+    Authors: 
+      - Author Name 1
+      - Author Name 2
+    GeneratedBy:
+      - Name: SPIMprep
+      - Version: 0.1.0
+      - CodeURL: https://github.com/khanlab/SPIMprep
+  resampled:
+    Name: Downsampled SPIM niftis
+    BIDSVersion: v1.9.0
+    DatasetType: derived
+    Authors: 
+      - Author Name 1
+      - Author Name 2
+    GeneratedBy:
+      - Name: SPIMprep
+      - Version: 0.1.0
+      - CodeURL: https://github.com/khanlab/SPIMprep
+
+  
 templates: 
   - ABAv3
 
@@ -72,5 +96,3 @@ containers:
   spimprep: 'docker://khanlab/spimprep-deps:main'
   miracl: 'docker://mgoubran/miracl:2.2.5'
 
-conda_envs:
-  global: 'envs/global.yml'

@@ -1,14 +1,19 @@
 rule zarr_to_ome_zarr:
     input:
-        zarr=bids(
-            root=work,
-            subject="{subject}",
-            datatype="micr",
-            sample="{sample}",
-            acq="{acq}",
-            desc="{desc}",
-            stain="{stain}",
-            suffix="spim.zarr",
+        zarr=lambda wildcards: expand(
+            bids(
+                root=work,
+                subject="{subject}",
+                datatype="micr",
+                sample="{sample}",
+                acq="{acq}",
+                desc="{desc}",
+                stain="{stain}",
+                suffix="spim.zarr",
+            ),
+            stain=get_stains(wildcards),
+            desc=config["ome_zarr"]["desc"],
+            allow_missing=True,
         ),
         metadata_json=rules.raw_to_metadata.output.metadata_json,
     params:
@@ -25,8 +30,6 @@ rule zarr_to_ome_zarr:
                     datatype="micr",
                     sample="{sample}",
                     acq="{acq}",
-                    desc="{desc}",
-                    stain="{stain}",
                     suffix="spim.ome.zarr",
                 )
             )
@@ -39,8 +42,6 @@ rule zarr_to_ome_zarr:
             datatype="zarr_to_ome_zarr",
             sample="{sample}",
             acq="{acq}",
-            desc="{desc}",
-            stain="{stain}",
             suffix="log.txt",
         ),
     container:
@@ -73,20 +74,19 @@ rule ome_zarr_to_nii:
             datatype="micr",
             sample="{sample}",
             acq="{acq}",
-            desc="{desc}",
-            stain="{stain}",
             suffix="spim.ome.zarr.zip",
         ),
+    params:
+        channel_index=lambda wildcards: get_stains(wildcards).index(wildcards.stain),
     output:
         nii=bids(
-            root=root,
+            root=resampled,
             subject="{subject}",
             datatype="micr",
             sample="{sample}",
             acq="{acq}",
-            desc="{desc}",
+            res="{level}x",
             stain="{stain}",
-            level="{level}",
             suffix="spim.nii",
         ),
     benchmark:
@@ -96,9 +96,8 @@ rule ome_zarr_to_nii:
             subject="{subject}",
             sample="{sample}",
             acq="{acq}",
-            desc="{desc}",
+            res="{level}x",
             stain="{stain}",
-            level="{level}",
             suffix="benchmark.tsv",
         )
     log:
@@ -108,9 +107,8 @@ rule ome_zarr_to_nii:
             subject="{subject}",
             sample="{sample}",
             acq="{acq}",
-            desc="{desc}",
+            res="{level}x",
             stain="{stain}",
-            level="{level}",
             suffix="log.txt",
         ),
     group:

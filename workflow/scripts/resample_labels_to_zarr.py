@@ -94,6 +94,6 @@ def interp_label(x,block_info=None):
 darr_map=darr.map_blocks(interp_label, dtype=np.uint16)
 
 with ProgressBar():
-    da.to_zarr(darr_map,out_zarr,overwrite=True)
+    da.to_zarr(darr_map,out_zarr,overwrite=True,dimension_separator='/')
 
 

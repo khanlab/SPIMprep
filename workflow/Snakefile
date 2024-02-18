@@ -14,9 +14,10 @@ container: config["containers"]["spimprep"]
 # use expandvars so we can use e.g. '$SLURM_TMPDIR'
 root = os.path.expandvars(config["root"])
 work = os.path.expandvars(config["work"])
+resampled = Path(root) / "derivatives" / "resampled"
 
 # this is needed to use the latest bids spec with the pre-release snakebids
-set_bids_spec("v0_10_1")
+set_bids_spec("v0_11_0")
 
 # read datasets tsv
 datasets = pd.read_csv(
@@ -39,10 +40,13 @@ include: "rules/common.smk"
 rule all:
     input:
         get_all_targets(),
+        Path(root) / "dataset_description.json",
+        Path(resampled) / "dataset_description.json",
 
 
 include: "rules/import.smk"
 include: "rules/flatfield_corr.smk"
 include: "rules/bigstitcher.smk"
 include: "rules/ome_zarr.smk"
-include: "rules/atlasreg.smk"
+include: "rules/bids.smk"
+
