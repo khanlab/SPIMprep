@@ -1902,17 +1902,19 @@ files = [
 
 [[package]]
 name = "snakebids"
-version = "0.0.0"
+version = "0.11.0"
 description = "BIDS integration into snakemake workflows"
 category = "main"
 optional = false
 python-versions = ">=3.8,<4.0"
-files = []
-develop = false
+files = [
+    {file = "snakebids-0.11.0-py3-none-any.whl", hash = "sha256:14093001000c2dd8c516a8f664f85db0e09605a3d6b007a777cfe728505da747"},
+    {file = "snakebids-0.11.0.tar.gz", hash = "sha256:089398c4ff4acc84b7c69782fc26dd2a887f0c348efeee1799344389c0f74291"},
+]
 
 [package.dependencies]
 attrs = ">=21.2.0"
-boutiques = "^0.5.25"
+boutiques = ">=0.5.25,<0.6.0"
 copier = ">=8.2.0"
 importlib-resources = ">=5.12.0"
 jinja2-time = ">=0.2.0"
@@ -1930,12 +1932,6 @@ snakemake = [
     {version = ">=7.18.2,<8", markers = "python_version >= \"3.11\""},
 ]
 typing-extensions = ">=3.10.0"
-
-[package.source]
-type = "git"
-url = "https://github.com/khanlab/snakebids"
-reference = "main"
-resolved_reference = "8acbd9f773b71a0c43ddf692968e4c45b1b7707f"
 
 [[package]]
 name = "snakemake"
@@ -2318,4 +2314,4 @@ pyyaml = ">=6.0,<7.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.13"
-content-hash = "1bff448e2aa38536ebc3ecfda9e13eb84ef237a6dd9cd944ed0fc0d6b1a020ca"
+content-hash = "889978799b554379e798abdfa76cb71f9ba18ed2002e698890f85dc74ebf239d"

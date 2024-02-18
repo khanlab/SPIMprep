@@ -10,7 +10,7 @@ packages = []
 python = ">=3.11,<3.13"
 snakemake = "<8.0.0"
 pulp = "2.7.0"
-snakebids = {git = "https://github.com/khanlab/snakebids", rev = "8acbd9f"}
+snakebids = "0.11.0"
 
 [build-system]
 requires = ["poetry-core"]
