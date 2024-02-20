@@ -1,3 +1,6 @@
+import tarfile
+
+
 # targets
 def get_all_targets():
     targets = []
@@ -62,7 +65,6 @@ def get_input_dataset(wildcards):
 # import
 def cmd_extract_dataset(wildcards, input, output):
     cmds = []
-    import tarfile
 
     # supports tar, tar.gz, tgz, or folder name
     dataset_path = Path(input.dataset_path)
