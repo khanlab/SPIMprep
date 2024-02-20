@@ -1,13 +1,11 @@
 # Snakemake workflow: `SPIMprep`
 
 [![Snakemake](https://img.shields.io/badge/snakemake-≥6.3.0-brightgreen.svg)](https://snakemake.github.io)
-[![GitHub actions status](https://github.com/<owner>/<repo>/workflows/Tests/badge.svg?branch=main)](https://github.com/<owner>/<repo>/actions?query=branch%3Amain+workflow%3ATests)
+[![GitHub actions status](https://github.com/khanlab/SPIMprep/workflows/Tests/badge.svg?branch=main)](https://github.com/khanlab/SPIMprep/actions?query=branch%3Amain+workflow%3ATests)
 
 A Snakemake workflow for pre-processing single plane illumination microscopy (SPIM, aka lightsheet microscopy)
 
-Takes datasets produced by the Biotec UltraMicroscope Blaze (as a folder of tif images), and outputs a BIDS-like dataset, with multiscale ome zarr files along with downsampled nifti images. 
-
-Also performs simple affine registration to Allen Brain Atlas v3 (mouse atlas), and resamples labels to multiscale ome zarr as well. (WIP)
+Takes datasets produced by the Biotec UltraMicroscope Blaze (as a folder of tif images), and outputs a BIDS-like dataset, with a multi-channel multi-scale ome zarr file along with downsampled nifti images. 
 
 ## Requirements
 
