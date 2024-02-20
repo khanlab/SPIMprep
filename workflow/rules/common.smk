@@ -40,18 +40,36 @@ def get_all_targets():
     return targets
 
 
+def get_input_dataset(wildcards):
+    """returns path to extracted dataset or path to provided input folder"""
+    in_dataset = get_dataset_path(wildcards)
+
+    dataset_path = Path(get_dataset_path(wildcards))
+    suffix = dataset_path.suffix
+
+    if dataset_path.is_dir():
+        # we have a directory already, just point to it
+        return str(dataset_path)
+
+    elif tarfile.is_tarfile(dataset_path):
+        # dataset was a tar file, so point to the extracted folder
+        return rules.get_dataset.output.ome_dir.format(**wildcards)
+
+    else:
+        print(f"unsupported input: {dataset_path}")
+
+
 # import
-def cmd_get_dataset(wildcards, input, output):
+def cmd_extract_dataset(wildcards, input, output):
     cmds = []
     import tarfile
 
-    # supports tar, tar.gz, tgz, zip, or folder name
+    # supports tar, tar.gz, tgz, or folder name
     dataset_path = Path(input.dataset_path)
     suffix = dataset_path.suffix
     if dataset_path.is_dir():
-        # we have a directory:
-        # return command to copy folder
-        cmds.append(f"ln -sr {input} {output}")
+        # we have a directory
+        print("input directory not copied/extracted by this rule")
 
     elif tarfile.is_tarfile(dataset_path):
         # we have a tar file

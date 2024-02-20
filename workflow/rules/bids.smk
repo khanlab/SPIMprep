@@ -3,8 +3,8 @@ rule raw_dataset_desc:
         dd=config["bids"]["raw"],
     output:
         json=Path(root) / "dataset_description.json",
-    log: 
-        'logs/dd_raw.log'
+    log:
+        "logs/dd_raw.log",
     run:
         import json
 
@@ -17,8 +17,8 @@ rule resampled_dataset_desc:
         dd=config["bids"]["resampled"],
     output:
         json=Path(resampled) / "dataset_description.json",
-    log: 
-        'logs/dd_raw.log'
+    log:
+        "logs/dd_raw.log",
     run:
         import json
 

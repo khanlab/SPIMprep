@@ -1,9 +1,9 @@
 
-rule get_dataset:
+rule extract_dataset:
     input:
         dataset_path=get_dataset_path,
     params:
-        cmd=cmd_get_dataset,
+        cmd=cmd_extract_dataset,
     output:
         ome_dir=temp(
             directory(
@@ -36,7 +36,7 @@ rule get_dataset:
 
 rule raw_to_metadata:
     input:
-        ome_dir=rules.get_dataset.output.ome_dir,
+        ome_dir=get_input_dataset,
     params:
         in_tif_pattern=lambda wildcards, input: os.path.join(
             input.ome_dir,
@@ -82,7 +82,7 @@ rule tif_to_zarr:
         output shape is (tiles,channels,z,y,x), with the 2d 
         images as the chunks"""
     input:
-        ome_dir=rules.get_dataset.output.ome_dir,
+        ome_dir=get_input_dataset,
         metadata_json=rules.raw_to_metadata.output.metadata_json,
     params:
         in_tif_pattern=lambda wildcards, input: os.path.join(

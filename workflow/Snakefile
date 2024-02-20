@@ -49,4 +49,3 @@ include: "rules/flatfield_corr.smk"
 include: "rules/bigstitcher.smk"
 include: "rules/ome_zarr.smk"
 include: "rules/bids.smk"
-

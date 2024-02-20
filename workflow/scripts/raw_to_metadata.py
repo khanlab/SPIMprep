@@ -5,10 +5,16 @@ import re
 from itertools import product
 from snakemake.io import glob_wildcards
 
+
 in_tif_pattern = snakemake.params.in_tif_pattern
 
+#add a wildcard constraint to ensure no
+#subfolders get parsed (ie don't match anything with / in it):
+prefix_constraint=r'[^/]+' 
+in_tif_pattern_constrained = in_tif_pattern.replace('{prefix}',f'{{prefix,{prefix_constraint}}}')
+
 #parse the filenames to get number of channels, tiles etc..
-prefix, tilex, tiley, channel, zslice = glob_wildcards(in_tif_pattern)
+prefix, tilex, tiley, channel, zslice = glob_wildcards(in_tif_pattern_constrained)
 
 tiles_x = sorted(list(set(tilex)))
 tiles_y = sorted(list(set(tiley)))
@@ -19,7 +25,7 @@ prefixes = sorted(list(set(prefix)))
 #read in series metadata from first file
 in_tif = in_tif_pattern.format(tilex=tiles_x[0],tiley=tiles_y[0],prefix=prefixes[0],channel=channels[0],zslice=zslices[0])
 
-raw_tif = tifffile.TiffFile(in_tif)
+raw_tif = tifffile.TiffFile(in_tif,mode='r')
 
 axes = raw_tif.series[0].get_axes()
 shape = raw_tif.series[0].get_shape()
