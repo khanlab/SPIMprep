@@ -21,6 +21,7 @@ rule zarr_to_ome_zarr:
         rechunk_size=config["ome_zarr"]["rechunk_size"],
         scaling_method=config["ome_zarr"]["scaling_method"],
         downsampling=config["bigstitcher"]["fuse_dataset"]["downsampling"],
+        stains=get_stains,
     output:
         zarr=temp(
             directory(

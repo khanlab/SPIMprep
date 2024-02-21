@@ -13,6 +13,7 @@ downsampling=snakemake.params.downsampling
 max_layer=snakemake.params.max_downsampling_layers #number of downsamplings by 2 to include in zarr
 rechunk_size=snakemake.params.rechunk_size
 out_zarr=snakemake.output.zarr
+stains=snakemake.params.stains
 scaling_method=snakemake.params.scaling_method
 
 # prepare metadata for ome-zarr
@@ -37,9 +38,12 @@ for l in range(max_layer+1):
 axes =  [{'name': 'c', 'type': 'channel'}] + [{'name': ax, 'type': 'space', 'unit': 'micrometer'} for ax in ['z','y','x'] ] 
 
 
+#init omero metadata
+omero={key:val for key,val in snakemake.config['ome_zarr']['omero_metadata']['defaults'].items()}
+omero['channels']=[]
+
 darr_list=[]
 for zarr_i in range(len(snakemake.input.zarr)):
-
     #open zarr to get group name
     in_zarr=snakemake.input.zarr[zarr_i]
     zi = zarr.open(in_zarr)
@@ -47,6 +51,15 @@ for zarr_i in range(len(snakemake.input.zarr)):
 
     darr_list.append(da.from_zarr(in_zarr,component=f'{group_name}/s0',chunks=rechunk_size))
 
+    #append to omero metadata
+    channel_metadata={key:val for key,val in snakemake.config['ome_zarr']['omero_metadata']['channels']['defaults'].items()}
+    channel_name=stains[zarr_i]
+    channel_metadata['label'] = channel_name
+    default_color=snakemake.config['ome_zarr']['omero_metadata']['channels']['default_color']
+    color=snakemake.config['ome_zarr']['omero_metadata']['channels']['color_mapping'].get(channel_name,default_color)
+    channel_metadata['color'] = color
+    omero['channels'].append(channel_metadata)
+    
 
 darr_channels = da.stack(darr_list)
 
@@ -63,6 +76,8 @@ with ProgressBar():
                             scaler=scaler,
                             coordinate_transformations=coordinate_transformations,
                             storage_options={'dimension_separator': '/'},
-                            axes=axes)
+                            axes=axes,
+                            metadata={'omero':omero}
+                                )
 
 

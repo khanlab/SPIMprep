@@ -43,6 +43,31 @@ ome_zarr:
     - 1024
     - 1024
   scaling_method: 'local_mean' #can be nearest, gaussian, local_mean, zoom (zoom uses spline interp)
+ 
+  omero_metadata:
+    channels:
+      default_color: 'FFFFFF'
+      color_mapping:
+        autof: 'FFFFFF'
+        abeta: '00FF00'
+      defaults:
+        active: True
+        coefficient: 1.0
+        inverted: False
+        family: linear
+        window: 
+          min: 0
+          max: 65535
+          start: 0
+          end: 65535
+    defaults:
+      rdefs:
+        defaultT: 0
+        defaultZ: 0
+        model: 'color'
+      id: 0
+      name: spim
+      version: "0.4"  
 
 nifti:
   levels: #cannot be higher than max_downsampling_layers in ome_zarr
