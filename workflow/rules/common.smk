@@ -128,7 +128,7 @@ def get_fiji_launcher_cmd(wildcards, output, threads, resources):
 
 def get_macro_args_bigstitcher(wildcards, input, output):
     return "{dataset_xml} {ds_x} {ds_y} {ds_z} {min_r}".format(
-        dataset_xml=input.dataset_xml,
+        dataset_xml=output.dataset_xml,
         ds_x=config["bigstitcher"]["calc_pairwise_shifts"]["downsample_in_x"],
         ds_y=config["bigstitcher"]["calc_pairwise_shifts"]["downsample_in_y"],
         ds_z=config["bigstitcher"]["calc_pairwise_shifts"]["downsample_in_z"],
