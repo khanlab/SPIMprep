@@ -56,7 +56,7 @@ def get_input_dataset(wildcards):
 
     elif tarfile.is_tarfile(dataset_path):
         # dataset was a tar file, so point to the extracted folder
-        return rules.get_dataset.output.ome_dir.format(**wildcards)
+        return rules.extract_dataset.output.ome_dir.format(**wildcards)
 
     else:
         print(f"unsupported input: {dataset_path}")

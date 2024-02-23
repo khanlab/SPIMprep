@@ -24,7 +24,7 @@ rule extract_dataset:
         bids(
             root="logs",
             subject="{subject}",
-            datatype="get_dataset",
+            datatype="extract_dataset",
             sample="{sample}",
             acq="{acq}",
             desc="raw",
