@@ -56,7 +56,7 @@ rule affine_reg:
             desc=config["atlasreg"]["desc"],
             stain=config["atlasreg"]["stain"],
             level=config["atlasreg"]["level"],
-            suffix="spim.nii",
+            suffix="SPIM.nii",
         ),
     output:
         xfm_ras=bids(
@@ -79,7 +79,7 @@ rule affine_reg:
             acq="{acq}",
             space="{template}",
             desc="affinewarped",
-            suffix="spim.nii",
+            suffix="SPIM.nii",
         ),
     log:
         bids(
@@ -111,7 +111,7 @@ rule deform_reg:
             desc=config["atlasreg"]["desc"],
             stain=config["atlasreg"]["stain"],
             level=config["atlasreg"]["level"],
-            suffix="spim.nii",
+            suffix="SPIM.nii",
         ),
         xfm_ras=rules.affine_reg.output.xfm_ras,
     output:
@@ -133,7 +133,7 @@ rule deform_reg:
             acq="{acq}",
             space="{template}",
             desc="deformwarped",
-            suffix="spim.nii",
+            suffix="SPIM.nii",
         ),
     log:
         bids(
@@ -167,7 +167,7 @@ rule resample_labels_to_zarr:
             acq="{acq}",
             desc="{desc}",
             stain=config["atlasreg"]["stain"],
-            suffix="spim.ome.zarr.zip",
+            suffix="SPIM.ome.zarr.zip",
         ),
     output:
         zarr=temp(

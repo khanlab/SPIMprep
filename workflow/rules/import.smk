@@ -14,7 +14,7 @@ rule extract_dataset:
                     sample="{sample}",
                     acq="{acq}",
                     desc="raw",
-                    suffix="spim",
+                    suffix="SPIM",
                 )
             )
         ),
@@ -49,7 +49,7 @@ rule raw_to_metadata:
             datatype="micr",
             sample="{sample}",
             acq="{acq}",
-            suffix="spim.metadata.json",
+            suffix="SPIM.metadata.json",
         ),
     benchmark:
         bids(
@@ -100,7 +100,7 @@ rule tif_to_zarr:
                     sample="{sample}",
                     acq="{acq}",
                     desc="raw",
-                    suffix="spim.zarr",
+                    suffix="SPIM.zarr",
                 )
             )
         ),

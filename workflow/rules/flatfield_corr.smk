@@ -9,7 +9,7 @@ rule fit_basic_flatfield_corr:
             sample="{sample}",
             acq="{acq}",
             desc="raw",
-            suffix="spim.zarr",
+            suffix="SPIM.zarr",
         ),
     params:
         channel=lambda wildcards: get_stains(wildcards).index(wildcards.stain),
@@ -71,7 +71,7 @@ rule apply_basic_flatfield_corr:
             sample="{sample}",
             acq="{acq}",
             desc="raw",
-            suffix="spim.zarr",
+            suffix="SPIM.zarr",
         ),
         model_dirs=lambda wildcards: expand(
             rules.fit_basic_flatfield_corr.output.model_dir,
@@ -88,7 +88,7 @@ rule apply_basic_flatfield_corr:
                     sample="{sample}",
                     acq="{acq}",
                     desc="flatcorr",
-                    suffix="spim.zarr",
+                    suffix="SPIM.zarr",
                 )
             )
         ),
