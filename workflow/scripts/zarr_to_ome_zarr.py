@@ -35,7 +35,7 @@ for l in range(max_layer+1):
                                             'type': 'scale'}]) 
 
 
-axes =  [{'name': 'c', 'type': 'channel'}] + [{'name': ax, 'type': 'space', 'unit': 'micrometer'} for ax in ['z','y','x'] ] 
+axes =  [{'name': 'c', 'type': 'channel'}] + [{'name': ax, 'type': 'space', 'unit': 'millimeter'} for ax in ['z','y','x'] ] 
 
 
 #init omero metadata
