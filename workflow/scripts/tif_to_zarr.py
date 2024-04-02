@@ -45,6 +45,8 @@ for i_tile,(tilex,tiley) in enumerate(product(metadata['tiles_x'],metadata['tile
     for i_chan,channel in enumerate(metadata['channels']):
 
             
+        in_darr=dask.array.image.imread(in_tif_glob.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel,zslice='*'), imread=single_imread)
+        if channel
         zstacks.append(dask.array.image.imread(in_tif_glob.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel,zslice='*'), imread=single_imread))
         
 

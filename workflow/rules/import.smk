@@ -90,6 +90,7 @@ rule tif_to_zarr:
             config["import"]["raw_tif_pattern"],
         ),
         intensity_rescaling=config["import"]["intensity_rescaling"],
+        stain_to_channel={get_stains(wildcards).index(wildcards.stain),
     output:
         zarr=temp(
             directory(
