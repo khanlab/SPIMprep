@@ -13,11 +13,14 @@ def get_all_targets():
                     datatype="micr",
                     sample="{sample}",
                     acq="{acq}",
-                    suffix="SPIM.ome.zarr.zip",
+                    suffix="SPIM.{extension}",
                 ),
                 subject=datasets.loc[i, "subject"],
                 sample=datasets.loc[i, "sample"],
                 acq=datasets.loc[i, "acq"],
+                extension="ome.zarr.zip"
+                if config["ome_zarr"]["use_zipstore"]
+                else "ome.zarr",
             )
         )
         targets.extend(
