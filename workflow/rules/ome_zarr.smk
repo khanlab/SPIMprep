@@ -53,6 +53,20 @@ rule zarr_to_ome_zarr:
         "../scripts/zarr_to_ome_zarr.py"
 
 
+rule ome_zarr_from_work:
+    """ generic rule to copy any ome.zarr from work """
+    input:
+        zarr=f"{work}/{{prefix}}.ome.zarr",
+    output:
+        zarr=f"{root}/{{prefix}}.ome.zarr",
+    log:
+        "logs/ome_zarr_to_from_work/{prefix}.log",
+    group:
+        "preproc"
+    shell:
+        "cp -R {input.zarr} {output.zarr} &> {log}"
+
+
 rule ome_zarr_to_zipstore:
     """ generic rule to process any ome.zarr from work """
     input:

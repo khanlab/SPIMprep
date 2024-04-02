@@ -68,6 +68,7 @@ ome_zarr:
       id: 0
       name: spim
       version: "0.4"  
+  use_zipstore: False #if True, produce SPIM.ome.zarr.zip instead of SPIM.ome.zarr
 
 nifti:
   levels: #cannot be higher than max_downsampling_layers in ome_zarr
