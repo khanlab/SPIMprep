@@ -7,7 +7,7 @@ rule zarr_to_bdv:
             sample="{sample}",
             acq="{acq}",
             desc="{desc}",
-            suffix="spim.zarr",
+            suffix="SPIM.zarr",
         ),
         metadata_json=rules.raw_to_metadata.output.metadata_json,
     params:
@@ -208,7 +208,7 @@ rule fuse_dataset:
                     acq="{acq}",
                     desc="stitched{desc}",
                     stain="{stain}",
-                    suffix="spim.zarr",
+                    suffix="SPIM.zarr",
                 )
             )
         ),
@@ -280,7 +280,7 @@ rule fuse_dataset_spark:
                     acq="{acq}",
                     desc="sparkstitched{desc}",
                     stain="{stain}",
-                    suffix="spim.zarr",
+                    suffix="SPIM.zarr",
                 )
             )
         ),

@@ -9,7 +9,7 @@ rule zarr_to_ome_zarr:
                 acq="{acq}",
                 desc="{desc}",
                 stain="{stain}",
-                suffix="spim.zarr",
+                suffix="SPIM.zarr",
             ),
             stain=get_stains(wildcards),
             desc=config["ome_zarr"]["desc"],
@@ -31,7 +31,7 @@ rule zarr_to_ome_zarr:
                     datatype="micr",
                     sample="{sample}",
                     acq="{acq}",
-                    suffix="spim.ome.zarr",
+                    suffix="SPIM.ome.zarr",
                 )
             )
         ),
@@ -75,7 +75,7 @@ rule ome_zarr_to_nii:
             datatype="micr",
             sample="{sample}",
             acq="{acq}",
-            suffix="spim.ome.zarr.zip",
+            suffix="SPIM.ome.zarr.zip",
         ),
     params:
         channel_index=lambda wildcards: get_stains(wildcards).index(wildcards.stain),
@@ -88,7 +88,7 @@ rule ome_zarr_to_nii:
             acq="{acq}",
             res="{level}x",
             stain="{stain}",
-            suffix="spim.nii",
+            suffix="SPIM.nii",
         ),
     benchmark:
         bids(
