@@ -58,7 +58,7 @@ rule ome_zarr_from_work:
     input:
         zarr=f"{work}/{{prefix}}.ome.zarr",
     output:
-        zarr=f"{root}/{{prefix}}.ome.zarr",
+        zarr=directory(f"{root}/{{prefix}}.ome.zarr"),
     log:
         "logs/ome_zarr_to_from_work/{prefix}.log",
     group:
