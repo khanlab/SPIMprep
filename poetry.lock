@@ -1042,7 +1042,7 @@ files = [
 ]
 
 [package.dependencies]
-numpy = {version = ">=1.26.0,<2", markers = "python_version >= \"3.12\""}
+numpy = {version = ">=1.23.2,<2", markers = "python_version == \"3.11\""}
 python-dateutil = ">=2.8.2"
 pytz = ">=2020.1"
 tzdata = ">=2022.7"
@@ -1978,7 +1978,6 @@ jinja2-time = ">=0.2.0"
 lazy-loader = ">=0.3"
 more-itertools = ">=8"
 numpy = {version = ">=1.23.2", markers = "python_version >= \"3.11\""}
-pandas = {version = ">=2.1.1", markers = "python_version >= \"3.12\""}
 pvandyken-deprecated = "0.0.4"
 pybids = ">=0.16.0,<0.17"
 requests = ">=2.31.0"
@@ -2399,5 +2398,5 @@ pyyaml = ">=6.0,<7.0"
 
 [metadata]
 lock-version = "2.0"
-python-versions = ">=3.11,<3.13"
-content-hash = "24f62f8bc5131f965924128bec7533b22e50fdd72895677f1b9a9c6b4ef5b883"
+python-versions = ">=3.11,<3.12"
+content-hash = "788c23de2284f43514676c3ddec433aad3a9d41f8ed5e14082b832f3452d2ccc"
