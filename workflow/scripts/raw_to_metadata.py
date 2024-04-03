@@ -88,6 +88,8 @@ metadata['lookup_tile_offset_x'] = map_x
 metadata['lookup_tile_offset_y'] = map_y
 metadata['lookup_tile_offset_z'] = map_z
 metadata['ome_full_metadata'] = ome_dict
+metadata['PixelSize'] = [ float(physical_size_z), float(physical_size_y), float(physical_size_x) ] #zyx since OME-Zarr is ZYX
+metadata['PixelSizeUnits'] = 'mm' 
 
 #write metadata to json
 with open(snakemake.output.metadata_json, 'w') as fp:

@@ -40,8 +40,7 @@ include: "rules/common.smk"
 rule all:
     input:
         get_all_targets(),
-        Path(root) / "dataset_description.json",
-        Path(resampled) / "dataset_description.json",
+        get_bids_toplevel_targets(),
 
 
 include: "rules/import.smk"

@@ -100,6 +100,9 @@ bids:
       - Name: SPIMprep
       - Version: 0.1.0
       - CodeURL: https://github.com/khanlab/SPIMprep
+  readme_md: resources/bids_template_files/README.md
+  samples_json: resources/bids_template_files/samples.json
+    
 
   
 templates: 
