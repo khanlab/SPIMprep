@@ -49,7 +49,7 @@ rule raw_to_metadata:
             datatype="micr",
             sample="{sample}",
             acq="{acq}",
-            suffix="SPIM.metadata.json",
+            suffix="SPIM.json",
         ),
     benchmark:
         bids(

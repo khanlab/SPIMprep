@@ -46,6 +46,16 @@ def get_all_targets():
     return targets
 
 
+def get_bids_toplevel_targets():
+    targets = []
+    targets.append(Path(root) / "README.md")
+    targets.append(Path(root) / "dataset_description.json")
+    targets.append(Path(root) / "samples.tsv")
+    targets.append(Path(root) / "samples.json")
+    targets.append(Path(resampled) / "dataset_description.json")
+    return targets
+
+
 def get_input_dataset(wildcards):
     """returns path to extracted dataset or path to provided input folder"""
     in_dataset = get_dataset_path(wildcards)

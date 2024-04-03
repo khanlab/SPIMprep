@@ -24,3 +24,36 @@ rule resampled_dataset_desc:
 
         with open(output.json, "w") as outfile:
             json.dump(params.dd, outfile, indent=4)
+
+
+rule bids_readme:
+    input:
+        config["bids"]["readme_md"],
+    output:
+        Path(root) / "README.md",
+    log:
+        "logs/bids_readme.log",
+    shell:
+        "cp {input} {output}"
+
+
+rule bids_samples_json:
+    input:
+        config["bids"]["samples_json"],
+    output:
+        Path(root) / "samples.json",
+    log:
+        "logs/bids_samples_json.log",
+    shell:
+        "cp {input} {output}"
+
+
+rule create_samples_tsv:
+    input:
+        tsv=config["datasets"],
+    output:
+        tsv=Path(root) / "samples.tsv",
+    log:
+        "logs/bids_samples_tsv.log",
+    script:
+        "../scripts/create_samples_tsv.py"
