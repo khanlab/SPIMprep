@@ -14,7 +14,7 @@ jobs:
       - name: Setup Python environment
         uses: khanlab/actions/.github/actions/action-setup_task-installPyProject@v0.3.6
         with:
-          python-version: '3.10'
+          python-version: '3.11'
       - name: snakemake lint
         run: poetry run snakemake --lint
       - name: snakefmt
@@ -24,7 +24,7 @@ jobs:
     needs: [quality]
     strategy:
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.11', '3.12']
     steps:
       - name: Setup Python environments
         uses: khanlab/actions/.github/actions/action-setup_task-installPyProject@v0.3.6
