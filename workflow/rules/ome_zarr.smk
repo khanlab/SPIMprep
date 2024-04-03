@@ -84,12 +84,12 @@ rule ome_zarr_to_zipstore:
 rule ome_zarr_to_nii:
     input:
         zarr=bids(
-            root=root,
+            root=work,
             subject="{subject}",
             datatype="micr",
             sample="{sample}",
             acq="{acq}",
-            suffix="SPIM.ome.zarr.zip",
+            suffix="SPIM.ome.zarr",
         ),
     params:
         channel_index=lambda wildcards: get_stains(wildcards).index(wildcards.stain),
