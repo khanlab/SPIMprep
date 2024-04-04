@@ -1,3 +1,6 @@
+import json
+
+
 rule raw_dataset_desc:
     params:
         dd=config["bids"]["raw"],
@@ -5,9 +8,8 @@ rule raw_dataset_desc:
         json=Path(root) / "dataset_description.json",
     log:
         "logs/dd_raw.log",
+    localrule: True
     run:
-        import json
-
         with open(output.json, "w") as outfile:
             json.dump(params.dd, outfile, indent=4)
 
@@ -19,9 +21,8 @@ rule resampled_dataset_desc:
         json=Path(resampled) / "dataset_description.json",
     log:
         "logs/dd_raw.log",
+    localrule: True
     run:
-        import json
-
         with open(output.json, "w") as outfile:
             json.dump(params.dd, outfile, indent=4)
 
@@ -33,6 +34,7 @@ rule bids_readme:
         Path(root) / "README.md",
     log:
         "logs/bids_readme.log",
+    localrule: True
     shell:
         "cp {input} {output}"
 
@@ -44,6 +46,7 @@ rule bids_samples_json:
         Path(root) / "samples.json",
     log:
         "logs/bids_samples_json.log",
+    localrule: True
     shell:
         "cp {input} {output}"
 
@@ -55,5 +58,6 @@ rule create_samples_tsv:
         tsv=Path(root) / "samples.tsv",
     log:
         "logs/bids_samples_tsv.log",
+    localrule: True
     script:
         "../scripts/create_samples_tsv.py"
