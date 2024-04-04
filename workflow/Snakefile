@@ -41,6 +41,7 @@ rule all:
     input:
         get_all_targets(),
         get_bids_toplevel_targets(),
+    localrule: True
 
 
 include: "rules/import.smk"
