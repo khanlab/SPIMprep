@@ -129,3 +129,40 @@ rule tif_to_zarr:
         config["containers"]["spimprep"]
     script:
         "../scripts/tif_to_zarr.py"
+
+
+rule stitched_tif_to_zarr:
+    input:
+        tif_dir=get_input_dataset
+    params:
+        in_tif_glob=lambda wildcards, input: os.path.join(
+            input.tif_dir,
+            config["import_stitched"]["stitched_tif_glob"],
+        ),
+        rechunk_size=config["ome_zarr"]["rechunk_size"],
+    output:
+         zarr=temp(
+            directory(
+                bids(
+                    root=work,
+                    subject="{subject}",
+                    datatype="micr",
+                    sample="{sample}",
+                    acq="{acq}",
+                    desc="prestitched",
+                    stain="{stain}",
+                    suffix="SPIM.zarr",
+                )
+            )
+        ),
+    group:
+        "preproc"
+    threads: 32
+    container: None
+#        config["containers"]["spimprep"]
+    script:
+        "../scripts/stitched_tif_to_zarr.py"
+
+      
+        
+

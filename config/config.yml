@@ -4,11 +4,13 @@ datasets: 'config/datasets.tsv'
 root: 'bids'
 work: 'work' 
 
+#import wildcards:  tilex, tiley, channel, zslice (and prefix - unused)
 import:
   raw_tif_pattern: "{prefix}_Blaze[{tilex} x {tiley}]_C{channel}_xyz-Table Z{zslice}.ome.tif"
   intensity_rescaling: 0.5 #raw images seem to be at the upper end of uint16 (over-saturated) -- causes wrapping issues when adjusting with flatfield correction etc. this rescales the raw data as it imports it..
 
-
+import_stitched:
+  stitched_tif_glob: "*nm_{stain}/*.tif"
 
 basic_flatfield_corr:
   max_n_images: 500

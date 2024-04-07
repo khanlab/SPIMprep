@@ -12,7 +12,7 @@ rule zarr_to_ome_zarr:
                 suffix="SPIM.zarr",
             ),
             stain=get_stains(wildcards),
-            desc=config["ome_zarr"]["desc"],
+            desc="prestitched" if wildcards.acq == 'lifecanvas' else config["ome_zarr"]["desc"],
             allow_missing=True,
         ),
         metadata_json=rules.raw_to_metadata.output.metadata_json,
