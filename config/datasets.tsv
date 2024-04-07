@@ -1,3 +1,3 @@
-subject	sample	acq	stain_0	stain_1	dataset_path	dataset_type
-mouse1	brain	1x	abeta	autof	.test/dryrun/data	blaze_tiles
-onuska21	brain	lifecanvas	PI	BetaAmyloid	/cifs/prado/Kate/AK_Pipeline_LSM/Onuska_21_PI-BetaAmyloid	stitched
+subject	sample	acq	stain_0	stain_1	dataset_path
+mouse1	brain	1x	abeta	autof	.test/dryrun/data
+onuska21	brain	lifecanvas	PI	BetaAmyloid	/cifs/prado/Kate/AK_Pipeline_LSM/Onuska_21_PI-BetaAmyloid
