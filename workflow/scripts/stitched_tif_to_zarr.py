@@ -1,4 +1,3 @@
-import tifffile
 from glob import glob
 import dask.array as da
 import dask.array.image 
@@ -10,17 +9,9 @@ rechunk_size=snakemake.params.rechunk_size
 
 in_tif_glob = snakemake.params.in_tif_glob.format(stain=snakemake.wildcards.stain)
 
-tif_paths = sorted(glob(in_tif_glob))
 
-zslices=[]
-for tif_path in tif_paths[:5]:
-
-    print(tif_path)
-    zslices.append(dask.array.image.imread(tif_path, imread=tifffile.imread))
+darr = dask.array.image.imread(in_tif_glob)
         
-
-darr = da.stack(zslices,axis=1)
-darr = da.squeeze(darr)
 
 #rescale intensities, and recast  -- only recast
 #darr = darr * snakemake.params.intensity_rescaling
