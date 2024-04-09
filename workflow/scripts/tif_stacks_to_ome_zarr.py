@@ -1,12 +1,12 @@
 import json
 import zarr
 import dask.array as da
+from dask.array.image import imread as dask_imread
 from ome_zarr.writer import write_image
 from ome_zarr.format import format_from_version
 from ome_zarr.scale import Scaler
 from dask.diagnostics import ProgressBar
 
-in_tif_dirs=snakemake.input.tif_dirs
 in_tif_glob = snakemake.params.in_tif_glob
 
 metadata_json=snakemake.input.metadata_json
@@ -47,7 +47,7 @@ darr_list=[]
 for i,stain in enumerate(stains):
     
     tif_glob = in_tif_glob.format(stain=stain)
-    darr_list.append(dask.array.image.imread(tif_glob).rechunk(rechunk_size))
+    darr_list.append(dask_imread(tif_glob).rechunk(rechunk_size))
 
     #append to omero metadata
     channel_metadata={key:val for key,val in snakemake.config['ome_zarr']['omero_metadata']['channels']['defaults'].items()}

@@ -1,6 +1,4 @@
 
-ruleorder: zarr_to_ome_zarr > tif_stack_to_ome_zarr
-
 rule zarr_to_ome_zarr:
     input:
         zarr=lambda wildcards: expand(
@@ -15,7 +13,7 @@ rule zarr_to_ome_zarr:
                 suffix="SPIM.zarr",
             ),
             stain=get_stains(wildcards),
-            desc="prestitched" if wildcards.acq == 'lifecanvas' else config["ome_zarr"]["desc"],
+            desc=config["ome_zarr"]["desc"],
             allow_missing=True,
         ),
         metadata_json=rules.raw_to_metadata.output.metadata_json,
@@ -33,7 +31,7 @@ rule zarr_to_ome_zarr:
                     subject="{subject}",
                     datatype="micr",
                     sample="{sample}",
-                    acq="{acq}",
+                    acq="{acq,^(?!.*lifecanvas)}", #anything but lifecanvas
                     suffix="SPIM.ome.zarr",
                 )
             )
@@ -55,7 +53,7 @@ rule zarr_to_ome_zarr:
     script:
         "../scripts/zarr_to_ome_zarr.py"
 
-rule tif_stack_to_ome_zarr:
+rule tif_stacks_to_ome_zarr:
     input:
         tif_dir=get_input_dataset,
         metadata_json=rules.raw_to_metadata.output.metadata_json,
@@ -82,7 +80,6 @@ rule tif_stack_to_ome_zarr:
                 )
             )
         ),
-    threads: 32
     log:
         bids(
             root="logs",
@@ -96,8 +93,12 @@ rule tif_stack_to_ome_zarr:
         config["containers"]["spimprep"]
     group:
         "preproc"
+    threads: 32
+    resources:
+        runtime=360,
+        mem_mb=32000, 
     script:
-        "../scripts/zarr_to_ome_zarr.py"
+        "../scripts/tif_stacks_to_ome_zarr.py"
 
 
 
