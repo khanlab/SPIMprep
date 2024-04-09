@@ -9,8 +9,12 @@ import:
   raw_tif_pattern: "{prefix}_Blaze[{tilex} x {tiley}]_C{channel}_xyz-Table Z{zslice}.ome.tif"
   intensity_rescaling: 0.5 #raw images seem to be at the upper end of uint16 (over-saturated) -- causes wrapping issues when adjusting with flatfield correction etc. this rescales the raw data as it imports it..
 
-import_stitched:
+import_prestitched:
   stitched_tif_glob: "*nm_{stain}/*.tif"
+  physical_size_x_um: 1.8
+  physical_size_y_um: 1.8
+  physical_size_z_um: 4
+
 
 basic_flatfield_corr:
   max_n_images: 500

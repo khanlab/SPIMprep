@@ -31,7 +31,7 @@ rule zarr_to_ome_zarr:
                     subject="{subject}",
                     datatype="micr",
                     sample="{sample}",
-                    acq="{acq,^(?!.*lifecanvas)}", #anything but lifecanvas
+                    acq="{acq,blaze[a-zA-Z0-9]*}",
                     suffix="SPIM.ome.zarr",
                 )
             )
@@ -60,7 +60,7 @@ rule tif_stacks_to_ome_zarr:
     params:
         in_tif_glob=lambda wildcards, input: os.path.join(
             input.tif_dir,
-            config["import_stitched"]["stitched_tif_glob"],
+            config["import_prestitched"]["stitched_tif_glob"],
         ),
         max_downsampling_layers=config["ome_zarr"]["max_downsampling_layers"],
         rechunk_size=config["ome_zarr"]["rechunk_size"],
@@ -75,7 +75,7 @@ rule tif_stacks_to_ome_zarr:
                     subject="{subject}",
                     datatype="micr",
                     sample="{sample}",
-                    acq="{acq,lifecanvas}",
+                    acq="{acq,prestitched[a-zA-Z0-9]*}",
                     suffix="SPIM.ome.zarr",
                 )
             )

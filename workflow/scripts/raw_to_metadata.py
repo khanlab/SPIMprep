@@ -5,23 +5,19 @@ import re
 from itertools import product
 from snakemake.io import glob_wildcards
 
-if snakemake.wildcards.acq == 'lifecanvas':
-    physical_size_x=1.8
-    physical_size_y=1.8
-    physical_size_z=4 
-
+if 'prestitched' in snakemake.wildcards.acq:
     metadata={}
-    metadata['physical_size_x'] = physical_size_x
-    metadata['physical_size_y'] = physical_size_y
-    metadata['physical_size_z'] = physical_size_z
-    metadata['PixelSize'] = [ float(physical_size_z/1000.0), float(physical_size_y/1000.0), float(physical_size_x/1000.0) ] #zyx since OME-Zarr is ZYX
+    metadata['physical_size_x'] = config['import_prestitched']['physical_size_x_um']
+    metadata['physical_size_y'] = config['import_prestitched']['physical_size_y_um']
+    metadata['physical_size_z'] = config['import_prestitched']['physical_size_z_um']
+    metadata['PixelSize'] = [ float(metadata['physical_size_z']/1000.0), float(metadata['physical_size_y']/1000.0), float(metadata['physical_size_x']/1000.0) ] #zyx since OME-Zarr is ZYX
     metadata['PixelSizeUnits'] = 'mm' 
 
     #write metadata to json
     with open(snakemake.output.metadata_json, 'w') as fp:
         json.dump(metadata, fp,indent=4)
 
-else:
+elif 'blaze' in snakemake.wildcards.acq:
 
     in_tif_pattern = snakemake.params.in_tif_pattern
 
@@ -111,3 +107,5 @@ else:
     #write metadata to json
     with open(snakemake.output.metadata_json, 'w') as fp:
         json.dump(metadata, fp,indent=4)
+else:
+    print('ERROR: unsupported input acquisition')
