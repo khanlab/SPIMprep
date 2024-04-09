@@ -1,5 +1,3 @@
-print(get_output_ome_zarr("prestitched"))
-
 
 rule zarr_to_ome_zarr:
     input:
