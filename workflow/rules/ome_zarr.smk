@@ -93,7 +93,7 @@ rule tif_stacks_to_ome_zarr:
         config["containers"]["spimprep"]
     group:
         "preproc"
-    threads: 32
+    threads: 8
     resources:
         runtime=360,
         mem_mb=32000, 

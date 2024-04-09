@@ -30,8 +30,8 @@ bigstitcher:
     min_r: 0.7
   fuse_dataset:
     downsampling: 1
-    block_size_x: 1024 # for storage
-    block_size_y: 1024
+    block_size_x: 4096 # for storage
+    block_size_y: 4096
     block_size_z: 1
     block_size_factor_x: 2 #e.g. 2 will use 2*block_size for computation
     block_size_factor_y: 2
@@ -42,8 +42,8 @@ ome_zarr:
   max_downsampling_layers: 5 # e.g. 4 levels: { 0: orig, 1: ds2, 2: ds4, 3: ds8, 4: ds16}
   rechunk_size: #z, y, x
     - 1 
-    - 1024
-    - 1024
+    - 4096
+    - 4096
   scaling_method: 'local_mean' #can be nearest, gaussian, local_mean, zoom (zoom uses spline interp)
  
   omero_metadata:
