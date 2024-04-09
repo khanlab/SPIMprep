@@ -158,8 +158,8 @@ rule stitched_tif_to_zarr:
     group:
         "preproc"
     threads: 32
-    container: None
-#        config["containers"]["spimprep"]
+    container: 
+        config["containers"]["spimprep"]
     script:
         "../scripts/stitched_tif_to_zarr.py"
 

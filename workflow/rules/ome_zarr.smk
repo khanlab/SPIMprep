@@ -1,3 +1,6 @@
+
+ruleorder: zarr_to_ome_zarr > tif_stack_to_ome_zarr
+
 rule zarr_to_ome_zarr:
     input:
         zarr=lambda wildcards: expand(
@@ -51,6 +54,51 @@ rule zarr_to_ome_zarr:
         "preproc"
     script:
         "../scripts/zarr_to_ome_zarr.py"
+
+rule tif_stack_to_ome_zarr:
+    input:
+        tif_dir=get_input_dataset,
+        metadata_json=rules.raw_to_metadata.output.metadata_json,
+    params:
+        in_tif_glob=lambda wildcards, input: os.path.join(
+            input.tif_dir,
+            config["import_stitched"]["stitched_tif_glob"],
+        ),
+        max_downsampling_layers=config["ome_zarr"]["max_downsampling_layers"],
+        rechunk_size=config["ome_zarr"]["rechunk_size"],
+        scaling_method=config["ome_zarr"]["scaling_method"],
+        downsampling=config["bigstitcher"]["fuse_dataset"]["downsampling"],
+        stains=get_stains,
+    output:
+        zarr=temp(
+            directory(
+                bids(
+                    root=work,
+                    subject="{subject}",
+                    datatype="micr",
+                    sample="{sample}",
+                    acq="{acq,lifecanvas}",
+                    suffix="SPIM.ome.zarr",
+                )
+            )
+        ),
+    threads: 32
+    log:
+        bids(
+            root="logs",
+            subject="{subject}",
+            datatype="zarr_to_ome_zarr",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="log.txt",
+        ),
+    container:
+        config["containers"]["spimprep"]
+    group:
+        "preproc"
+    script:
+        "../scripts/zarr_to_ome_zarr.py"
+
 
 
 rule ome_zarr_from_work:
