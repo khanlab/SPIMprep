@@ -88,7 +88,7 @@ metadata['lookup_tile_offset_x'] = map_x
 metadata['lookup_tile_offset_y'] = map_y
 metadata['lookup_tile_offset_z'] = map_z
 metadata['ome_full_metadata'] = ome_dict
-metadata['PixelSize'] = [ float(physical_size_z), float(physical_size_y), float(physical_size_x) ] #zyx since OME-Zarr is ZYX
+metadata['PixelSize'] = [ float(physical_size_z/1000.0), float(physical_size_y/1000.0), float(physical_size_x/1000.0) ] #zyx since OME-Zarr is ZYX
 metadata['PixelSizeUnits'] = 'mm' 
 
 #write metadata to json
