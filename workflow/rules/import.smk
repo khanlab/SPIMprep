@@ -77,15 +77,13 @@ rule blaze_to_metadata:
         "../scripts/blaze_to_metadata.py"
 
 
-
-
 rule prestitched_to_metadata:
     input:
         ome_dir=get_input_dataset,
     params:
-        physical_size_x_um=config['import_prestitched']['physical_size_x_um'],
-        physical_size_y_um=config['import_prestitched']['physical_size_y_um'],
-        physical_size_z_um=config['import_prestitched']['physical_size_z_um'],
+        physical_size_x_um=config["import_prestitched"]["physical_size_x_um"],
+        physical_size_y_um=config["import_prestitched"]["physical_size_y_um"],
+        physical_size_z_um=config["import_prestitched"]["physical_size_z_um"],
     output:
         metadata_json=bids(
             root=root,
@@ -173,4 +171,3 @@ rule tif_to_zarr:
         config["containers"]["spimprep"]
     script:
         "../scripts/tif_to_zarr.py"
-

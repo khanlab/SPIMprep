@@ -53,6 +53,7 @@ rule zarr_to_ome_zarr:
     script:
         "../scripts/zarr_to_ome_zarr.py"
 
+
 rule tif_stacks_to_ome_zarr:
     input:
         tif_dir=get_input_dataset,
@@ -96,10 +97,9 @@ rule tif_stacks_to_ome_zarr:
     threads: 8
     resources:
         runtime=360,
-        mem_mb=32000, 
+        mem_mb=32000,
     script:
         "../scripts/tif_stacks_to_ome_zarr.py"
-
 
 
 rule ome_zarr_from_work:
