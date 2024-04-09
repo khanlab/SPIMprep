@@ -1,3 +1,5 @@
+print(get_output_ome_zarr("prestitched"))
+
 
 rule zarr_to_ome_zarr:
     input:
@@ -24,18 +26,7 @@ rule zarr_to_ome_zarr:
         downsampling=config["bigstitcher"]["fuse_dataset"]["downsampling"],
         stains=get_stains,
     output:
-        zarr=temp(
-            directory(
-                bids(
-                    root=work,
-                    subject="{subject}",
-                    datatype="micr",
-                    sample="{sample}",
-                    acq="{acq,[a-zA-Z0-9]*blaze[a-zA-Z0-9]*}",
-                    suffix="SPIM.ome.zarr",
-                )
-            )
-        ),
+        **get_output_ome_zarr("blaze"),
     threads: 32
     log:
         bids(
@@ -69,18 +60,7 @@ rule tif_stacks_to_ome_zarr:
         downsampling=config["bigstitcher"]["fuse_dataset"]["downsampling"],
         stains=get_stains,
     output:
-        zarr=temp(
-            directory(
-                bids(
-                    root=work,
-                    subject="{subject}",
-                    datatype="micr",
-                    sample="{sample}",
-                    acq="{acq,[a-zA-Z0-9]*prestitched[a-zA-Z0-9]*}",
-                    suffix="SPIM.ome.zarr",
-                )
-            )
-        ),
+        **get_output_ome_zarr("prestitched"),
     log:
         bids(
             root="logs",
@@ -102,18 +82,20 @@ rule tif_stacks_to_ome_zarr:
         "../scripts/tif_stacks_to_ome_zarr.py"
 
 
-rule ome_zarr_from_work:
-    """ generic rule to copy any ome.zarr from work """
-    input:
-        zarr=f"{work}/{{prefix}}.ome.zarr",
-    output:
-        zarr=directory(f"{root}/{{prefix}}.ome.zarr"),
-    log:
-        "logs/ome_zarr_to_from_work/{prefix}.log",
-    group:
-        "preproc"
-    shell:
-        "cp -R {input.zarr} {output.zarr} &> {log}"
+if config["write_ome_zarr_direct"] == False:
+
+    rule ome_zarr_from_work:
+        """ generic rule to copy any ome.zarr from work """
+        input:
+            zarr=f"{work}/{{prefix}}.ome.zarr",
+        output:
+            zarr=directory(f"{root}/{{prefix}}.ome.zarr"),
+        log:
+            "logs/ome_zarr_to_from_work/{prefix}.log",
+        group:
+            "preproc"
+        shell:
+            "cp -R {input.zarr} {output.zarr} &> {log}"
 
 
 rule ome_zarr_to_zipstore:
@@ -132,14 +114,7 @@ rule ome_zarr_to_zipstore:
 
 rule ome_zarr_to_nii:
     input:
-        zarr=bids(
-            root=work,
-            subject="{subject}",
-            datatype="micr",
-            sample="{sample}",
-            acq="{acq}",
-            suffix="SPIM.ome.zarr",
-        ),
+        zarr=get_input_ome_zarr_to_nii(),
     params:
         channel_index=lambda wildcards: get_stains(wildcards).index(wildcards.stain),
     output:

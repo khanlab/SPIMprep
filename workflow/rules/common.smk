@@ -162,3 +162,60 @@ def get_macro_args_zarr_fusion(wildcards, input, output):
         bsfy=config["bigstitcher"]["fuse_dataset"]["block_size_factor_y"],
         bsfz=config["bigstitcher"]["fuse_dataset"]["block_size_factor_z"],
     )
+
+
+def get_output_ome_zarr(acq_type):
+    if config["write_ome_zarr_direct"]:
+        return {
+            "zarr": directory(
+                bids(
+                    root=root,
+                    subject="{subject}",
+                    datatype="micr",
+                    sample="{sample}",
+                    acq="{acq,[a-zA-Z0-9]*" + acq_type + "[a-zA-Z0-9]*}",
+                    suffix="SPIM.ome.zarr",
+                )
+            )
+        }
+    else:
+        return {
+            "zarr": temp(
+                directory(
+                    bids(
+                        root=work,
+                        subject="{subject}",
+                        datatype="micr",
+                        sample="{sample}",
+                        acq="{acq,[a-zA-Z0-9]*" + acq_type + "[a-zA-Z0-9]*}",
+                        suffix="SPIM.ome.zarr",
+                    )
+                )
+            )
+        }
+
+
+def get_input_ome_zarr_to_nii():
+    if config["write_ome_zarr_direct"]:
+        if config["ome_zarr"]["use_zipstore"]:
+            ext = "ome.zarr.zip"
+        else:
+            ext = "ome.zarr"
+
+        return bids(
+            root=root,
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq}",
+            suffix=f"SPIM.{ext}",
+        )
+    else:
+        return bids(
+            root=work,
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq}",
+            suffix=f"SPIM.ome.zarr",
+        )

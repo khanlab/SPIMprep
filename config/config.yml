@@ -4,6 +4,8 @@ datasets: 'config/datasets.tsv'
 root: 'bids'
 work: 'work' 
 
+write_ome_zarr_direct: True #use this to skip writing the final zarr output to work first and copying afterwards -- useful when work is not a fast local disk
+
 #import wildcards:  tilex, tiley, channel, zslice (and prefix - unused)
 import_blaze:
   raw_tif_pattern: "{prefix}_Blaze[{tilex} x {tiley}]_C{channel}_xyz-Table Z{zslice}.ome.tif"
