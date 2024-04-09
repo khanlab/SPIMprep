@@ -16,7 +16,7 @@ rule zarr_to_ome_zarr:
             desc=config["ome_zarr"]["desc"],
             allow_missing=True,
         ),
-        metadata_json=rules.raw_to_metadata.output.metadata_json,
+        metadata_json=rules.blaze_to_metadata.output.metadata_json,
     params:
         max_downsampling_layers=config["ome_zarr"]["max_downsampling_layers"],
         rechunk_size=config["ome_zarr"]["rechunk_size"],
@@ -56,7 +56,7 @@ rule zarr_to_ome_zarr:
 rule tif_stacks_to_ome_zarr:
     input:
         tif_dir=get_input_dataset,
-        metadata_json=rules.raw_to_metadata.output.metadata_json,
+        metadata_json=rules.prestitched_to_metadata.output.metadata_json,
     params:
         in_tif_glob=lambda wildcards, input: os.path.join(
             input.tif_dir,
