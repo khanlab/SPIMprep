@@ -173,7 +173,7 @@ def get_output_ome_zarr(acq_type):
                     subject="{subject}",
                     datatype="micr",
                     sample="{sample}",
-                    acq="{acq,[a-zA-Z0-9]*" + acq_type + "[a-zA-Z0-9]*}",
+                    acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
                     suffix="SPIM.ome.zarr",
                 )
             )
@@ -187,7 +187,7 @@ def get_output_ome_zarr(acq_type):
                         subject="{subject}",
                         datatype="micr",
                         sample="{sample}",
-                        acq="{acq,[a-zA-Z0-9]*" + acq_type + "[a-zA-Z0-9]*}",
+                        acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
                         suffix="SPIM.ome.zarr",
                     )
                 )
