@@ -10,7 +10,7 @@ rechunk_size=snakemake.params.rechunk_size
 in_tif_glob = snakemake.params.in_tif_glob.format(stain=snakemake.wildcards.stain)
 
 
-darr = dask.array.image.imread(in_tif_glob)
+darr = dask.array.image.imread(in_tif_glob).rechunk(rechunk_size)
         
 
 #rescale intensities, and recast  -- only recast
