@@ -1,7 +1,9 @@
 
 rule extract_dataset:
+    """this rule is only for input archives, if a 
+    folder is input then we just read that directly"""
     input:
-        dataset_path=get_dataset_path,
+        dataset_path=get_dataset_storage_path,
     params:
         cmd=cmd_extract_dataset,
     output:

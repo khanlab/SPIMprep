@@ -8,9 +8,10 @@ packages = []
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.12"
-snakemake = "<8.0.0"
+snakemake = ">8.0.0"
 pulp = "2.7.0"
-snakebids = "0.11.0"
+snakebids = {path = "/local/scratch/snakebids", develop = true}
+snakemake-storage-plugin-gcs = "^0.1.4"
 
 [tool.poetry.group.dev.dependencies]
 snakefmt = "^0.10.0"

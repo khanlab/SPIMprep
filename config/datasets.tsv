@@ -1,2 +1,2 @@
 subject	sample	acq	stain_0	stain_1	dataset_path
-mouse1	brain	1x	abeta	autof	.test/dryrun/data
+mouse1	brain	1x	abeta	autof	gs://khanlab-bucket/test_lightsheet_ome.tar

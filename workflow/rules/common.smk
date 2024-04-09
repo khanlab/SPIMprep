@@ -1,6 +1,5 @@
 import tarfile
 
-
 # targets
 def get_all_targets():
     targets = []
@@ -58,21 +57,55 @@ def get_bids_toplevel_targets():
 
 def get_input_dataset(wildcards):
     """returns path to extracted dataset or path to provided input folder"""
-    in_dataset = get_dataset_path(wildcards)
 
-    dataset_path = Path(get_dataset_path(wildcards))
-    suffix = dataset_path.suffix
+    in_dataset_path = get_dataset_path(wildcards)
 
-    if dataset_path.is_dir():
-        # we have a directory already, just point to it
-        return str(dataset_path)
+    ## this logic below became messy when trying to deal with both local and remote files
+    # can simplify perhaps if I use cloudpathlib (or some way to check if is dir or tar remotely)
 
-    elif tarfile.is_tarfile(dataset_path):
-        # dataset was a tar file, so point to the extracted folder
-        return rules.extract_dataset.output.ome_dir.format(**wildcards)
+    #first check if we have a google cloud storage URI, and split path
+    split_path = in_dataset_path.split('://')
+    if len(split_path) > 1:
+        #we have a storage uri, so we need to check if it is a tarfile
+        #or a directory 
+        dataset_path=Path(split_path[1])
+
+        suffix = dataset_path.suffix
+
+        if dataset_path.suffix == '.tar' or dataset_path.suffix == '.tgz':
+            # we have a directory already, just point to it
+            print('is a tar')
+            return rules.extract_dataset.output.ome_dir.format(**wildcards)
+
+        elif tarfile.is_tarfile(dataset_path):
+            # dataset was a tar file, so point to the extracted folder
+            print('is a dir')
+            return str(dataset_path)
+
+        else:
+            print(f"unsupported input: {dataset_path}")
+
+
 
     else:
-        print(f"unsupported input: {dataset_path}")
+
+
+        dataset_path=Path(in_dataset_path)
+
+        suffix = dataset_path.suffix
+
+        if dataset_path.is_dir():
+            # we have a directory already, just point to it
+            print('is a dir')
+            return str(dataset_path)
+
+        elif tarfile.is_tarfile(dataset_path):
+            print('is a tar')
+            # dataset was a tar file, so point to the extracted folder
+            return rules.extract_dataset.output.ome_dir.format(**wildcards)
+
+        else:
+            print(f"unsupported input: {dataset_path}")
 
 
 # import
@@ -101,11 +134,21 @@ def cmd_extract_dataset(wildcards, input, output):
     return " && ".join(cmds)
 
 
+
 def get_dataset_path(wildcards):
     df = datasets.query(
         f"subject=='{wildcards.subject}' and sample=='{wildcards.sample}' and acq=='{wildcards.acq}'"
     )
-    return df.dataset_path.to_list()[0]
+    return  df.dataset_path.to_list()[0]
+
+def get_dataset_storage_path(wildcards):
+    dataset_path = get_dataset_path(wildcards)
+
+    split_path = dataset_path.split('://') 
+    if len(split_path) > 1:
+        return storage(dataset_path)
+    else:
+        return dataset_path
 
 
 def get_stains(wildcards):
