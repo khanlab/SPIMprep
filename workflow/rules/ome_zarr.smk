@@ -31,7 +31,7 @@ rule zarr_to_ome_zarr:
                     subject="{subject}",
                     datatype="micr",
                     sample="{sample}",
-                    acq="{acq,blaze[a-zA-Z0-9]*}",
+                    acq="{acq,[a-zA-Z0-9]*blaze[a-zA-Z0-9]*}",
                     suffix="SPIM.ome.zarr",
                 )
             )
@@ -75,7 +75,7 @@ rule tif_stacks_to_ome_zarr:
                     subject="{subject}",
                     datatype="micr",
                     sample="{sample}",
-                    acq="{acq,prestitched[a-zA-Z0-9]*}",
+                    acq="{acq,[a-zA-Z0-9]*prestitched[a-zA-Z0-9]*}",
                     suffix="SPIM.ome.zarr",
                 )
             )
