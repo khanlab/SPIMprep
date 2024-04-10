@@ -74,7 +74,15 @@ rule apply_basic_flatfield_corr:
             suffix="SPIM.zarr",
         ),
         model_dirs=lambda wildcards: expand(
-            rules.fit_basic_flatfield_corr.output.model_dir,
+            bids(
+                    root=work,
+                    subject="{subject}",
+                    datatype="micr",
+                    sample="{sample}",
+                    acq="{acq}",
+                    stain="{stain}",
+                    suffix="basicmodel",
+                ),
             stain=get_stains(wildcards),
             allow_missing=True,
         ),

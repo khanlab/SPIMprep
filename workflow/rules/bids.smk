@@ -29,7 +29,7 @@ rule resampled_dataset_desc:
 
 rule bids_readme:
     input:
-        config["bids"]["readme_md"],
+        workflow.source_path(os.path.join('..','..',config["bids"]["readme_md"])),
     output:
         Path(root) / "README.md",
     log:
@@ -41,7 +41,7 @@ rule bids_readme:
 
 rule bids_samples_json:
     input:
-        config["bids"]["samples_json"],
+        workflow.source_path(os.path.join('..','..',config["bids"]["samples_json"])),
     output:
         Path(root) / "samples.json",
     log:
@@ -53,7 +53,7 @@ rule bids_samples_json:
 
 rule create_samples_tsv:
     input:
-        tsv=config["datasets"],
+        tsv=workflow.source_path(os.path.join('..','..',config["datasets"])),
     output:
         tsv=Path(root) / "samples.tsv",
     log:

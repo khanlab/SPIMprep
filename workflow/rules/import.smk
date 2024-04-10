@@ -38,7 +38,8 @@ rule extract_dataset:
 
 rule raw_to_metadata:
     input:
-        ome_dir=get_input_dataset,
+    #temporarily
+        ome_dir=rules.extract_dataset.output[0]
     params:
         in_tif_pattern=lambda wildcards, input: os.path.join(
             input.ome_dir,
@@ -84,7 +85,8 @@ rule tif_to_zarr:
         output shape is (tiles,channels,z,y,x), with the 2d 
         images as the chunks"""
     input:
-        ome_dir=get_input_dataset,
+        #ome_dir=get_input_dataset,
+        ome_dir=rules.extract_dataset.output[0],
         metadata_json=rules.raw_to_metadata.output.metadata_json,
     params:
         in_tif_pattern=lambda wildcards, input: os.path.join(

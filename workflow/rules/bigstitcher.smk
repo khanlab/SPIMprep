@@ -98,7 +98,7 @@ rule bigstitcher:
     input:
         dataset_n5=rules.zarr_to_bdv.output.bdv_n5,
         dataset_xml=rules.zarr_to_bdv.output.bdv_xml,
-        ijm=Path(workflow.basedir) / "macros" / "AutostitchMacro.ijm",
+        ijm=workflow.source_path("../macros/AutostitchMacro.ijm"),
     params:
         fiji_launcher_cmd=get_fiji_launcher_cmd,
         macro_args=get_macro_args_bigstitcher,
@@ -181,7 +181,7 @@ rule fuse_dataset:
             desc="{desc}",
             suffix="bigstitcher.xml",
         ),
-        ijm=Path(workflow.basedir) / "macros" / "FuseImageMacroZarr.ijm",
+        ijm=workflow.source_path( "../macros/FuseImageMacroZarr.ijm"),
     params:
         fiji_launcher_cmd=get_fiji_launcher_cmd,
         macro_args=get_macro_args_zarr_fusion,
