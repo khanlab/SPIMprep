@@ -46,6 +46,10 @@ snakemake -np
 ```
 snakemake -c all --sdm apptainer 
 ```
+or for snakemake<8.0, use:
+```
+snakemake -c all --use-singularity 
+```
 
 Note: if you run the workflow on a system with large memory, you will need to set the heap size for the stitching and fusion rules. This can be done with e.g.: `--set-resources bigstitcher:mem_mb=60000 fuse_dataset:mem_mb=100000`
 
