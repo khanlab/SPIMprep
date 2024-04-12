@@ -7,6 +7,8 @@ import os
 
 configfile: "config/config.yml"
 
+conda:
+    "envs/global.yaml"
 
 container: config["containers"]["spimprep"]
 

@@ -172,11 +172,12 @@ def bids_tpl(root, template, **entities):
 def get_fiji_launcher_cmd(wildcards, output, threads, resources):
     launcher_opts_find = "-Xincgc"
     launcher_opts_replace = f"-XX:+UseG1GC -verbose:gc -XX:+PrintGCDateStamps -XX:ActiveProcessorCount={threads}"
+    pattern_mem=r'-Xmx[0-9a-z]\+'
     pipe_cmds = []
     pipe_cmds.append("ImageJ-linux64 --dry-run --headless --console")
     pipe_cmds.append(f"sed 's/{launcher_opts_find}/{launcher_opts_replace}'/")
     pipe_cmds.append(
-        f"sed 's/-Xmx[0-9a-z]\+/-Xmx{resources.mem_mb}m -Xms{resources.mem_mb}m/'"
+        f"sed 's/{pattern_mem}/-Xmx{resources.mem_mb}m -Xms{resources.mem_mb}m/'"
     )
     pipe_cmds.append("tr --delete '\\n'")
     return "|".join(pipe_cmds) + f" > {output.launcher} && chmod a+x {output.launcher} "

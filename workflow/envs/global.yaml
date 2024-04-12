@@ -1,0 +1,9 @@
+channels:
+  - conda-forge
+  - bioconda
+  - akhanf
+  - nodefaults
+dependencies:
+  - snakebids
+  - snakemake-storage-plugin-gcs
+  - snakemake-executor-plugin-googlebatch
