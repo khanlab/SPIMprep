@@ -38,8 +38,8 @@ rule extract_dataset:
 
 rule raw_to_metadata:
     input:
-    #temporarily
-        ome_dir=rules.extract_dataset.output[0]
+        #temporarily
+        ome_dir=rules.extract_dataset.output[0],
     params:
         in_tif_pattern=lambda wildcards, input: os.path.join(
             input.ome_dir,

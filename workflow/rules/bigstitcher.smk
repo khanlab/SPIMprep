@@ -181,7 +181,7 @@ rule fuse_dataset:
             desc="{desc}",
             suffix="bigstitcher.xml",
         ),
-        ijm=workflow.source_path( "../macros/FuseImageMacroZarr.ijm"),
+        ijm=workflow.source_path("../macros/FuseImageMacroZarr.ijm"),
     params:
         fiji_launcher_cmd=get_fiji_launcher_cmd,
         macro_args=get_macro_args_zarr_fusion,

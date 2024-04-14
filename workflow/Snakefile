@@ -1,14 +1,17 @@
 import json
 from pathlib import Path
-from snakebids import bids, set_bids_spec
-import pandas as pd
 import os
 
 
-configfile: "config/config.yml"
-
 conda:
     "envs/global.yaml"
+
+#the global conda env needs to come before we use these dependencies
+
+import pandas as pd
+from snakebids import bids, set_bids_spec
+
+configfile: "config/config.yml"
 
 container: config["containers"]["spimprep"]
 

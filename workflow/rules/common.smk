@@ -1,5 +1,6 @@
 import tarfile
 
+
 # targets
 def get_all_targets():
     targets = []
@@ -63,44 +64,40 @@ def get_input_dataset(wildcards):
     ## this logic below became messy when trying to deal with both local and remote files
     # can simplify perhaps if I use cloudpathlib (or some way to check if is dir or tar remotely)
 
-    #first check if we have a google cloud storage URI, and split path
-    split_path = in_dataset_path.split('://')
+    # first check if we have a google cloud storage URI, and split path
+    split_path = in_dataset_path.split("://")
     if len(split_path) > 1:
-        #we have a storage uri, so we need to check if it is a tarfile
-        #or a directory 
-        dataset_path=Path(split_path[1])
+        # we have a storage uri, so we need to check if it is a tarfile
+        # or a directory
+        dataset_path = Path(split_path[1])
 
         suffix = dataset_path.suffix
 
-        if dataset_path.suffix == '.tar' or dataset_path.suffix == '.tgz':
+        if dataset_path.suffix == ".tar" or dataset_path.suffix == ".tgz":
             # we have a directory already, just point to it
-            print('is a tar')
+            print("is a tar")
             return rules.extract_dataset.output.ome_dir.format(**wildcards)
 
         elif tarfile.is_tarfile(dataset_path):
             # dataset was a tar file, so point to the extracted folder
-            print('is a dir')
+            print("is a dir")
             return str(dataset_path)
 
         else:
             print(f"unsupported input: {dataset_path}")
 
-
-
     else:
-
-
-        dataset_path=Path(in_dataset_path)
+        dataset_path = Path(in_dataset_path)
 
         suffix = dataset_path.suffix
 
         if dataset_path.is_dir():
             # we have a directory already, just point to it
-            print('is a dir')
+            print("is a dir")
             return str(dataset_path)
 
         elif tarfile.is_tarfile(dataset_path):
-            print('is a tar')
+            print("is a tar")
             # dataset was a tar file, so point to the extracted folder
             return rules.extract_dataset.output.ome_dir.format(**wildcards)
 
@@ -134,17 +131,16 @@ def cmd_extract_dataset(wildcards, input, output):
     return " && ".join(cmds)
 
 
-
 def get_dataset_path(wildcards):
     df = datasets.query(
         f"subject=='{wildcards.subject}' and sample=='{wildcards.sample}' and acq=='{wildcards.acq}'"
     )
-    return  df.dataset_path.to_list()[0]
+    return df.dataset_path.to_list()[0]
+
 
 def get_dataset_storage_path(wildcards):
     dataset_path = get_dataset_path(wildcards)
-
-    split_path = dataset_path.split('://') 
+    split_path = dataset_path.split("://")
     if len(split_path) > 1:
         return storage(dataset_path)
     else:
@@ -172,7 +168,7 @@ def bids_tpl(root, template, **entities):
 def get_fiji_launcher_cmd(wildcards, output, threads, resources):
     launcher_opts_find = "-Xincgc"
     launcher_opts_replace = f"-XX:+UseG1GC -verbose:gc -XX:+PrintGCDateStamps -XX:ActiveProcessorCount={threads}"
-    pattern_mem=r'-Xmx[0-9a-z]\+'
+    pattern_mem = r"-Xmx[0-9a-z]\+"
     pipe_cmds = []
     pipe_cmds.append("ImageJ-linux64 --dry-run --headless --console")
     pipe_cmds.append(f"sed 's/{launcher_opts_find}/{launcher_opts_replace}'/")

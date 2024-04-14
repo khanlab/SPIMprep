@@ -5,5 +5,4 @@ channels:
   - nodefaults
 dependencies:
   - snakebids
-  - snakemake-storage-plugin-gcs
-  - snakemake-executor-plugin-googlebatch
+  - pandas
