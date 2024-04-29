@@ -5,7 +5,6 @@ import re
 from itertools import product
 from snakemake.io import glob_wildcards
 
-
 in_tif_pattern = snakemake.params.in_tif_pattern
 
 #add a wildcard constraint to ensure no

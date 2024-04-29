@@ -34,13 +34,13 @@ rule extract_dataset:
         "{params.cmd}"
 
 
-rule raw_to_metadata:
+rule blaze_to_metadata:
     input:
         ome_dir=get_input_dataset,
     params:
         in_tif_pattern=lambda wildcards, input: os.path.join(
             input.ome_dir,
-            config["import"]["raw_tif_pattern"],
+            config["import_blaze"]["raw_tif_pattern"],
         ),
     output:
         metadata_json=bids(
@@ -48,13 +48,13 @@ rule raw_to_metadata:
             subject="{subject}",
             datatype="micr",
             sample="{sample}",
-            acq="{acq}",
+            acq="{acq,[a-zA-Z0-9]*blaze[a-zA-Z0-9]*}",
             suffix="SPIM.json",
         ),
     benchmark:
         bids(
             root="benchmarks",
-            datatype="raw_to_metdata",
+            datatype="blaze_to_metdata",
             subject="{subject}",
             sample="{sample}",
             acq="{acq}",
@@ -63,7 +63,7 @@ rule raw_to_metadata:
     log:
         bids(
             root="logs",
-            datatype="raw_to_metdata",
+            datatype="blaze_to_metdata",
             subject="{subject}",
             sample="{sample}",
             acq="{acq}",
@@ -74,7 +74,49 @@ rule raw_to_metadata:
     container:
         config["containers"]["spimprep"]
     script:
-        "../scripts/raw_to_metadata.py"
+        "../scripts/blaze_to_metadata.py"
+
+
+rule prestitched_to_metadata:
+    input:
+        ome_dir=get_input_dataset,
+    params:
+        physical_size_x_um=config["import_prestitched"]["physical_size_x_um"],
+        physical_size_y_um=config["import_prestitched"]["physical_size_y_um"],
+        physical_size_z_um=config["import_prestitched"]["physical_size_z_um"],
+    output:
+        metadata_json=bids(
+            root=root,
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq,[a-zA-Z0-9]*prestitched[a-zA-Z0-9]*}",
+            suffix="SPIM.json",
+        ),
+    benchmark:
+        bids(
+            root="benchmarks",
+            datatype="prestitched_to_metdata",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="benchmark.tsv",
+        )
+    log:
+        bids(
+            root="logs",
+            datatype="prestitched_to_metdata",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="log.txt",
+        ),
+    group:
+        "preproc"
+    container:
+        config["containers"]["spimprep"]
+    script:
+        "../scripts/prestitched_to_metadata.py"
 
 
 rule tif_to_zarr:
@@ -83,13 +125,13 @@ rule tif_to_zarr:
         images as the chunks"""
     input:
         ome_dir=get_input_dataset,
-        metadata_json=rules.raw_to_metadata.output.metadata_json,
+        metadata_json=rules.blaze_to_metadata.output.metadata_json,
     params:
         in_tif_pattern=lambda wildcards, input: os.path.join(
             input.ome_dir,
-            config["import"]["raw_tif_pattern"],
+            config["import_blaze"]["raw_tif_pattern"],
         ),
-        intensity_rescaling=config["import"]["intensity_rescaling"],
+        intensity_rescaling=config["import_blaze"]["intensity_rescaling"],
     output:
         zarr=temp(
             directory(
