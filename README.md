@@ -23,10 +23,14 @@ git clone https://github.com/khanlab/spimprep
 ```
 
 2. Create and activate a virtual environment, then install dependencies with:
-```
+
 pip install .
 ```
-
+Note: to make a venv on the CBS server use:
+```
+python3.11 -m venv venv
+source venv/bin/activate
+```
 
 3. Update the `config/datasets.tsv` spreadsheet to point to your dataset(s). Each dataset's tif files should be in it's own folder or tar file, with no other tif files. Enter the path to each dataset in the `dataset_path` column. The first three columns identify the subject, sample, acquisition, which become part of the resulting filenames (BIDS naming). The `stain_0` and `stain_1` identify what stains were used for each channel. Use `autof` to indicate the autofluorescence channel, as this is used for registration. NOTE: The acquisition value must contain either `blaze` or `prestitched`, and defines which workflow will be used. E.g. for LifeCanvas data that is already stitched, you need to include `prestitched` in the acquisition flag. 
 
@@ -42,6 +46,10 @@ snakemake -np
 6.  To run the workflow, parallelizing on all cores, using Singularity (aka Apptainer) for dependencies, use:
 ```
 snakemake -c all --sdm apptainer 
+```
+or for snakemake<8.0, use:
+```
+snakemake -c all --use-singularity 
 ```
 
 Note: if you run the workflow on a system with large memory, you will need to set the heap size for the stitching and fusion rules. This can be done with e.g.: `--set-resources bigstitcher:mem_mb=60000 fuse_dataset:mem_mb=100000`
