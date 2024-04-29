@@ -8,6 +8,7 @@ import os
 configfile: "config/config.yml"
 
 
+
 container: config["containers"]["spimprep"]
 
 
@@ -15,6 +16,7 @@ container: config["containers"]["spimprep"]
 root = os.path.expandvars(config["root"])
 work = os.path.expandvars(config["work"])
 resampled = Path(root) / "derivatives" / "resampled"
+
 
 # this is needed to use the latest bids spec with the pre-release snakebids
 set_bids_spec("v0_11_0")

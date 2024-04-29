@@ -1,12 +1,40 @@
 import tarfile
 
+storage:
+    provider='gcs',
+    stay_on_remote=False
+
+storage stay:
+    provider='gcs',
+    stay_on_remote=True
+
+
+
+def with_storage(path_or_paths):
+    if config['write_to_remote']:
+        if type(path_or_paths) == list:
+            return [storage(os.path.join(config['remote_prefix'],path)) for path in path_or_paths]
+        else:
+            return storage(os.path.join(config['remote_prefix'],path_or_paths))
+    else:
+        return path_or_paths
+
+def with_storage_stay(path_or_paths):
+    if config['write_to_remote']:
+        if type(path_or_paths) == list:
+            return [storage.stay(os.path.join(config['remote_prefix'],path)) for path in path_or_paths]
+        else:
+            return storage.stay(os.path.join(config['remote_prefix'],path_or_paths))
+    else:
+        return path_or_paths
+
 
 # targets
 def get_all_targets():
     targets = []
     for i in range(len(datasets)):
         targets.extend(
-            expand(
+            with_storage_stay(expand(
                 bids(
                     root=root,
                     subject="{subject}",
@@ -22,7 +50,7 @@ def get_all_targets():
                     "ome.zarr.zip" if config["ome_zarr"]["use_zipstore"] else "ome.zarr"
                 ),
             )
-        )
+        ))
         targets.extend(
             expand(
                 bids(
@@ -53,7 +81,7 @@ def get_bids_toplevel_targets():
     targets.append(Path(root) / "samples.tsv")
     targets.append(Path(root) / "samples.json")
     targets.append(Path(resampled) / "dataset_description.json")
-    return targets
+    return [with_storage(target) for target in targets]
 
 
 def get_input_dataset(wildcards):
@@ -119,11 +147,6 @@ def get_stains(wildcards):
     ]
 
 
-# bids
-def bids_tpl(root, template, **entities):
-    """bids() wrapper for files in tpl-template folder"""
-    return str(Path(bids(root=root, tpl=template)) / bids(tpl=template, **entities))
-
 
 # bigstitcher
 def get_fiji_launcher_cmd(wildcards, output, threads, resources):
@@ -167,7 +190,7 @@ def get_macro_args_zarr_fusion(wildcards, input, output):
 def get_output_ome_zarr(acq_type):
     if config["write_ome_zarr_direct"]:
         return {
-            "zarr": directory(
+            "zarr": with_storage_stay(directory(
                 bids(
                     root=root,
                     subject="{subject}",
@@ -176,7 +199,7 @@ def get_output_ome_zarr(acq_type):
                     acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
                     suffix="SPIM.ome.zarr",
                 )
-            )
+            ))
         }
     else:
         return {
@@ -202,14 +225,14 @@ def get_input_ome_zarr_to_nii():
         else:
             ext = "ome.zarr"
 
-        return bids(
+        return with_storage_stay(bids(
             root=root,
             subject="{subject}",
             datatype="micr",
             sample="{sample}",
             acq="{acq}",
             suffix=f"SPIM.{ext}",
-        )
+        ))
     else:
         return bids(
             root=work,

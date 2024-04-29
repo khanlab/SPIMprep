@@ -2,6 +2,7 @@ import json
 import zarr
 import dask.array as da
 from dask.array.image import imread as dask_imread
+from ome_zarr.io import parse_url
 from ome_zarr.writer import write_image
 from ome_zarr.format import format_from_version
 from ome_zarr.scale import Scaler
@@ -62,7 +63,15 @@ for i,stain in enumerate(stains):
 darr_channels = da.stack(darr_list)
 
 
-store = zarr.DirectoryStore(out_zarr)
+
+#store = zarr.DirectoryStore(out_zarr)
+uri = snakemake.params.uri
+print(uri)
+print(snakemake.output.zarr)
+print('about to make store')
+store = zarr.storage.FSStore(uri,create=True,storage_options={'project': 't-system-193821','token': 'google_default'})
+
+print('about to make root')
 root = zarr.group(store,path='/',overwrite=True)
 scaler = Scaler(max_layer=max_layer,method=scaling_method)
 

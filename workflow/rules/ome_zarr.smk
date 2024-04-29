@@ -57,6 +57,15 @@ rule tif_stacks_to_ome_zarr:
         scaling_method=config["ome_zarr"]["scaling_method"],
         downsampling=config["bigstitcher"]["fuse_dataset"]["downsampling"],
         stains=get_stains,
+        uri=os.path.join(config['remote_prefix'],bids(
+                    root=root,
+                    subject="{subject}",
+                    datatype="micr",
+                    sample="{sample}",
+                    acq="{acq,[a-zA-Z0-9]*prestitched[a-zA-Z0-9]*}",
+                    suffix="SPIM.ome.zarr",
+                ))
+
     output:
         **get_output_ome_zarr("prestitched"),
     log:
@@ -68,8 +77,8 @@ rule tif_stacks_to_ome_zarr:
             acq="{acq}",
             suffix="log.txt",
         ),
-    container:
-        config["containers"]["spimprep"]
+    container: None
+#        config["containers"]["spimprep"]
     group:
         "preproc"
     threads: 8

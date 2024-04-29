@@ -8,9 +8,10 @@ packages = []
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.12"
-snakemake = "<8.0.0"
-pulp = "2.7.0"
-snakebids = "0.11.0"
+snakemake = ">=8.0.0"
+snakebids = ">=0.12.0"
+cloudpathlib = "^0.18.1"
+gcsfs = "^2024.3.1"
 
 [tool.poetry.group.dev.dependencies]
 snakefmt = "^0.10.0"
