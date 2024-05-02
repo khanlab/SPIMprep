@@ -16,7 +16,6 @@ if snakemake.config['write_to_remote']:
     #use the uri
     uri = snakemake.params.uri
 
-    #strip off gcs:// for use in gcsfs
     if uri.startswith('gcs://'):
         uri = uri[6:]
         import gcsfs
@@ -24,6 +23,12 @@ if snakemake.config['write_to_remote']:
                         'token': snakemake.input.creds}
         fs = gcsfs.GCSFileSystem(**gcsfs_opts)
         store = zarr.storage.FSStore(uri,fs=fs,dimension_separator='/',mode='r')
+    elif uri.startswith('s3://'):
+        uri = uri[5:]
+        import s3fs
+        s3fs_opts={'anon': False}
+        fs = s3fs.S3FileSystem(**s3fs_opts)
+        store = zarr.storage.FSStore(uri,fs=fs,dimension_separator='/',mode='w')
     else:
         print(f'cannot parse uri {uri}')
     zi = zarr.open(store=store,mode='r')
