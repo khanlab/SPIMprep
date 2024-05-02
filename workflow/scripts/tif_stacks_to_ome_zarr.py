@@ -63,26 +63,40 @@ for i,stain in enumerate(stains):
 darr_channels = da.stack(darr_list)
 
 
+if out_zarr.endswith('zarr.touch'):
+    #use the uri
+    uri = snakemake.params.uri
+    print(uri)
 
-#store = zarr.DirectoryStore(out_zarr)
-uri = snakemake.params.uri
-print(uri)
-print(snakemake.output.zarr)
-print('about to make store')
-store = zarr.storage.FSStore(uri,create=True,storage_options={'project': 't-system-193821','token': 'google_default'})
+    #strip off gcs:// for use in gcsfs
+    if uri.startswith('gcs://'):
+        uri = uri[6:]
+        import gcsfs
+        gcsfs_opts={'project': 't-system-193821'}
+        fs = gcsfs.GCSFileSystem(**gcsfs_opts)
+        store = zarr.storage.FSStore(uri,fs=fs,dimension_separator='/',mode='w')
+    else:
+        print(f'cannot parse uri {uri}')
+    zi = zarr.open(store=store,mode='w')
 
-print('about to make root')
-root = zarr.group(store,path='/',overwrite=True)
+
+   
+else:
+    #load as directorystore
+    store = zarr.DirectoryStore(out_zarr)
+    zi = zarr.open(out_zarr,mode='w')
+
+
+
+group = zarr.group(store,overwrite=True)
 scaler = Scaler(max_layer=max_layer,method=scaling_method)
-
 
 
 with ProgressBar():
     write_image(image=darr_channels,
-                            group=root,
+                            group=group,
                             scaler=scaler,
                             coordinate_transformations=coordinate_transformations,
-                            storage_options={'dimension_separator': '/'},
                             axes=axes,
                             metadata={'omero':omero}
                                 )

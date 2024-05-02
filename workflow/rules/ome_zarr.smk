@@ -124,6 +124,15 @@ rule ome_zarr_to_nii:
         zarr=get_input_ome_zarr_to_nii(),
     params:
         channel_index=lambda wildcards: get_stains(wildcards).index(wildcards.stain),
+        uri=lambda wildcards: os.path.join(config['remote_prefix'],bids(
+                    root=root,
+                    subject="{subject}",
+                    datatype="micr",
+                    sample="{sample}",
+                    acq="{acq}",
+                    suffix="SPIM.ome.zarr",
+                )).format(**wildcards)
+
     output:
         nii=bids(
             root=resampled,
@@ -160,7 +169,7 @@ rule ome_zarr_to_nii:
     group:
         "preproc"
     threads: 32
-    container:
-        config["containers"]["spimprep"]
+    container: None
+#        config["containers"]["spimprep"]
     script:
         "../scripts/ome_zarr_to_nii.py"

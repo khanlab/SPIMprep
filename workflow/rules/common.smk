@@ -1,13 +1,13 @@
 import tarfile
 
-storage:
-    provider='gcs',
-    stay_on_remote=False
-
-storage stay:
-    provider='gcs',
-    stay_on_remote=True
-
+def get_extension_ome_zarr():
+    if config['write_to_remote']:
+        return "ome.zarr.touch"
+    else:
+        if config["ome_zarr"]["use_zipstore"]:
+            return "ome.zarr.zip"
+        else:
+            return "ome.zarr"
 
 
 def with_storage(path_or_paths):
@@ -19,22 +19,13 @@ def with_storage(path_or_paths):
     else:
         return path_or_paths
 
-def with_storage_stay(path_or_paths):
-    if config['write_to_remote']:
-        if type(path_or_paths) == list:
-            return [storage.stay(os.path.join(config['remote_prefix'],path)) for path in path_or_paths]
-        else:
-            return storage.stay(os.path.join(config['remote_prefix'],path_or_paths))
-    else:
-        return path_or_paths
-
 
 # targets
 def get_all_targets():
     targets = []
     for i in range(len(datasets)):
         targets.extend(
-            with_storage_stay(expand(
+            with_storage(expand(
                 bids(
                     root=root,
                     subject="{subject}",
@@ -46,9 +37,7 @@ def get_all_targets():
                 subject=datasets.loc[i, "subject"],
                 sample=datasets.loc[i, "sample"],
                 acq=datasets.loc[i, "acq"],
-                extension=(
-                    "ome.zarr.zip" if config["ome_zarr"]["use_zipstore"] else "ome.zarr"
-                ),
+                extension=get_extension_ome_zarr()
             )
         ))
         targets.extend(
@@ -188,57 +177,79 @@ def get_macro_args_zarr_fusion(wildcards, input, output):
 
 
 def get_output_ome_zarr(acq_type):
-    if config["write_ome_zarr_direct"]:
+    if config['write_to_remote']:
         return {
-            "zarr": with_storage_stay(directory(
-                bids(
+            "zarr": touch(with_storage(bids(
                     root=root,
                     subject="{subject}",
                     datatype="micr",
                     sample="{sample}",
                     acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
-                    suffix="SPIM.ome.zarr",
-                )
-            ))
+                    suffix="SPIM.ome.zarr.touch",
+                )))
         }
     else:
-        return {
-            "zarr": temp(
-                directory(
+        if config["write_ome_zarr_direct"]:
+            return {
+                "zarr": with_storage(directory(
                     bids(
-                        root=work,
+                        root=root,
                         subject="{subject}",
                         datatype="micr",
                         sample="{sample}",
                         acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
                         suffix="SPIM.ome.zarr",
                     )
+                ))
+            }
+        else:
+            return {
+                "zarr": temp(
+                    directory(
+                        bids(
+                            root=work,
+                            subject="{subject}",
+                            datatype="micr",
+                            sample="{sample}",
+                            acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
+                            suffix="SPIM.ome.zarr",
+                        )
+                    )
                 )
-            )
-        }
+            }
 
 
 def get_input_ome_zarr_to_nii():
-    if config["write_ome_zarr_direct"]:
-        if config["ome_zarr"]["use_zipstore"]:
-            ext = "ome.zarr.zip"
-        else:
-            ext = "ome.zarr"
-
-        return with_storage_stay(bids(
-            root=root,
-            subject="{subject}",
-            datatype="micr",
-            sample="{sample}",
-            acq="{acq}",
-            suffix=f"SPIM.{ext}",
-        ))
+    if config['write_to_remote']:
+        return with_storage(bids(
+                    root=root,
+                    subject="{subject}",
+                    datatype="micr",
+                    sample="{sample}",
+                    acq="{acq}",
+                    suffix="SPIM.ome.zarr.touch",
+                ))
     else:
-        return bids(
-            root=work,
-            subject="{subject}",
-            datatype="micr",
-            sample="{sample}",
-            acq="{acq}",
-            suffix=f"SPIM.ome.zarr",
-        )
+        if config["write_ome_zarr_direct"]:
+            if config["ome_zarr"]["use_zipstore"]:
+                ext = "ome.zarr.zip"
+            else:
+                ext = "ome.zarr"
+
+            return with_storage(bids(
+                root=root,
+                subject="{subject}",
+                datatype="micr",
+                sample="{sample}",
+                acq="{acq}",
+                suffix=f"SPIM.{ext}",
+            ))
+        else:
+            return bids(
+                root=work,
+                subject="{subject}",
+                datatype="micr",
+                sample="{sample}",
+                acq="{acq}",
+                suffix=f"SPIM.ome.zarr",
+            )
