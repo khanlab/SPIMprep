@@ -5,8 +5,8 @@ import pandas as pd
 import os
 
 
-configfile: "config/config.yml"
 
+configfile: "config/config.yml"
 
 
 container: config["containers"]["spimprep"]

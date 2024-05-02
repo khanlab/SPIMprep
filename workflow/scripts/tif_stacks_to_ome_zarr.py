@@ -17,6 +17,7 @@ rechunk_size=snakemake.params.rechunk_size
 out_zarr=snakemake.output.zarr
 stains=snakemake.params.stains
 scaling_method=snakemake.params.scaling_method
+storage_provider_settings=snakemake.params.storage_provider_settings
 
 # prepare metadata for ome-zarr
 with open(metadata_json) as fp:
@@ -63,16 +64,16 @@ for i,stain in enumerate(stains):
 darr_channels = da.stack(darr_list)
 
 
-if out_zarr.endswith('zarr.touch'):
+if snakemake.config['write_to_remote']:
     #use the uri
     uri = snakemake.params.uri
-    print(uri)
 
     #strip off gcs:// for use in gcsfs
     if uri.startswith('gcs://'):
         uri = uri[6:]
         import gcsfs
-        gcsfs_opts={'project': 't-system-193821'}
+        gcsfs_opts={'project': storage_provider_settings['gcs'].get_settings().project,
+                        'token': snakemake.input.creds}
         fs = gcsfs.GCSFileSystem(**gcsfs_opts)
         store = zarr.storage.FSStore(uri,fs=fs,dimension_separator='/',mode='w')
     else:

@@ -6,21 +6,22 @@ import dask.array as da
 from ome_zarr.io import parse_url
 from ome_zarr.reader import Reader
 
+storage_provider_settings=snakemake.params.storage_provider_settings
+
 in_zarr = snakemake.input.zarr
 channel_index = snakemake.params.channel_index
 
-#check if zarr is a zarr.touch - if so, then we use uri in snakemake.params.uri
 
-if in_zarr.endswith('zarr.touch'):
+if snakemake.config['write_to_remote']:
     #use the uri
     uri = snakemake.params.uri
-    print(uri)
 
     #strip off gcs:// for use in gcsfs
     if uri.startswith('gcs://'):
         uri = uri[6:]
         import gcsfs
-        gcsfs_opts={'project': 't-system-193821'}
+        gcsfs_opts={'project': storage_provider_settings['gcs'].get_settings().project,
+                        'token': snakemake.input.creds}
         fs = gcsfs.GCSFileSystem(**gcsfs_opts)
         store = zarr.storage.FSStore(uri,fs=fs,dimension_separator='/',mode='r')
     else:

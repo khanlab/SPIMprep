@@ -1,8 +1,9 @@
 import tarfile
 
+
 def get_extension_ome_zarr():
-    if config['write_to_remote']:
-        return "ome.zarr.touch"
+    if config["write_to_remote"]:
+        return "ome.zarr/.snakemake_touch"
     else:
         if config["ome_zarr"]["use_zipstore"]:
             return "ome.zarr.zip"
@@ -11,11 +12,14 @@ def get_extension_ome_zarr():
 
 
 def with_storage(path_or_paths):
-    if config['write_to_remote']:
+    if config["write_to_remote"]:
         if type(path_or_paths) == list:
-            return [storage(os.path.join(config['remote_prefix'],path)) for path in path_or_paths]
+            return [
+                storage(os.path.join(config["remote_prefix"], path))
+                for path in path_or_paths
+            ]
         else:
-            return storage(os.path.join(config['remote_prefix'],path_or_paths))
+            return storage(os.path.join(config["remote_prefix"], path_or_paths))
     else:
         return path_or_paths
 
@@ -25,21 +29,23 @@ def get_all_targets():
     targets = []
     for i in range(len(datasets)):
         targets.extend(
-            with_storage(expand(
-                bids(
-                    root=root,
-                    subject="{subject}",
-                    datatype="micr",
-                    sample="{sample}",
-                    acq="{acq}",
-                    suffix="SPIM.{extension}",
-                ),
-                subject=datasets.loc[i, "subject"],
-                sample=datasets.loc[i, "sample"],
-                acq=datasets.loc[i, "acq"],
-                extension=get_extension_ome_zarr()
+            with_storage(
+                expand(
+                    bids(
+                        root=root,
+                        subject="{subject}",
+                        datatype="micr",
+                        sample="{sample}",
+                        acq="{acq}",
+                        suffix="SPIM.{extension}",
+                    ),
+                    subject=datasets.loc[i, "subject"],
+                    sample=datasets.loc[i, "sample"],
+                    acq=datasets.loc[i, "acq"],
+                    extension=get_extension_ome_zarr(),
+                )
             )
-        ))
+        )
         targets.extend(
             expand(
                 bids(
@@ -136,7 +142,6 @@ def get_stains(wildcards):
     ]
 
 
-
 # bigstitcher
 def get_fiji_launcher_cmd(wildcards, output, threads, resources):
     launcher_opts_find = "-Xincgc"
@@ -177,30 +182,38 @@ def get_macro_args_zarr_fusion(wildcards, input, output):
 
 
 def get_output_ome_zarr(acq_type):
-    if config['write_to_remote']:
+    if config["write_to_remote"]:
         return {
-            "zarr": touch(with_storage(bids(
-                    root=root,
-                    subject="{subject}",
-                    datatype="micr",
-                    sample="{sample}",
-                    acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
-                    suffix="SPIM.ome.zarr.touch",
-                )))
-        }
-    else:
-        if config["write_ome_zarr_direct"]:
-            return {
-                "zarr": with_storage(directory(
+            "zarr": touch(
+                with_storage(
                     bids(
                         root=root,
                         subject="{subject}",
                         datatype="micr",
                         sample="{sample}",
                         acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
-                        suffix="SPIM.ome.zarr",
+                        suffix="SPIM.{extension}".format(
+                            extension=get_extension_ome_zarr()
+                        ),
                     )
-                ))
+                )
+            )
+        }
+    else:
+        if config["write_ome_zarr_direct"]:
+            return {
+                "zarr": with_storage(
+                    directory(
+                        bids(
+                            root=root,
+                            subject="{subject}",
+                            datatype="micr",
+                            sample="{sample}",
+                            acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
+                            suffix="SPIM.ome.zarr",
+                        )
+                    )
+                )
             }
         else:
             return {
@@ -220,30 +233,31 @@ def get_output_ome_zarr(acq_type):
 
 
 def get_input_ome_zarr_to_nii():
-    if config['write_to_remote']:
-        return with_storage(bids(
-                    root=root,
-                    subject="{subject}",
-                    datatype="micr",
-                    sample="{sample}",
-                    acq="{acq}",
-                    suffix="SPIM.ome.zarr.touch",
-                ))
-    else:
-        if config["write_ome_zarr_direct"]:
-            if config["ome_zarr"]["use_zipstore"]:
-                ext = "ome.zarr.zip"
-            else:
-                ext = "ome.zarr"
-
-            return with_storage(bids(
+    if config["write_to_remote"]:
+        return with_storage(
+            bids(
                 root=root,
                 subject="{subject}",
                 datatype="micr",
                 sample="{sample}",
                 acq="{acq}",
-                suffix=f"SPIM.{ext}",
-            ))
+                suffix="SPIM.{extension}".format(extension=get_extension_ome_zarr()),
+            )
+        )
+    else:
+        if config["write_ome_zarr_direct"]:
+            return with_storage(
+                bids(
+                    root=root,
+                    subject="{subject}",
+                    datatype="micr",
+                    sample="{sample}",
+                    acq="{acq}",
+                    suffix="SPIM.{extension}".format(
+                        extension=get_extension_ome_zarr()
+                    ),
+                )
+            )
         else:
             return bids(
                 root=work,
@@ -253,3 +267,13 @@ def get_input_ome_zarr_to_nii():
                 acq="{acq}",
                 suffix=f"SPIM.ome.zarr",
             )
+
+
+def get_storage_creds():
+    """for rules that deal with remote storage directly"""
+    if config["write_to_remote"]:
+        # currently only works with gcs
+        creds = os.path.expanduser(config["remote_creds"])
+        return {"creds": creds}
+    else:
+        return {}
