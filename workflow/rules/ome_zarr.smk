@@ -45,6 +45,7 @@ rule zarr_to_ome_zarr:
 
 rule tif_stacks_to_ome_zarr:
     input:
+        **get_storage_creds(),
         tif_dir=get_input_dataset,
         metadata_json=rules.prestitched_to_metadata.output.metadata_json,
     params:
@@ -57,6 +58,18 @@ rule tif_stacks_to_ome_zarr:
         scaling_method=config["ome_zarr"]["scaling_method"],
         downsampling=config["bigstitcher"]["fuse_dataset"]["downsampling"],
         stains=get_stains,
+        uri=os.path.join(
+            config["remote_prefix"],
+            bids(
+                root=root,
+                subject="{subject}",
+                datatype="micr",
+                sample="{sample}",
+                acq="{acq,[a-zA-Z0-9]*prestitched[a-zA-Z0-9]*}",
+                suffix="SPIM.ome.zarr",
+            ),
+        ),
+        storage_provider_settings=workflow.storage_provider_settings,
     output:
         **get_output_ome_zarr("prestitched"),
     log:
@@ -112,9 +125,22 @@ rule ome_zarr_to_zipstore:
 
 rule ome_zarr_to_nii:
     input:
+        **get_storage_creds(),
         zarr=get_input_ome_zarr_to_nii(),
     params:
         channel_index=lambda wildcards: get_stains(wildcards).index(wildcards.stain),
+        uri=lambda wildcards: os.path.join(
+            config["remote_prefix"],
+            bids(
+                root=root,
+                subject="{subject}",
+                datatype="micr",
+                sample="{sample}",
+                acq="{acq}",
+                suffix="SPIM.ome.zarr",
+            ),
+        ).format(**wildcards),
+        storage_provider_settings=workflow.storage_provider_settings,
     output:
         nii=bids(
             root=resampled,

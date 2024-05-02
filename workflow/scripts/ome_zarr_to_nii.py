@@ -6,10 +6,39 @@ import dask.array as da
 from ome_zarr.io import parse_url
 from ome_zarr.reader import Reader
 
+storage_provider_settings=snakemake.params.storage_provider_settings
+
 in_zarr = snakemake.input.zarr
 channel_index = snakemake.params.channel_index
 
-zi = zarr.open(in_zarr)
+
+if snakemake.config['write_to_remote']:
+    #use the uri
+    uri = snakemake.params.uri
+
+    if uri.startswith('gcs://'):
+        uri = uri[6:]
+        import gcsfs
+        gcsfs_opts={'project': storage_provider_settings['gcs'].get_settings().project,
+                        'token': snakemake.input.creds}
+        fs = gcsfs.GCSFileSystem(**gcsfs_opts)
+        store = zarr.storage.FSStore(uri,fs=fs,dimension_separator='/',mode='r')
+    elif uri.startswith('s3://'):
+        uri = uri[5:]
+        import s3fs
+        s3fs_opts={'anon': False}
+        fs = s3fs.S3FileSystem(**s3fs_opts)
+        store = zarr.storage.FSStore(uri,fs=fs,dimension_separator='/',mode='w')
+    else:
+        print(f'cannot parse uri {uri}')
+    zi = zarr.open(store=store,mode='r')
+
+
+   
+else:
+    #load as directorystore
+    store = zarr.DirectoryStore(in_zarr)
+    zi = zarr.open(in_zarr,mode='r')
 
 attrs=zi['/'].attrs.asdict()
 
@@ -27,7 +56,7 @@ affine[1,1]=-transforms[0]['scale'][2] #y
 affine[2,2]=-transforms[0]['scale'][1] #z
 
 #grab the channel index corresponding to the stain
-darr = da.from_zarr(in_zarr,component=f'/{level}')[channel_index,:,:,:].squeeze()
+darr = da.from_zarr(store,component=f'/{level}')[channel_index,:,:,:].squeeze()
 
 #input array axes are ZYX 
 #writing to nifti we want XYZ

@@ -2,6 +2,7 @@ import json
 import zarr
 import dask.array as da
 from dask.array.image import imread as dask_imread
+from ome_zarr.io import parse_url
 from ome_zarr.writer import write_image
 from ome_zarr.format import format_from_version
 from ome_zarr.scale import Scaler
@@ -16,6 +17,7 @@ rechunk_size=snakemake.params.rechunk_size
 out_zarr=snakemake.output.zarr
 stains=snakemake.params.stains
 scaling_method=snakemake.params.scaling_method
+storage_provider_settings=snakemake.params.storage_provider_settings
 
 # prepare metadata for ome-zarr
 with open(metadata_json) as fp:
@@ -62,18 +64,46 @@ for i,stain in enumerate(stains):
 darr_channels = da.stack(darr_list)
 
 
-store = zarr.DirectoryStore(out_zarr)
-root = zarr.group(store,path='/',overwrite=True)
-scaler = Scaler(max_layer=max_layer,method=scaling_method)
+if snakemake.config['write_to_remote']:
+    #use the uri
+    uri = snakemake.params.uri
 
+    if uri.startswith('gcs://'):
+        uri = uri[6:]
+        import gcsfs
+        gcsfs_opts={'project': storage_provider_settings['gcs'].get_settings().project,
+                        'token': snakemake.input.creds}
+        fs = gcsfs.GCSFileSystem(**gcsfs_opts)
+        store = zarr.storage.FSStore(uri,fs=fs,dimension_separator='/',mode='w')
+    elif uri.startswith('s3://'):
+        uri = uri[5:]
+        import s3fs
+        s3fs_opts={'anon': False}
+        fs = s3fs.S3FileSystem(**s3fs_opts)
+        store = zarr.storage.FSStore(uri,fs=fs,dimension_separator='/',mode='w')
+
+    else:
+        print(f'cannot parse uri {uri}')
+    zi = zarr.open(store=store,mode='w')
+
+
+   
+else:
+    #load as directorystore
+    store = zarr.DirectoryStore(out_zarr)
+    zi = zarr.open(out_zarr,mode='w')
+
+
+
+group = zarr.group(store,overwrite=True)
+scaler = Scaler(max_layer=max_layer,method=scaling_method)
 
 
 with ProgressBar():
     write_image(image=darr_channels,
-                            group=root,
+                            group=group,
                             scaler=scaler,
                             coordinate_transformations=coordinate_transformations,
-                            storage_options={'dimension_separator': '/'},
                             axes=axes,
                             metadata={'omero':omero}
                                 )
