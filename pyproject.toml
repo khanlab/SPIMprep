@@ -10,6 +10,8 @@ packages = []
 python = ">=3.11,<3.12"
 snakemake = ">=8.0.0"
 snakebids = ">=0.12.0"
+snakemake-storage-plugin-s3 = "^0.2.11"
+snakemake-storage-plugin-gcs = "^1.0.0"
 
 [tool.poetry.group.dev.dependencies]
 snakefmt = "^0.10.0"
