@@ -14,10 +14,10 @@ def get_extension_ome_zarr():
 def with_storage(path_or_paths):
     if config["write_to_remote"]:
         if type(path_or_paths) == list:
-            return [
-                storage(os.path.join(config["remote_prefix"], path))
-                for path in path_or_paths
-            ]
+            out_paths = []
+            for path in path_or_paths:
+                out_paths.append(storage(os.path.join(config["remote_prefix"], path)))
+            return out_paths
         else:
             return storage(os.path.join(config["remote_prefix"], path_or_paths))
     else:

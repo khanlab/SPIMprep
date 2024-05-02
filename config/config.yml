@@ -4,8 +4,8 @@ datasets: 'config/datasets.tsv'
 root: 'bids'
 work: 'work' 
 
-write_to_remote: True #save final output ome-zarr to cloud store
-remote_prefix: 'gcs://khanlab-bucket/lightsheet_bids'
+write_to_remote: False #save final output ome-zarr to cloud store
+remote_prefix: 'gcs://khanlab-bucket/lightsheet_bids/onuska'
 remote_creds: '~/.config/gcloud/application_default_credentials.json'
 
 write_ome_zarr_direct: True #use this to skip writing the final zarr output to work first and copying afterwards -- useful when work is not a fast local disk
