@@ -3,16 +3,21 @@
 [![Snakemake](https://img.shields.io/badge/snakemake-≥6.3.0-brightgreen.svg)](https://snakemake.github.io)
 [![GitHub actions status](https://github.com/khanlab/SPIMprep/workflows/Tests/badge.svg?branch=main)](https://github.com/khanlab/SPIMprep/actions?query=branch%3Amain+workflow%3ATests)
 
-A Snakemake workflow for pre-processing single plane illumination microscopy (SPIM, aka lightsheet microscopy)
+<!--intro-start-->
 
-Takes datasets produced by the Biotec UltraMicroscope Blaze (as a folder of tif images), and outputs a BIDS-like dataset, with a multi-channel multi-scale ome zarr file along with downsampled nifti images. 
+A Snakemake workflow for pre-processing single plane illumination microscopy (SPIM, aka lightsheet microscopy).
+
+Takes TIF images (tiled or prestitched) and outputs a validated BIDS Microscopy dataset, with a multi-channel multi-scale OME-Zarr file for each scan, along with downsampled nifti images (in a derivatives folder). 
 
 ## Requirements
 
  - Linux system with Singularity/Apptainer installed 
-   - (Note: container will be automatically pulled when you run the workflow)
+    - (Note: container will be automatically pulled when you run the workflow)
  - Python >= 3.11
- - Lightsheet data as OME tif files in a folder, or in a tar file (see tif filename pattern in `config.yml`)
+ - Lightsheet data:
+    - Raw Ultramicroscope Blaze OME TIFF files (include `blaze` in the acquisition tag)
+    - Prestitched TIFF files (include `prestitched` in the acquisition tag)
+
 
 ## Usage
 
@@ -57,7 +62,5 @@ Note: if you run the workflow on a system with large memory, you will need to se
 7. If you want to run the workflow using a batch job submission server, please see the executor plugins here: https://snakemake.github.io/snakemake-plugin-catalog/
 
 
-
-### WIP:  The usage of this workflow is described in the [Snakemake Workflow Catalog](https://snakemake.github.io/snakemake-workflow-catalog/?usage=khanlab%2Fspimprep).
-
-
+Alternate usage of this workflow (making use of conda) is described in the [Snakemake Workflow Catalog](https://snakemake.github.io/snakemake-workflow-catalog?repo=khanlab/SPIMprep).
+<!--intro-end-->
