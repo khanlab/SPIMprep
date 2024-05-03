@@ -14,6 +14,8 @@ snakebids = "0.11.0"
 
 [tool.poetry.group.dev.dependencies]
 snakefmt = "^0.10.0"
+mkdocs-material = "^9.5.20"
+mkdocs-include-markdown-plugin = "^6.0.6"
 
 [build-system]
 requires = ["poetry-core"]
