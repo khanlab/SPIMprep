@@ -28,7 +28,7 @@ git clone https://github.com/khanlab/spimprep
 ```
 
 2. Create and activate a virtual environment, then install dependencies with:
-
+```
 pip install .
 ```
 Note: to make a venv on the CBS server use:
@@ -37,9 +37,11 @@ python3.11 -m venv venv
 source venv/bin/activate
 ```
 
-3. Update the `config/datasets.tsv` spreadsheet to point to your dataset(s). Each dataset's tif files should be in it's own folder or tar file, with no other tif files. Enter the path to each dataset in the `dataset_path` column. The first three columns identify the subject, sample, acquisition, which become part of the resulting filenames (BIDS naming). The `stain_0` and `stain_1` identify what stains were used for each channel. Use `autof` to indicate the autofluorescence channel, as this is used for registration. NOTE: The acquisition value must contain either `blaze` or `prestitched`, and defines which workflow will be used. E.g. for LifeCanvas data that is already stitched, you need to include `prestitched` in the acquisition flag. 
+3. Update the `config/datasets.tsv` spreadsheet to point to your dataset(s). Each dataset's tif files should be in it's own folder or tar file, with no other tif files. Enter the path to each dataset in the `dataset_path` column. The first three columns identify the subject, sample, acquisition, which become part of the resulting filenames (BIDS naming). The `stain_0` and `stain_1` identify what stains were used for each channel. Use `autof` to indicate the autofluorescence channel, as this is used for registration.
 
-4. The `config/config.yml` can be edited to customize any workflow parameters. The most important ones are the `root` and `work` variables. The `root` path is where the results will end up, by default this is a subfolder called `bids`. The `work` path is where any intermediate scratch files are produced. By default the files in `work` are deleted after they are no longer needed in the workflow, unless you use the `--notemp` command-line option. The workflow writes a large number of small files in parallel to the `work` folder, so for optimum performance this should be a fast local disk, and not a networked file system (i.e. shared disk).  
+Note: The acquisition value must contain either `blaze` or `prestitched`, and defines which workflow will be used. E.g. for LifeCanvas data that is already stitched, you need to include `prestitched` in the acquisition flag. 
+
+5. The `config/config.yml` can be edited to customize any workflow parameters. The most important ones are the `root` and `work` variables. The `root` path is where the results will end up, by default this is a subfolder called `bids`. The `work` path is where any intermediate scratch files are produced. By default the files in `work` are deleted after they are no longer needed in the workflow, unless you use the `--notemp` command-line option. The workflow writes a large number of small files in parallel to the `work` folder, so for optimum performance this should be a fast local disk, and not a networked file system (i.e. shared disk).  
 
 Note: you can use environment variables when specifying `root` or `work`, e.g. so `work: '$SLURM_TMPDIR` can be used on HPC servers. 
 
