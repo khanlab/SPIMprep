@@ -80,14 +80,14 @@ metadata['prefixes'] = prefixes
 metadata['chunks'] = chunks
 metadata['axes'] = axes
 metadata['shape'] = shape
-metadata['physical_size_x'] = physical_size_x
-metadata['physical_size_y'] = physical_size_y
-metadata['physical_size_z'] = physical_size_z
+metadata['physical_size_x'] = float(physical_size_x)
+metadata['physical_size_y'] = float(physical_size_y)
+metadata['physical_size_z'] = float(physical_size_z)
 metadata['lookup_tile_offset_x'] = map_x
 metadata['lookup_tile_offset_y'] = map_y
 metadata['lookup_tile_offset_z'] = map_z
 metadata['ome_full_metadata'] = ome_dict
-metadata['PixelSize'] = [ float(physical_size_z/1000.0), float(physical_size_y/1000.0), float(physical_size_x/1000.0) ] #zyx since OME-Zarr is ZYX
+metadata['PixelSize'] = [ metadata['physical_size_z']/1000.0, metadata['physical_size_y']/1000.0, metadata['physical_size_x']/1000.0 ] #zyx since OME-Zarr is ZYX
 metadata['PixelSizeUnits'] = 'mm' 
 
 #write metadata to json
