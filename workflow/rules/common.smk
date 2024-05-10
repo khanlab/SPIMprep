@@ -11,7 +11,7 @@ def get_extension_ome_zarr():
             return "ome.zarr"
 
 
-def with_storage(path_or_paths):
+def final(path_or_paths):
     if config["write_to_remote"]:
         if type(path_or_paths) == list:
             out_paths = []
@@ -29,7 +29,7 @@ def get_all_targets():
     targets = []
     for i in range(len(datasets)):
         targets.extend(
-            with_storage(
+            final(
                 expand(
                     bids(
                         root=root,
@@ -42,27 +42,29 @@ def get_all_targets():
                     subject=datasets.loc[i, "subject"],
                     sample=datasets.loc[i, "sample"],
                     acq=datasets.loc[i, "acq"],
-                    extension=get_extension_ome_zarr(),
+                    extension=[get_extension_ome_zarr(), "json"],
                 )
             )
         )
         targets.extend(
-            expand(
-                bids(
-                    root=resampled,
-                    subject="{subject}",
-                    datatype="micr",
-                    sample="{sample}",
-                    acq="{acq}",
-                    res="{level}x",
-                    stain="{stain}",
-                    suffix="SPIM.nii",
-                ),
-                subject=datasets.loc[i, "subject"],
-                sample=datasets.loc[i, "sample"],
-                acq=datasets.loc[i, "acq"],
-                level=config["nifti"]["levels"],
-                stain=[datasets.loc[i, "stain_0"], datasets.loc[i, "stain_1"]],
+            final(
+                expand(
+                    bids(
+                        root=resampled,
+                        subject="{subject}",
+                        datatype="micr",
+                        sample="{sample}",
+                        acq="{acq}",
+                        res="{level}x",
+                        stain="{stain}",
+                        suffix="SPIM.nii",
+                    ),
+                    subject=datasets.loc[i, "subject"],
+                    sample=datasets.loc[i, "sample"],
+                    acq=datasets.loc[i, "acq"],
+                    level=config["nifti"]["levels"],
+                    stain=[datasets.loc[i, "stain_0"], datasets.loc[i, "stain_1"]],
+                )
             )
         )
 
@@ -76,7 +78,7 @@ def get_bids_toplevel_targets():
     targets.append(Path(root) / "samples.tsv")
     targets.append(Path(root) / "samples.json")
     targets.append(Path(resampled) / "dataset_description.json")
-    return [with_storage(target) for target in targets]
+    return [final(target) for target in targets]
 
 
 def get_input_dataset(wildcards):
@@ -185,7 +187,7 @@ def get_output_ome_zarr(acq_type):
     if config["write_to_remote"]:
         return {
             "zarr": touch(
-                with_storage(
+                final(
                     bids(
                         root=root,
                         subject="{subject}",
@@ -202,7 +204,7 @@ def get_output_ome_zarr(acq_type):
     else:
         if config["write_ome_zarr_direct"]:
             return {
-                "zarr": with_storage(
+                "zarr": final(
                     directory(
                         bids(
                             root=root,
@@ -234,7 +236,7 @@ def get_output_ome_zarr(acq_type):
 
 def get_input_ome_zarr_to_nii():
     if config["write_to_remote"]:
-        return with_storage(
+        return final(
             bids(
                 root=root,
                 subject="{subject}",
@@ -246,7 +248,7 @@ def get_input_ome_zarr_to_nii():
         )
     else:
         if config["write_ome_zarr_direct"]:
-            return with_storage(
+            return final(
                 bids(
                     root=root,
                     subject="{subject}",

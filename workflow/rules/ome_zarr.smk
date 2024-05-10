@@ -154,15 +154,17 @@ rule ome_zarr_to_nii:
         ).format(**wildcards),
         storage_provider_settings=workflow.storage_provider_settings,
     output:
-        nii=bids(
-            root=resampled,
-            subject="{subject}",
-            datatype="micr",
-            sample="{sample}",
-            acq="{acq}",
-            res="{level}x",
-            stain="{stain}",
-            suffix="SPIM.nii",
+        nii=final(
+            bids(
+                root=resampled,
+                subject="{subject}",
+                datatype="micr",
+                sample="{sample}",
+                acq="{acq}",
+                res="{level}x",
+                stain="{stain}",
+                suffix="SPIM.nii",
+            )
         ),
     benchmark:
         bids(
