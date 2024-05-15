@@ -125,7 +125,7 @@ def get_stains(wildcards):
     # Select columns that match the pattern 'stain_'
     stain_columns = df.filter(like="stain_").columns
 
-    return df.loc[0, stain_columns].dropna().tolist()
+    return df.iloc[0][stain_columns].dropna().tolist()
 
 
 # bids
