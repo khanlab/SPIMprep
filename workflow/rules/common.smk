@@ -39,7 +39,7 @@ def get_all_targets():
                 sample=datasets.loc[i, "sample"],
                 acq=datasets.loc[i, "acq"],
                 level=config["nifti"]["levels"],
-                stain=[datasets.loc[i, "stain_0"], datasets.loc[i, "stain_1"]],
+                stain=get_stains_by_row(i),
             )
         )
 
@@ -108,15 +108,24 @@ def get_dataset_path(wildcards):
     return df.dataset_path.to_list()[0]
 
 
+def get_stains_by_row(i):
+
+    # Select columns that match the pattern 'stain_'
+    stain_columns = datasets.filter(like="stain_").columns
+
+    # Select values for a given row
+    return datasets.loc[i, stain_columns].dropna().tolist()
+
+
 def get_stains(wildcards):
     df = datasets.query(
         f"subject=='{wildcards.subject}' and sample=='{wildcards.sample}' and acq=='{wildcards.acq}'"
     )
 
-    return [
-        df.stain_0.to_list()[0],
-        df.stain_1.to_list()[0],
-    ]
+    # Select columns that match the pattern 'stain_'
+    stain_columns = df.filter(like="stain_").columns
+
+    return df.loc[0, stain_columns].dropna().tolist()
 
 
 # bids

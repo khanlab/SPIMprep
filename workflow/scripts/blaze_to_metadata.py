@@ -31,8 +31,7 @@ shape = raw_tif.series[0].get_shape()
 
 #axes normally should be CZYX - if not, then we fail out
 if not axes == 'CZYX':
-    print('ERROR: cannot deal with axes other than CZYX')
-    #sys.exit(1)
+    print(f'WARNING: axes={axes}, shape={shape}; may not be able to deal with axes other than CZYX')
 
 ome_dict = xmltodict.parse(raw_tif.ome_metadata)
 physical_size_x = ome_dict['OME']['Image']['Pixels']['@PhysicalSizeX']
