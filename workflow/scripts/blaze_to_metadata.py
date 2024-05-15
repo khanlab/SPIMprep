@@ -29,9 +29,6 @@ raw_tif = tifffile.TiffFile(in_tif,mode='r')
 axes = raw_tif.series[0].get_axes()
 shape = raw_tif.series[0].get_shape()
 
-#axes normally should be CZYX - if not, then we fail out
-if not axes == 'CZYX':
-    print(f'WARNING: axes={axes}, shape={shape}; may not be able to deal with axes other than CZYX')
 
 ome_dict = xmltodict.parse(raw_tif.ome_metadata)
 physical_size_x = ome_dict['OME']['Image']['Pixels']['@PhysicalSizeX']
@@ -42,8 +39,11 @@ custom_metadata = ome_dict['OME']['Image']['ca:CustomAttributes']
 
 
 #read tile configuration from the microscope metadata
+if axes == 'CZYX':
+    tile_config_pattern=r"Blaze\[(?P<tilex>[0-9]+) x (?P<tiley>[0-9]+)\]_C(?P<channel>[0-9]+)_xyz-Table Z(?P<zslice>[0-9]+).ome.tif;;\((?P<x>\S+), (?P<y>\S+),(?P<chan>\S+), (?P<z>\S+)\)"
+elif axes == 'ZYX': 
+    tile_config_pattern=r"Blaze\[(?P<tilex>[0-9]+) x (?P<tiley>[0-9]+)\]_C(?P<channel>[0-9]+)_xyz-Table Z(?P<zslice>[0-9]+).ome.tif;;\((?P<x>\S+), (?P<y>\S+), (?P<z>\S+)\)"
 
-tile_config_pattern=r"Blaze\[(?P<tilex>[0-9]+) x (?P<tiley>[0-9]+)\]_C(?P<channel>[0-9]+)_xyz-Table Z(?P<zslice>[0-9]+).ome.tif;;\((?P<x>\S+), (?P<y>\S+),(?P<chan>\S+), (?P<z>\S+)\)"
 tile_pattern = re.compile(tile_config_pattern)
 
 #put it in 3 maps, one for each coord, indexed by tilex, tiley, channel, and aslice
@@ -79,14 +79,14 @@ metadata['prefixes'] = prefixes
 metadata['chunks'] = chunks
 metadata['axes'] = axes
 metadata['shape'] = shape
-metadata['physical_size_x'] = physical_size_x
-metadata['physical_size_y'] = physical_size_y
-metadata['physical_size_z'] = physical_size_z
+metadata['physical_size_x'] = float(physical_size_x)
+metadata['physical_size_y'] = float(physical_size_y)
+metadata['physical_size_z'] = float(physical_size_z)
 metadata['lookup_tile_offset_x'] = map_x
 metadata['lookup_tile_offset_y'] = map_y
 metadata['lookup_tile_offset_z'] = map_z
 metadata['ome_full_metadata'] = ome_dict
-metadata['PixelSize'] = [ float(physical_size_z/1000.0), float(physical_size_y/1000.0), float(physical_size_x/1000.0) ] #zyx since OME-Zarr is ZYX
+metadata['PixelSize'] = [ metadata['physical_size_z']/1000.0, metadata['physical_size_y']/1000.0, metadata['physical_size_x']/1000.0 ] #zyx since OME-Zarr is ZYX
 metadata['PixelSizeUnits'] = 'mm' 
 
 #write metadata to json
