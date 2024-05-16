@@ -5,7 +5,10 @@ dataset_xml = args[0]
 ds_x = args[1]
 ds_y = args[2]
 ds_z = args[3]
-min_r = args[4]
+do_filter = args[4]
+min_r = args[5]
+do_global = args[6]
+global_strategy = args[7]
 
 run("Calculate pairwise shifts ...",
  "select=" + dataset_xml + 
@@ -20,6 +23,9 @@ run("Calculate pairwise shifts ...",
     " downsample_in_y=" +  ds_y + 
     " downsample_in_z=" +  ds_z );
 
+
+if ( do_filter == 1 ){
+
 run("Filter pairwise shifts ...",
  "select=" + dataset_xml + 
     " min_r=" + min_r + 
@@ -28,8 +34,10 @@ run("Filter pairwise shifts ...",
     " max_shift_in_y=0 " + 
     " max_shift_in_z=0 " + 
     " max_displacement=0");
+}
 
- 
+if ( do_global == 1 ){
+
 run("Optimize globally and apply shifts ...",
  "select=" + dataset_xml + 
     " process_angle=[All angles] " + 
@@ -39,8 +47,9 @@ run("Optimize globally and apply shifts ...",
     " process_timepoint=[All Timepoints] " + 
     " relative=2.500 " + 
     " absolute=3.500 " + 
-    " global_optimization_strategy=[Two-Round using Metadata to align unconnected Tiles and iterative dropping of bad links] " + 
+    " global_optimization_strategy=["+global_strategy+"] " + 
     " fix_group_0-0,");
+}
 
 // quit after we are finished
 eval("script", "System.exit(0);");

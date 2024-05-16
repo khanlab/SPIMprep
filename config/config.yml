@@ -33,7 +33,18 @@ bigstitcher:
     downsample_in_y: 4
     downsample_in_z: 1
   filter_pairwise_shifts:
-    min_r: 0.7
+    enabled: 1
+    min_r: 0.0
+  global_optimization:
+    enabled: 1
+    strategy: one_round 
+    strategies:
+      one_round: "One-Round"
+      one_round_iterative: "One-Round with iterative dropping of bad links"
+      two_round:  "Two-Round using metadata to align unconnected Tiles"
+      two_round_iterative: "Two-Round using Metadata to align unconnected Tiles and iterative dropping of bad links"
+
+
   fuse_dataset:
     downsampling: 1
     block_size_x: 4096 # for storage
