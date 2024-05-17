@@ -2,13 +2,14 @@ args = getArgument()
 args = split(args, " ");
 
 dataset_xml = args[0]
-ds_x = args[1]
-ds_y = args[2]
-ds_z = args[3]
-do_filter = args[4]
-min_r = args[5]
-do_global = args[6]
-global_strategy = args[7]
+pairwise_method = args[1]
+ds_x = args[2]
+ds_y = args[3]
+ds_z = args[4]
+do_filter = args[5]
+min_r = args[6]
+do_global = args[7]
+global_strategy = args[8]
 
 run("Calculate pairwise shifts ...",
  "select=" + dataset_xml + 
@@ -17,7 +18,7 @@ run("Calculate pairwise shifts ...",
     " process_illumination=[All illuminations] " + 
     " process_tile=[All tiles] " + 
     " process_timepoint=[All Timepoints] " + 
-    " method=[Phase Correlation] " + 
+    " method=["+ pairwise_method +"] " + 
     " channels=[Average Channels] " + 
     " downsample_in_x=" +  ds_x + 
     " downsample_in_y=" +  ds_y + 

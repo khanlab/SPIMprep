@@ -32,12 +32,16 @@ bigstitcher:
     downsample_in_x: 4
     downsample_in_y: 4
     downsample_in_z: 1
+    method: "optical_flow"
+    methods:
+      phase_corr: "Phase Correlation"
+      optical_flow: "Lucas-Kanade" 
   filter_pairwise_shifts:
     enabled: 1
-    min_r: 0.0
+    min_r: 0.7
   global_optimization:
     enabled: 1
-    strategy: one_round 
+    strategy: two_round_iterative
     strategies:
       one_round: "One-Round"
       one_round_iterative: "One-Round with iterative dropping of bad links"
@@ -55,7 +59,7 @@ bigstitcher:
     block_size_factor_z: 1
 
 ome_zarr:
-  desc: stitchedflatcorr
+  desc: stitchedraw
   max_downsampling_layers: 5 # e.g. 4 levels: { 0: orig, 1: ds2, 2: ds4, 3: ds8, 4: ds16}
   rechunk_size: #z, y, x
     - 1 
@@ -91,6 +95,7 @@ ome_zarr:
 
 nifti:
   levels: #cannot be higher than max_downsampling_layers in ome_zarr
+    - 2
     - 3
     - 4
 
