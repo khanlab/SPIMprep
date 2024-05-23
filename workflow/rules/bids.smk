@@ -52,8 +52,8 @@ rule bids_samples_json:
 
 
 rule create_samples_tsv:
-    input:
-        tsv=config["datasets"],
+    params:
+        datasets_df=datasets,
     output:
         tsv=Path(root) / "samples.tsv",
     log:

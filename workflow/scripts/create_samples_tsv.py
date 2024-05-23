@@ -1,18 +1,6 @@
 import pandas as pd
 
-# read datasets tsv
-df = pd.read_csv(
-    snakemake.input.tsv,
-    sep="\t",
-    dtype={
-        "subject": str,
-        "sample": str,
-        "acq": str,
-        "stain_0": str,
-        "stain_1": str,
-        "num_tiles": int,
-    },
-)
+df = snakemake.params.datasets_df
 
 df['participant_id'] = 'sub-' + df['subject'] 
 df['sample_id'] = 'sample-' + df['sample'] 
