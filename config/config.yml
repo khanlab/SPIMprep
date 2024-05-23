@@ -50,7 +50,7 @@ bigstitcher:
 
 
   fuse_dataset:
-    downsampling: 1 
+    downsampling: 1
     block_size_x: 4096 # for storage
     block_size_y: 4096
     block_size_z: 1
@@ -95,7 +95,6 @@ ome_zarr:
 
 nifti:
   levels: #cannot be higher than max_downsampling_layers in ome_zarr
-    - 2
     - 3
     - 4
 
