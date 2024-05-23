@@ -3,7 +3,6 @@ datasets: 'config/datasets.tsv'
 
 root: 'bids'
 work: 'work' 
-#work_alt: '/cifs/khan/users/alik/spimprep_work'
 
 write_ome_zarr_direct: True #use this to skip writing the final zarr output to work first and copying afterwards -- useful when work is not a fast local disk
 
