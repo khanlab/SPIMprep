@@ -66,8 +66,7 @@ for i_chan,channel in enumerate(metadata['channels']):
         affine[1,3] = -metadata['lookup_tile_offset_y'][key] / float(metadata['physical_size_y'])
         affine[2,3] = -metadata['lookup_tile_offset_z'][key] / float(metadata['physical_size_z'])
         bdv_writer.append_view(stack=None, 
-                                #virtual_stack_dim=(shape[3],shape[2],shape[1]), 
-                                virtual_stack_dim=(metadata['shape'][1],metadata['shape'][2],metadata['shape'][3]), 
+                                virtual_stack_dim=(n_z,n_y,n_x),
                                 tile=i_tile,channel=i_chan,
                                 voxel_units='μm',
                                 voxel_size_xyz=(metadata['physical_size_x'],

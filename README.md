@@ -37,7 +37,7 @@ python3.11 -m venv venv
 source venv/bin/activate
 ```
 
-3. Update the `config/datasets.tsv` spreadsheet to point to your dataset(s). Each dataset's tif files should be in it's own folder or tar file, with no other tif files. Enter the path to each dataset in the `dataset_path` column. The first three columns identify the subject, sample, acquisition, which become part of the resulting filenames (BIDS naming). The `stain_0` and `stain_1` identify what stains were used for each channel. Use `autof` to indicate the autofluorescence channel, as this is used for registration.
+3. Update the `config/datasets.tsv` spreadsheet to point to your dataset(s). Each dataset's tif files should be in it's own folder or tar file, with no other tif files. Enter the path to each dataset in the `dataset_path` column. The first three columns identify the subject, sample, acquisition, which become part of the resulting filenames (BIDS naming). The `stain_0` and `stain_1` identify what stains were used for each channel. Use `autof` to indicate the autofluorescence channel. If you have a different number of stains you can add or remove these columns. If your samples have different numbers of stains, you can leave values blank or use `n/a` to indicate that a sample does not have a particular stain. 
 
 Note: The acquisition value must contain either `blaze` or `prestitched`, and defines which workflow will be used. E.g. for LifeCanvas data that is already stitched, you need to include `prestitched` in the acquisition flag. 
 

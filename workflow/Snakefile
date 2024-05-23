@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from snakebids import bids, set_bids_spec
 import pandas as pd
+from collections import defaultdict
 import os
 
 
@@ -20,18 +21,8 @@ resampled = Path(root) / "derivatives" / "resampled"
 set_bids_spec("v0_11_0")
 
 # read datasets tsv
-datasets = pd.read_csv(
-    config["datasets"],
-    sep="\t",
-    dtype={
-        "subject": str,
-        "sample": str,
-        "acq": str,
-        "stain_0": str,
-        "stain_1": str,
-        "num_tiles": int,
-    },
-)
+dtype = defaultdict(lambda: str, num_tiles=int)
+datasets = pd.read_csv(config["datasets"], sep="\t", dtype=dtype)
 
 
 include: "rules/common.smk"
