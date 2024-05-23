@@ -3,6 +3,7 @@ datasets: 'config/datasets.tsv'
 
 root: 'bids'
 work: 'work' 
+#work_alt: '/cifs/khan/users/alik/spimprep_work'
 
 write_ome_zarr_direct: True #use this to skip writing the final zarr output to work first and copying afterwards -- useful when work is not a fast local disk
 
@@ -32,7 +33,7 @@ bigstitcher:
     downsample_in_x: 4
     downsample_in_y: 4
     downsample_in_z: 1
-    method: "optical_flow"
+    method: "phase_corr"
     methods:
       phase_corr: "Phase Correlation"
       optical_flow: "Lucas-Kanade" 
@@ -41,7 +42,7 @@ bigstitcher:
     min_r: 0.7
   global_optimization:
     enabled: 1
-    strategy: two_round_iterative
+    strategy: two_round
     strategies:
       one_round: "One-Round"
       one_round_iterative: "One-Round with iterative dropping of bad links"
@@ -50,7 +51,7 @@ bigstitcher:
 
 
   fuse_dataset:
-    downsampling: 1
+    downsampling: 1 
     block_size_x: 4096 # for storage
     block_size_y: 4096
     block_size_z: 1
@@ -59,7 +60,7 @@ bigstitcher:
     block_size_factor_z: 1
 
 ome_zarr:
-  desc: stitchedraw
+  desc: stitchedflatcorr
   max_downsampling_layers: 5 # e.g. 4 levels: { 0: orig, 1: ds2, 2: ds4, 3: ds8, 4: ds16}
   rechunk_size: #z, y, x
     - 1 
@@ -129,23 +130,7 @@ bids:
     
 
   
-templates: 
-  - ABAv3
-
-atlases:
-  ABAv3:
-    anat: 'resources/ABAv3/P56_Atlas.nii.gz'
-    dseg: 'resources/ABAv3/P56_Annotation.nii.gz'
-    lut: 'resources/ABAv3/labelmapper_ABAv3_to_all.json'
-
-atlasreg:
-  stain: autof
-  level: 4
-  desc: stitchedflatcorr
-
-
 
 containers:
   spimprep: 'docker://khanlab/spimprep-deps:main'
-  miracl: 'docker://mgoubran/miracl:2.2.5'
 
