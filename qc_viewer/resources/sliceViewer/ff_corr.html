@@ -1,0 +1,72 @@
+
+<!DOCTYPE html>
+<head>
+  <title>FlatField Correction Check</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <a href="../index.html">Back</a>
+  <label class="expand-options">
+    Expand Images on Click
+    <input type="checkbox" id="expand">
+    <input type="number" id="expand_scale" value="2">
+  </label>
+  <table id="table">
+    <tbody>
+      <h1>Before and After Flatfield Correction</h1>                 
+      <tr>
+        <td colspan=6>
+          <h2>Chunk - 0  Channel - 0</h2>
+        </td>
+      </tr>
+      <tr>       
+        <td>
+            <img src=root/images/corr/chunk-0-channel-0-slice-1.jpg></img>
+            <h3>Corrected</h3>
+            <p>Slice-1</p>
+        </td>
+        <td>
+            <img src=root/images/uncorr/chunk-0-channel-0-slice-1.jpg></img>
+            <h3>Uncorrected</h3>
+            <p>Slice-1</p>
+        </td>       
+        <td>
+            <img src=root/images/corr/chunk-0-channel-0-slice-2.jpg></img>
+            <h3>Corrected</h3>
+            <p>Slice-2</p>
+        </td>
+        <td>
+            <img src=root/images/uncorr/chunk-0-channel-0-slice-2.jpg></img>
+            <h3>Uncorrected</h3>
+            <p>Slice-2</p>
+        </td>      </tr>      <tr>
+        <td colspan=6>
+          <h2>Chunk - 0  Channel - 1</h2>
+        </td>
+      </tr>
+      <tr>       
+        <td>
+            <img src=root/images/corr/chunk-0-channel-1-slice-1.jpg></img>
+            <h3>Corrected</h3>
+            <p>Slice-1</p>
+        </td>
+        <td>
+            <img src=root/images/uncorr/chunk-0-channel-1-slice-1.jpg></img>
+            <h3>Uncorrected</h3>
+            <p>Slice-1</p>
+        </td>       
+        <td>
+            <img src=root/images/corr/chunk-0-channel-1-slice-2.jpg></img>
+            <h3>Corrected</h3>
+            <p>Slice-2</p>
+        </td>
+        <td>
+            <img src=root/images/uncorr/chunk-0-channel-1-slice-2.jpg></img>
+            <h3>Uncorrected</h3>
+            <p>Slice-2</p>
+        </td>      </tr>
+      </tr>
+    </tbody>
+  </table>
+  <script src=image_expand.js></script>                            
+                 

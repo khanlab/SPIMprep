@@ -126,8 +126,17 @@ bids:
   readme_md: resources/bids_template_files/README.md
   samples_json: resources/bids_template_files/samples.json
     
+report:
+  create_report: True
+  flatfield_corrected:
+    slice_start: 0
+    slice_step: 1
+    colour_map: gray
+  whole_slice_viewer:
+    slice_start: 0
+    slice_step: 1
+    colour_map: gray
 
-  
 
 containers:
   spimprep: 'docker://khanlab/spimprep-deps:main'

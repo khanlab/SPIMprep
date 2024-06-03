@@ -1,0 +1,14 @@
+img {
+    height: auto;
+    width:200px;
+    z-index: 0;
+    position: relative;
+}
+
+.expand-options {
+    float: right;
+}
+
+#expand_scale {
+    display: none;
+}

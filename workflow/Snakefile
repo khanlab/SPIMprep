@@ -32,6 +32,8 @@ rule all:
     input:
         get_all_targets(),
         get_bids_toplevel_targets(),
+        "qc_viewer/demo1-brain-blaze1x/volumeViewer/volumeData.json",
+        "qc_viewer/demo2-brain-blaze1x/volumeViewer/volumeData.json",
     localrule: True
 
 
