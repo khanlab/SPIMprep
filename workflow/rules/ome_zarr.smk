@@ -158,13 +158,13 @@ rule ome_zarr_to_nii:
 
 
 rule generate_report:
+    """Generate QC reports for workflow"""
     input:
         uncorr="bids/{subject}-{sample}-{acq}-uncorr.zarr",
         corr="bids/{subject}-{sample}-{acq}-corr.zarr",
         ome="bids/sub-{subject}/micr/sub-{subject}_sample-{sample}_acq-{acq}_SPIM.ome.zarr",
     params:
-        create_report=config['report']['create_report'],
-        ff_slice_start=config['report']['flatfield_corrected']['slice_start'],
+        ff_s_start=config['report']['flatfield_corrected']['slice_start'],
         ws_s_start=config['report']['whole_slice_viewer']['slice_start'],
         ff_s_step=config['report']['flatfield_corrected']['slice_step'],
         ff_cmap=config['report']['flatfield_corrected']['colour_map'],

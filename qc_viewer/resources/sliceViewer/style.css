@@ -5,6 +5,11 @@ img {
     position: relative;
 }
 
+table {
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .expand-options {
     float: right;
 }

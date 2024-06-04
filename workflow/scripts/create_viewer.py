@@ -1,26 +1,34 @@
-import matplotlib.pyplot as plt
-import numpy as np
-from ome_zarr.io import parse_url
-from ome_zarr.reader import Reader
+import subprocess
 import os
 import json
 import math
 from distutils.dir_util import copy_tree
+from ome_zarr.io import parse_url
+from ome_zarr.reader import Reader
+try:
+  import matplotlib.pyplot as plt
+except:
+    subprocess.run(['pip','install','matplotlib'])
+    import matplotlib.pyplot as plt
+try:
+  import numpy as np
+except:
+   subprocess.run(['pip','install', 'numpy'])
 
-generate_report = snakemake.params.create_report
-
-ff_s_start=snakemake.params.ff_slice_start
-ff_s_step=snakemake.params.ff_slice_step
+# arguments for creating the flatfield correction comparisons
+ff_s_start=snakemake.params.ff_s_start
+ff_s_step=snakemake.params.ff_s_step
 ff_cmap=snakemake.params.ff_cmap
 ff_corr = snakemake.input.corr
 ff_uncorr = snakemake.input.uncorr
 
+# arguments for creating whole slice images
 ws_s_step=snakemake.params.ws_s_step
 ws_s_start=snakemake.params.ws_s_start
 ws_cmap=snakemake.params.ws_cmap
-
 ome_zarr= snakemake.input.ome
 
+# Get output files
 output = snakemake.output.out
 out_dir = output.split("/")[1]
 
@@ -85,20 +93,9 @@ def produce_ff_images(corrected_path, uncorrected_path, colour="gray", slice_sta
       </tr>
       <tr>""")
                 while(slice<len(channel_corr)):
-                    """
-                    if(chan_num==0):
-                        cmin = ch1_contrast_low
-                        cmax= ch1_contrast_high
-                    else:
-                        cmin=ch2_contrast_low
-                        cmax=ch2_contrast_high
-                    """
                     sorted_array = np.sort(np.array(channel_corr[slice].flatten()))[::-1]
                     cmax = sorted_array[math.floor(len(sorted_array)*1/100)]
                     cmin = sorted_array[math.floor(len(sorted_array)*99/100)]
-                    print(f"chan-{chan_num} slice-{slice} min-{cmin} max-{cmax}")
-                    #cmin = np.amin(channel_corr[slice])
-                    #cmax = np.amax(channel_uncorr[slice])
                     normalize_data_corr = np.clip(channel_corr[slice],cmin,cmax)
                     normalize_data_uncorr = np.clip(channel_uncorr[slice], cmin, cmax)
                     corrected_img_path = f"{root}/images/corr/chunk-{chunk}-channel-{chan_num}-slice-{slice}.jpg"
@@ -165,18 +162,9 @@ def produce_whole_slice_images(proc_path, colour="gray", slice_start=0, slice_st
     <tr>""")
             num_images = 0
             while(slice<len(channel)):
-                """
-                if(chan_num==0):
-                    cmin = ch1_contrast_low
-                    cmax= ch1_contrast_high
-                else:
-                    cmin=ch2_contrast_low
-                    cmax=ch2_contrast_high
-                    """
                 sorted_array = np.sort(np.array(channel[slice].flatten()))[::-1]
                 cmax = sorted_array[math.floor(len(sorted_array)*1/100)]
                 cmin = sorted_array[math.floor(len(sorted_array)*99/100)]
-                print(f"{chan_num} {cmax} {cmin}")
                 normalize_data= np.clip(channel[slice],cmin,cmax)
                 proc_img_path = f"{root}/images/channel-{chan_num}-slice-{slice}.jpg"
                 plt.imsave(f"qc_viewer/{out_dir}/sliceViewer/"+proc_img_path, normalize_data, cmap=colour)
@@ -232,7 +220,7 @@ def combine_sample_htmls(ffcorr_html, proc_html):
 </head>
 <body>
   <a href="../index.html">Back</a>
-  <br>
+  <h1>{out_dir.split("-")[0]}</h1>
   <a href="sliceViewer/{ffcorr_html}">Flatfield Correction Before and After</a>
   <br>
   <a href="sliceViewer/{proc_html}">Full Processed Slices</a>
@@ -268,21 +256,13 @@ def create_main_html():
                  """)
       
 
-if(generate_report):
-  """
-  Runs entire script if is configured to in the config.yml file
-  If not it will just produce the target file for rule to pass
-  """
-  produce_ff_images(ff_corr, ff_uncorr, slice_start=ff_s_start, slice_step=ff_s_start,
-                    colour=ff_cmap)
-  produce_whole_slice_images(ome_zarr, slice_start=ws_s_start, slice_step=ws_s_step,
-                             colour=ws_cmap)
-  combine_sample_htmls("ff_corr.html", "whole_slices.html")
-  create_main_html()
-else:
-   directories=f"qc_viewer/{out_dir}/volumeViewer"
-   os.makedirs(directories, exist_ok=True)
-   with open(directories+"/volumeData.json", 'w') as f:
-      f.write("")
+
+produce_ff_images(ff_corr, ff_uncorr, slice_start=ff_s_start, slice_step=ff_s_step,
+                  colour=ff_cmap)
+produce_whole_slice_images(ome_zarr, slice_start=ws_s_start, slice_step=ws_s_step,
+                            colour=ws_cmap)
+combine_sample_htmls("ff_corr.html", "whole_slices.html")
+create_main_html()
+
 
 

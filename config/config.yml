@@ -130,11 +130,11 @@ report:
   create_report: True
   flatfield_corrected:
     slice_start: 0
-    slice_step: 1
+    slice_step: 10 # Shows every nth slice
     colour_map: gray
   whole_slice_viewer:
     slice_start: 0
-    slice_step: 1
+    slice_step: 10
     colour_map: gray
 
 
