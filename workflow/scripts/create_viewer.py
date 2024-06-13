@@ -8,15 +8,12 @@ from ome_zarr.reader import Reader
 # TODO: Fix importing pyplot and numpy 
 try:
   import matplotlib.pyplot as plt
+  import numpy as np
 except:
     subprocess.run(['pip','install','matplotlib'])
     import matplotlib.pyplot as plt
-try:
-  import numpy as np
-except:
-   subprocess.run(['pip','install', 'numpy'])
-   import numpy as np
-
+    import numpy as np
+   
 # arguments for creating the flatfield correction comparisons
 ff_s_start=snakemake.params.ff_s_start
 ff_s_step=snakemake.params.ff_s_step
@@ -51,8 +48,7 @@ def make_directories():
 def produce_ff_images(corrected_path, uncorrected_path, colour="gray", slice_start=0, slice_step=1):
     '''
     This function produces an html file containing images for each tile before and after flatfield correction
-    It can be decided how many slices are wanted. The contrast can also be adjusted for 
-    different images and channels to ensure good quality.
+    It can be decided how many slices are wanted.
     '''
 
     # Get corrected and uncorrected file paths
@@ -144,8 +140,8 @@ def produce_ff_images(corrected_path, uncorrected_path, colour="gray", slice_sta
 
 def produce_whole_slice_images(proc_path, colour="gray", slice_start=0, slice_step=1):
     '''
-    This function produces an html page containing images of each slice for both channels.
-    The slice step can be chosen as well as the contrast for each channel to ensure the best quality images
+    This function produces an html page containing images of each slice for all channels.
+    The slice step can be chosen in the config to choose how many slices you want to view
     '''
 
     # read ome-zarr data and convert to list
