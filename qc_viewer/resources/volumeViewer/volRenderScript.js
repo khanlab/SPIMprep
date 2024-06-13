@@ -13,8 +13,8 @@ let renderer,
     volconfig,
     cmtextures,
     gui;
-let channel = 0
 let isScene = false;
+let mesh;
 
 init();
 
@@ -51,40 +51,64 @@ function init() {
 
 
     // The gui for interaction
-    volconfig = { clim1: 0, clim2: 1, renderstyle: 'iso', isothreshold: 0.05, colormap: 'viridis', channel: 0 };
+    volconfig = {channel: 0, cmax:30000, cmin: 500, clim1: 0, clim2: 1, renderstyle: 'iso', isothreshold: 0.05, colormap: 'viridis', channel: 0, zmax: 0,zmin: 0, ymax: 0, ymin: 0, xmax:0, xmin: 0 };
     gui = new GUI();
-    gui.add( volconfig, 'clim1', 0, 1, 0.01 ).onChange( updateUniforms );
+    gui.add( volconfig, 'clim1', 0, 1, 0.01 ).onChange();
     gui.add( volconfig, 'clim2', 0, 1, 0.01 ).onChange( updateUniforms );
     gui.add( volconfig, 'colormap', { gray: 'gray', viridis: 'viridis' } ).onChange( updateUniforms );
     gui.add( volconfig, 'renderstyle', { mip: 'mip', iso: 'iso' } ).onChange( updateUniforms );
     gui.add( volconfig, 'isothreshold', 0, 1, 0.01 ).onChange( updateUniforms );
 
     // Load the 4D array from the json file produced
+    load(false)
+
+    window.addEventListener( 'resize', onWindowResize );
+
+}
+
+function load(refresh){
     new THREE.FileLoader().load( 'volumeData.json', function ( volume ) {
-        volume = JSON.parse(volume)[channel]
+        volume = JSON.parse(volume)[volconfig.channel]
         // get the length for each axes x,y,z; will only process one channel
-        console.log(volume)
         let z_length = volume.length
         let y_length = volume[0].length
         let x_length = volume[0][0].length
+        if(!refresh){
+            volconfig.zmax = z_length
+            volconfig.ymax = y_length
+            volconfig.xmax = x_length
+            gui.add(volconfig, 'channel', 0, 1, 1).onFinishChange(()=>load(true))
+            gui.add(volconfig, 'cmax', 0, 30000, 10).onFinishChange(()=>load(true))
+            gui.add(volconfig, 'cmin', 0, 30000, 10).onFinishChange(()=>load(true))
+            gui.add(volconfig, 'zmax', 1, z_length, 1 ).onFinishChange( ()=>load(true) );
+            gui.add(volconfig, 'zmin', 0, z_length, 1 ).onFinishChange( ()=>load(true) )
+            gui.add(volconfig, 'ymax', 1, y_length, 1 ).onFinishChange( ()=>load(true) );
+            gui.add(volconfig, 'ymin', 0, y_length, 1 ).onFinishChange( ()=>load(true) );
+            gui.add(volconfig, 'xmax', 1, x_length, 1).onFinishChange(()=>load(true));
+            gui.add(volconfig, 'xmin', 0, x_length, 1 ).onFinishChange( ()=>load(true) );
+        } else {
+            scene.remove(mesh)
+        }
         // create a new array to transform the array to 1D
         let newData = new Float32Array(x_length*y_length*z_length)
 
         // loop through every data point in the array
-        for(let z=0; z<volume.length; z++){
-            for(let y = 0; y<volume[0].length; y++){
-                for(let x = 0; x< volume[0][0].length; x++){
+        for(let z=volconfig.zmin; z<volconfig.zmax; z++){
+            for(let y = volconfig.ymin; y<volconfig.ymax; y++){
+                for(let x = volconfig.xmin; x< volconfig.xmax; x++){
                     // process the point of data an dinput it into the array
                     let zslice = volume.length-1 - z
                     let dp = volume[zslice][y][x]
                     if(true){
                         let index = x + y*x_length + z*x_length*y_length
-                        dp = (dp-1000)/(30000-1000)
+                        dp = (dp-volconfig.cmin)/(volconfig.cmax-volconfig.cmin)
                         newData[index] = dp
                     }
                 }
             }
         }
+
+
         // create an object to be processed
         volume = {data: newData, xLength : x_length, yLength : y_length, zLength : z_length}
         // Texture to hold the volume. We have scalars, so we put our data in the red channel.
@@ -125,14 +149,11 @@ function init() {
         const geometry = new THREE.BoxGeometry( volume.xLength, volume.yLength, volume.zLength);
         geometry.translate( volume.xLength / 2 - 0.5, volume.yLength / 2 -0.5, volume.zLength / 2 - 0.5 );
 
-        const mesh = new THREE.Mesh( geometry, material );
+        mesh = new THREE.Mesh( geometry, material );
         scene.add( mesh );
-
+        refresh=true;
         render();
-        console.log("Ready")
     } );
-
-    window.addEventListener( 'resize', onWindowResize );
 
 }
 
@@ -163,8 +184,6 @@ function onWindowResize() {
     render();
 
 }
-
-
 
 function render() {
 
