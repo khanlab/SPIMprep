@@ -42,7 +42,15 @@ def get_all_targets():
                 stain=get_stains_by_row(i),
             )
         )
-
+        if config['report']['create_report']:
+            targets.extend(
+                expand(
+                    "qc_viewer/{subject}-{sample}-{acq}/volumeViewer/volumeData.json",
+                    subject=datasets.loc[i, "subject"],
+                    sample=datasets.loc[i, "sample"],
+                    acq=datasets.loc[i, "acq"],
+                )
+            )
     return targets
 
 

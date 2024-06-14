@@ -51,3 +51,4 @@ arr_stacked = da.stack(chan_arr_list,axis=1)
 
 with ProgressBar():
     da.to_zarr(arr_stacked,snakemake.output.zarr,overwrite=True,dimension_separator='/')
+    da.to_zarr(arr_stacked,snakemake.output.backup_zarr,overwrite=True,dimension_separator='/')
