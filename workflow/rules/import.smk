@@ -146,8 +146,7 @@ rule tif_to_zarr:
                 )
             )
         ),
-        backup_zarr=temp(directory("bids/{subject}-{sample}-{acq}-uncorr.zarr"
-        )),
+        backup_zarr=temp(directory("bids/{subject}-{sample}-{acq}-uncorr.zarr")),
     benchmark:
         bids(
             root="benchmarks",
