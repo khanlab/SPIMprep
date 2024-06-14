@@ -1,19 +1,12 @@
-import subprocess
 import os
 import json
 import math
 from distutils.dir_util import copy_tree
 from ome_zarr.io import parse_url
 from ome_zarr.reader import Reader
-# TODO: Fix importing pyplot and numpy 
-try:
-  import matplotlib.pyplot as plt
-  import numpy as np
-except:
-    subprocess.run(['pip','install','matplotlib'])
-    import matplotlib.pyplot as plt
-    import numpy as np
-   
+import matplotlib.pyplot as plt
+import numpy as np
+
 # arguments for creating the flatfield correction comparisons
 ff_s_start=snakemake.params.ff_s_start
 ff_s_step=snakemake.params.ff_s_step
@@ -105,13 +98,13 @@ def produce_ff_images(corrected_path, uncorrected_path, colour="gray", slice_sta
                     cmax = sorted_array[math.floor(len(sorted_array)*1/100)]
                     cmin = sorted_array[math.floor(len(sorted_array)*99/100)]
                     
-                    #normalize and plot data then save image to wanted file path
-                    normalize_data_corr = np.clip(channel_corr[slice],cmin,cmax)
-                    normalize_data_uncorr = np.clip(channel_uncorr[slice], cmin, cmax)
+                    # clip and plot data then save image to wanted file path
+                    clipped_data_corr = np.clip(channel_corr[slice],cmin,cmax)
+                    clipped_data_uncorr = np.clip(channel_uncorr[slice], cmin, cmax)
                     corrected_img_path = f"{root}/images/corr/chunk-{chunk}-channel-{chan_num}-slice-{slice}.jpg"
                     uncorrected_img_path = f"{root}/images/uncorr/chunk-{chunk}-channel-{chan_num}-slice-{slice}.jpg"
-                    plt.imsave(f"qc_viewer/{out_dir}/sliceViewer/"+corrected_img_path, normalize_data_corr, cmap=colour)
-                    plt.imsave(f"qc_viewer/{out_dir}/sliceViewer/"+uncorrected_img_path,normalize_data_uncorr, cmap=colour) 
+                    plt.imsave(f"qc_viewer/{out_dir}/sliceViewer/"+corrected_img_path, clipped_data_corr, cmap=colour)
+                    plt.imsave(f"qc_viewer/{out_dir}/sliceViewer/"+uncorrected_img_path, clipped_data_uncorr, cmap=colour) 
 
                     # Add the images into the html format                  
                     fw.write(f'''       
