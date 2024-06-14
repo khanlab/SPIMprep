@@ -172,7 +172,8 @@ rule generate_report:
         ws_cmap=config['report']['whole_slice_viewer']['colour_map'],
     output:
         out="qc_viewer/{subject}-{sample}-{acq}/volumeViewer/volumeData.json",
-    log: bids(
+    log: 
+        bids(
             root="logs",
             datatype="generate_report",
             subject="{subject}",
