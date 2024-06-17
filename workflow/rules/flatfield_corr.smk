@@ -92,7 +92,6 @@ rule apply_basic_flatfield_corr:
                 )
             )
         ),
-        backup_zarr=temp(directory("bids/{subject}-{sample}-{acq}-corr.zarr")),
     benchmark:
         bids(
             root="benchmarks",
