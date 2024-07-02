@@ -45,7 +45,7 @@ def get_all_targets():
         if config["report"]["create_report"]:
             targets.extend(
                 expand(
-                    "qc_viewer/{subject}-{sample}-{acq}/volumeViewer/volumeData.json",
+                    "qc/sub-{subject}_sample-{sample}_acq-{acq}/subject.html",
                     subject=datasets.loc[i, "subject"],
                     sample=datasets.loc[i, "sample"],
                     acq=datasets.loc[i, "acq"],

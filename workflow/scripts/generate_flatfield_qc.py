@@ -1,107 +1,81 @@
+from jinja2 import Environment, FileSystemLoader
 import os
-import math
-import matplotlib.pyplot as plt
-import numpy as np
-from pathlib import Path
 from ome_zarr.io import parse_url
 from ome_zarr.reader import Reader
+import matplotlib.pyplot as plt
+import numpy as np
+import math
 
-# script for creating flatfield before/after qc snapshots and html
+# load the html template from jinja
+file_loader = FileSystemLoader(".")
+env = Environment(loader=file_loader)
+template = env.get_template("qc/resources/ff_html_temp.html")
 
+# User set configurations
+ff_s_start=snakemake.params.ff_s_start
+ff_s_step=snakemake.params.ff_s_step
+ff_cmap=snakemake.params.ff_cmap
 
-slice_start=snakemake.params.ff_s_start
-slice_step=snakemake.params.ff_s_step
-colour=snakemake.params.ff_cmap
+# input zarr files
 ff_corr = snakemake.input.corr
 ff_uncorr = snakemake.input.uncorr
+
+# output files
 out_html = snakemake.output.html
-images_dir = snakemake.output.images_dir
-
-#create output dir for images
-Path(images_dir).mkdir(parents=True,exist_ok=True)
-
-
-# Get corrected and uncorrected file paths
-corr_zarr = corrected_path
-uncorr_zarr = uncorrected_path
+corr_image_dir = snakemake.output.corr_images_dir
+uncorr_image_dir = snakemake.output.uncorr_images_dir
 
 # Read the corrected and uncorrected ome-zarr data
-proc_reader= Reader(parse_url(corr_zarr))
-unproc_reader = Reader(parse_url(uncorr_zarr))
-
+proc_reader= Reader(parse_url(ff_corr))
+unproc_reader = Reader(parse_url(ff_uncorr))
 proc_data=list(proc_reader())[0].data
 unproc_data = list(unproc_reader())[0].data
 
-# Create html file for flatfield corrected images
-with open(out_html, 'w') as fw:
-    fw.write(f'''
-<!DOCTYPE html>
-<head>
-<title>FlatField Correction Check</title>
-<link rel="stylesheet" href="style.css"/>
-</head>
-<body>
-<a href="../index.html">Back</a>
-<label class="expand-options">
-Expand Images on Click
-<input type="checkbox" id="expand">
-<input type="number" id="expand_scale" value="2">
-</label>
-<table id="table">
-<tbody>
-  <h1>Before and After Flatfield Correction</h1>                 
-''')
-    
-    # Add images into the table for each chunk and channel
-    for chunk,(tile_corr, tile_uncorr) in enumerate(zip(proc_data[0], unproc_data[0])):
-        for chan_num, (channel_corr, channel_uncorr) in enumerate(zip(tile_corr, tile_uncorr)):
-            slice = slice_start
-            fw.write(f"""      <tr>
-    <td colspan={len(channel_corr/slice_step)*2}>
-      <h2>Chunk - {chunk}  Channel - {chan_num}</h2>
-    </td>
-  </tr>
-  <tr>""")
-            # Process every wanted slice within a chunk and channe;
-            while(slice<len(channel_corr)):
-                # Get the contrast limits by removing the absolute highest and lowest data
-                sorted_array = np.sort(np.array(channel_corr[slice].flatten()))[::-1]
-                cmax = sorted_array[math.floor(len(sorted_array)*1/100)]
-                cmin = sorted_array[math.floor(len(sorted_array)*99/100)]
-                
-                # clip and plot data then save image to wanted file path
-                clipped_data_corr = np.clip(channel_corr[slice],cmin,cmax)
-                clipped_data_uncorr = np.clip(channel_uncorr[slice], cmin, cmax)
-                corrected_img_path = Path(images_dir) / f"chunk-{chunk}-channel-{chan_num}-slice-{slice}_corr.jpg"
-                uncorrected_img_path = Path(images_dir) / f"chunk-{chunk}-channel-{chan_num}-slice-{slice}_uncorr.jpg"
-                plt.imsave(corrected_img_path, clipped_data_corr, cmap=colour)
-                plt.imsave(uncorrected_img_path, clipped_data_uncorr, cmap=colour) 
-                corr_relpath = corrected_img_path.relative_to(Path(out_html).parent)
-                uncorr_relpath = uncorrected_img_path.relative_to(Path(out_html).parent)
-                
-                # Add the images into the html format                  
-                fw.write(f'''       
-    <td>
-        <img src={corr_relpath}></img>
-        <h3>Corrected</h3>
-        <p>Slice-{slice}</p>
-    </td>
-    <td>
-        <img src={uncorr_relpath}></img>
-        <h3>Uncorrected</h3>
-        <p>Slice-{slice}</p>
-    </td>''')
-                # Increase by user given slice step
-                slice += slice_step
+# create directories for corrected and uncorrected images
+os.makedirs(corr_image_dir, exist_ok=True)
+os.mkdir(uncorr_image_dir)
 
-            fw.write("      </tr>")
 
-    fw.write("""
-  </tr>
-</tbody>
-</table>
-<script src=image_expand.js></script>                            
-             """)
+chunks = []
+
+# Create a list to store slices ordered by channel and tile
+for chunk,(tile_corr, tile_uncorr) in enumerate(zip(proc_data[0], unproc_data[0])):
+    channels = []
+    for chan_num, (channel_corr, channel_uncorr) in enumerate(zip(tile_corr, tile_uncorr)):
+        slice = ff_s_start
+        slices = []
+        while(slice<len(channel_corr)):
+            # Get the contrast limits by removing the absolute highest and lowest data
+            sorted_array = np.sort(np.array(channel_corr[slice].flatten()))[::-1]
+            cmax = sorted_array[math.floor(len(sorted_array)*1/100)]
+            cmin = sorted_array[math.floor(len(sorted_array)*99/100)]
+            
+            # clip and plot data then save image to wanted file path
+            clipped_data_corr = np.clip(channel_corr[slice],cmin,cmax)
+            clipped_data_uncorr = np.clip(channel_uncorr[slice], cmin, cmax)
+
+            # get image names and paths
+            corr_image_name = f"chunk-{chunk}-channel-{chan_num}-slice-{slice}.jpg"
+            corrected_img_path = f"images/corr/{corr_image_name}"
+            uncorr_image_name = f"chunk-{chunk}-channel-{chan_num}-slice-{slice}.jpg"
+            uncorrected_img_path = f"images/uncorr/{uncorr_image_name}"
+
+            # Save images 
+            plt.imsave(corr_image_dir+"/"+corr_image_name, clipped_data_corr, cmap=ff_cmap)
+            plt.imsave(uncorr_image_dir+"/"+uncorr_image_name, clipped_data_uncorr, cmap=ff_cmap)
+
+            # create an object to store key image info
+            image = {"slice": slice, "img_corr": corrected_img_path, "img_uncorr": uncorrected_img_path}
+            slices.append(image)
+            slice+=ff_s_step
+        channels.append(slices)
+    chunks.append(channels)
+
+# pass the chunks array to the template to render the html
+output = template.render(chunks=chunks, numColumns=3)
+# Write out html file
+with open(out_html, 'w') as f:
+    f.write(output)
             
 
 

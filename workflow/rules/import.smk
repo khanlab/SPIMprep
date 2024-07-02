@@ -171,3 +171,4 @@ rule tif_to_zarr:
         config["containers"]["spimprep"]
     script:
         "../scripts/tif_to_zarr.py"
+
