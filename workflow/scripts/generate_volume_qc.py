@@ -26,7 +26,7 @@ if(z_length>50):
     downsample_factor = math.floor(z_length/50)
 else:
     downsample_factor = 1
-ds_z.downsample(along_z=downsample_factor)
+ds_z = ds_z.downsample(along_z=downsample_factor)
 
 # Write it to a JSON for js script to read
 with open(resource_dir / "volumeData.json", 'w') as f:
