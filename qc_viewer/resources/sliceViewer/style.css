@@ -1,0 +1,19 @@
+img {
+    height: auto;
+    width:200px;
+    z-index: 0;
+    position: relative;
+}
+
+table {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.expand-options {
+    float: right;
+}
+
+#expand_scale {
+    display: none;
+}
