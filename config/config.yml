@@ -130,12 +130,12 @@ report:
   create_report: True
   flatfield_corrected:
     slice_start: 0
-    slice_step: 10 # Shows every nth slice
-    colour_map: gray
+    slice_step: 50 # Shows every nth slice
+    colour_map: viridis
   whole_slice_viewer:
     slice_start: 0
-    slice_step: 10
-    colour_map: gray
+    slice_step: 50
+    colour_map: viridis
 
 
 containers:

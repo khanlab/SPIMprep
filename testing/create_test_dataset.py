@@ -142,6 +142,10 @@ def make_tar(members, output):
 def create_test_subset_hybrid(path_to_source_tar:Annotated[str, typer.Argument(help="ex: dir1/dir2/dataset.tar")],
                               path_to_output_tar:Annotated[str, typer.Argument(help="ex: dir1/dir2/tes_dataset.tar")],
                               slice_step: int=20, x_start: int=0,num_x: int=3,y_start: int=0,num_y: int=3):
+    """
+    Creates a subset of a raw microscopy dataset consisting of tiff files stored within a tar file to be able to test the workflow more efficiently.
+    Can break the dataset up based on a slice step and picking the tiles within a slice.
+    """
     members, wanted_slices, wanted_pairs = get_members_hybrid(path_to_source_tar,slice_step, x_start,y_start, num_x, num_y)
     correct_metadata_tile(members, wanted_slices, wanted_pairs)
     make_tar(members, path_to_output_tar)
