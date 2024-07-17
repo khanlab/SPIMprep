@@ -26,9 +26,9 @@ for i_channel,model in enumerate(snakemake.input.model_dirs):
     with open(model_path / 'settings.json' ) as fp:
         model = json.load(fp)
 
-    profiles = np.load(model_path / 'profiles.npy')
-    model["flatfield"] = profiles[0]
-    model["darkfield"] = profiles[1]
+    profiles = np.load(model_path / 'profiles.npz')
+    model["flatfield"] = profiles['flatfield']
+    model["darkfield"] = profiles['darkfield']
 
     basic = BaSiC()
     basic.flatfield = resize(model['flatfield'],img_shape,preserve_range=True)
