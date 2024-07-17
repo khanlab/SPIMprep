@@ -6,7 +6,7 @@ work: 'work'
 
 write_to_remote: True #save files marked as final() to cloud store
 remote_prefix: 'gcs://khanlab-bucket/lightsheet-data'
-remote_creds: '~/.config/gcloud/application_default_credentials.json'
+remote_creds: '~/.config/gcloud/application_default_credentials.json' #this is needed so we can pass creds to container
 
 write_ome_zarr_direct: True #use this to skip writing the final zarr output to work first and copying afterwards -- useful when work is not a fast local disk
 
