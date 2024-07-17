@@ -54,7 +54,7 @@ bigstitcher:
 
 
   fuse_dataset:
-    downsampling: 8
+    downsampling: 1
     block_size_x: 4096 # for storage
     block_size_y: 4096
     block_size_z: 1
