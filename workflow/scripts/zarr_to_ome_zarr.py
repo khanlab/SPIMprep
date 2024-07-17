@@ -50,12 +50,12 @@ omero['channels']=[]
 
 if is_remote(uri):
     fs_args={'storage_provider_settings':snakemake.params.storage_provider_settings,'creds':snakemake.input.creds}
+    fs = get_fsspec(uri,**fs_args)
+    store = zarr.storage.FSStore(Path(uri).path,fs=fs,dimension_separator='/',mode='w')
 else:
-    fs_args={}
+    store = zarr.DirectoryStore(out_zarr) 
 
-fs = get_fsspec(uri,**fs_args)
-store = zarr.storage.FSStore(Path(uri).path,fs=fs,dimension_separator='/',mode='w')
- 
+
 
 
 

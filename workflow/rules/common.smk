@@ -20,7 +20,7 @@ def directory_bids(root, *args, **kwargs):
     if is_remote(root):
         return storage(directory(bids_str))
     else:
-        return bids_str
+        return directory(bids_str)
 
 
 def bids_toplevel(root, filename):
@@ -255,15 +255,13 @@ def get_output_ome_zarr(acq_type):
         else:
             return {
                 "zarr": temp(
-                    directory(
-                        bids(
-                            root=work,
-                            subject="{subject}",
-                            datatype="micr",
-                            sample="{sample}",
-                            acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
-                            suffix="SPIM.ome.zarr",
-                        )
+                    directory_bids(
+                        root=work,
+                        subject="{subject}",
+                        datatype="micr",
+                        sample="{sample}",
+                        acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
+                        suffix="SPIM.ome.zarr",
                     )
                 )
             }

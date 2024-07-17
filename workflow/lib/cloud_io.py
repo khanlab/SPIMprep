@@ -22,7 +22,7 @@ def get_fsspec(uri_string,storage_provider_settings=None,creds=None):
         fs = S3FileSystem(**s3fs_opts)
     elif uri.protocol == 'file' or uri.protocol == 'local' or uri.protocol == '':
         #assumed to be local file
-        from fsspec import LocalFileSystem
+        from fsspec.implementations.local import LocalFileSystem
         fs = LocalFileSystem()
     else:
         print(f'unsupported protocol for remote data')
