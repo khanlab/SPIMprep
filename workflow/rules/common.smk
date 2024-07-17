@@ -150,7 +150,7 @@ def get_fiji_launcher_cmd(wildcards, output, threads, resources):
     pipe_cmds.append("ImageJ-linux64 --dry-run --headless --console")
     pipe_cmds.append(f"sed 's/{launcher_opts_find}/{launcher_opts_replace}'/")
     pipe_cmds.append(
-        f"sed 's/-Xmx[0-9a-z]\+/-Xmx{resources.mem_mb}m -Xms{resources.mem_mb}m/'"
+        rf"sed 's/-Xmx[0-9a-z]\+/-Xmx{resources.mem_mb}m -Xms{resources.mem_mb}m/'"
     )
     pipe_cmds.append("tr --delete '\\n'")
     return "|".join(pipe_cmds) + f" > {output.launcher} && chmod a+x {output.launcher} "
