@@ -47,25 +47,25 @@ def get_all_targets():
             )
         )
         targets.extend(
-
             final(
-            expand(
-                bids(
-                    root=resampled,
-                    subject="{subject}",
-                    datatype="micr",
-                    sample="{sample}",
-                    acq="{acq}",
-                    res="{level}x",
-                    stain="{stain}",
-                    suffix="SPIM.nii",
-                ),
-                subject=datasets.loc[i, "subject"],
-                sample=datasets.loc[i, "sample"],
-                acq=datasets.loc[i, "acq"],
-                level=config["nifti"]["levels"],
-                stain=get_stains_by_row(i),
-            ))
+                expand(
+                    bids(
+                        root=resampled,
+                        subject="{subject}",
+                        datatype="micr",
+                        sample="{sample}",
+                        acq="{acq}",
+                        res="{level}x",
+                        stain="{stain}",
+                        suffix="SPIM.nii",
+                    ),
+                    subject=datasets.loc[i, "subject"],
+                    sample=datasets.loc[i, "sample"],
+                    acq=datasets.loc[i, "acq"],
+                    level=config["nifti"]["levels"],
+                    stain=get_stains_by_row(i),
+                )
+            )
         )
 
     return targets
