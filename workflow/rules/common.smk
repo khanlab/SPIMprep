@@ -47,25 +47,25 @@ def get_all_targets():
             )
         )
         targets.extend(
+
             final(
-                expand(
-                    bids(
-                        root=resampled,
-                        subject="{subject}",
-                        datatype="micr",
-                        sample="{sample}",
-                        acq="{acq}",
-                        res="{level}x",
-                        stain="{stain}",
-                        suffix="SPIM.nii",
-                    ),
-                    subject=datasets.loc[i, "subject"],
-                    sample=datasets.loc[i, "sample"],
-                    acq=datasets.loc[i, "acq"],
-                    level=config["nifti"]["levels"],
-                    stain=[datasets.loc[i, "stain_0"], datasets.loc[i, "stain_1"]],
-                )
-            )
+            expand(
+                bids(
+                    root=resampled,
+                    subject="{subject}",
+                    datatype="micr",
+                    sample="{sample}",
+                    acq="{acq}",
+                    res="{level}x",
+                    stain="{stain}",
+                    suffix="SPIM.nii",
+                ),
+                subject=datasets.loc[i, "subject"],
+                sample=datasets.loc[i, "sample"],
+                acq=datasets.loc[i, "acq"],
+                level=config["nifti"]["levels"],
+                stain=get_stains_by_row(i),
+            ))
         )
 
     return targets
@@ -133,15 +133,24 @@ def get_dataset_path(wildcards):
     return df.dataset_path.to_list()[0]
 
 
+def get_stains_by_row(i):
+
+    # Select columns that match the pattern 'stain_'
+    stain_columns = datasets.filter(like="stain_").columns
+
+    # Select values for a given row
+    return datasets.loc[i, stain_columns].dropna().tolist()
+
+
 def get_stains(wildcards):
     df = datasets.query(
         f"subject=='{wildcards.subject}' and sample=='{wildcards.sample}' and acq=='{wildcards.acq}'"
     )
 
-    return [
-        df.stain_0.to_list()[0],
-        df.stain_1.to_list()[0],
-    ]
+    # Select columns that match the pattern 'stain_'
+    stain_columns = df.filter(like="stain_").columns
+
+    return df.iloc[0][stain_columns].dropna().tolist()
 
 
 # bigstitcher
@@ -152,19 +161,27 @@ def get_fiji_launcher_cmd(wildcards, output, threads, resources):
     pipe_cmds.append("ImageJ-linux64 --dry-run --headless --console")
     pipe_cmds.append(f"sed 's/{launcher_opts_find}/{launcher_opts_replace}'/")
     pipe_cmds.append(
-        f"sed 's/-Xmx[0-9a-z]\+/-Xmx{resources.mem_mb}m -Xms{resources.mem_mb}m/'"
+        rf"sed 's/-Xmx[0-9a-z]\+/-Xmx{resources.mem_mb}m -Xms{resources.mem_mb}m/'"
     )
     pipe_cmds.append("tr --delete '\\n'")
     return "|".join(pipe_cmds) + f" > {output.launcher} && chmod a+x {output.launcher} "
 
 
 def get_macro_args_bigstitcher(wildcards, input, output):
-    return "{dataset_xml} {ds_x} {ds_y} {ds_z} {min_r}".format(
+    return "{dataset_xml} {pairwise_method} {ds_x} {ds_y} {ds_z} {do_filter} {min_r} {do_global} {global_strategy}".format(
         dataset_xml=output.dataset_xml,
+        pairwise_method=config["bigstitcher"]["calc_pairwise_shifts"]["methods"][
+            config["bigstitcher"]["calc_pairwise_shifts"]["method"]
+        ],
         ds_x=config["bigstitcher"]["calc_pairwise_shifts"]["downsample_in_x"],
         ds_y=config["bigstitcher"]["calc_pairwise_shifts"]["downsample_in_y"],
         ds_z=config["bigstitcher"]["calc_pairwise_shifts"]["downsample_in_z"],
+        do_filter=config["bigstitcher"]["filter_pairwise_shifts"]["enabled"],
         min_r=config["bigstitcher"]["filter_pairwise_shifts"]["min_r"],
+        do_global=config["bigstitcher"]["global_optimization"]["enabled"],
+        global_strategy=config["bigstitcher"]["global_optimization"]["strategies"][
+            config["bigstitcher"]["global_optimization"]["strategy"]
+        ],
     )
 
 

@@ -29,10 +29,6 @@ raw_tif = tifffile.TiffFile(in_tif,mode='r')
 axes = raw_tif.series[0].get_axes()
 shape = raw_tif.series[0].get_shape()
 
-#axes normally should be CZYX - if not, then we fail out
-if not axes == 'CZYX':
-    print('ERROR: cannot deal with axes other than CZYX')
-    #sys.exit(1)
 
 ome_dict = xmltodict.parse(raw_tif.ome_metadata)
 physical_size_x = ome_dict['OME']['Image']['Pixels']['@PhysicalSizeX']
@@ -43,8 +39,11 @@ custom_metadata = ome_dict['OME']['Image']['ca:CustomAttributes']
 
 
 #read tile configuration from the microscope metadata
+if axes == 'CZYX':
+    tile_config_pattern=r"Blaze\[(?P<tilex>[0-9]+) x (?P<tiley>[0-9]+)\]_C(?P<channel>[0-9]+)_xyz-Table Z(?P<zslice>[0-9]+).ome.tif;;\((?P<x>\S+), (?P<y>\S+),(?P<chan>\S+), (?P<z>\S+)\)"
+elif axes == 'ZYX': 
+    tile_config_pattern=r"Blaze\[(?P<tilex>[0-9]+) x (?P<tiley>[0-9]+)\]_C(?P<channel>[0-9]+)_xyz-Table Z(?P<zslice>[0-9]+).ome.tif;;\((?P<x>\S+), (?P<y>\S+), (?P<z>\S+)\)"
 
-tile_config_pattern=r"Blaze\[(?P<tilex>[0-9]+) x (?P<tiley>[0-9]+)\]_C(?P<channel>[0-9]+)_xyz-Table Z(?P<zslice>[0-9]+).ome.tif;;\((?P<x>\S+), (?P<y>\S+),(?P<chan>\S+), (?P<z>\S+)\)"
 tile_pattern = re.compile(tile_config_pattern)
 
 #put it in 3 maps, one for each coord, indexed by tilex, tiley, channel, and aslice

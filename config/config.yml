@@ -36,8 +36,23 @@ bigstitcher:
     downsample_in_x: 4
     downsample_in_y: 4
     downsample_in_z: 1
+    method: "phase_corr"
+    methods:
+      phase_corr: "Phase Correlation"
+      optical_flow: "Lucas-Kanade" 
   filter_pairwise_shifts:
+    enabled: 1
     min_r: 0.7
+  global_optimization:
+    enabled: 1
+    strategy: two_round
+    strategies:
+      one_round: "One-Round"
+      one_round_iterative: "One-Round with iterative dropping of bad links"
+      two_round:  "Two-Round using metadata to align unconnected Tiles"
+      two_round_iterative: "Two-Round using Metadata to align unconnected Tiles and iterative dropping of bad links"
+
+
   fuse_dataset:
     downsampling: 1
     block_size_x: 4096 # for storage
@@ -117,23 +132,7 @@ bids:
     
 
   
-templates: 
-  - ABAv3
-
-atlases:
-  ABAv3:
-    anat: 'resources/ABAv3/P56_Atlas.nii.gz'
-    dseg: 'resources/ABAv3/P56_Annotation.nii.gz'
-    lut: 'resources/ABAv3/labelmapper_ABAv3_to_all.json'
-
-atlasreg:
-  stain: autof
-  level: 4
-  desc: stitchedflatcorr
-
-
 
 containers:
   spimprep: 'docker://khanlab/spimprep-deps:main'
-  miracl: 'docker://mgoubran/miracl:2.2.5'
 

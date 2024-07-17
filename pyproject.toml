@@ -7,9 +7,9 @@ readme = "README.md"
 packages = []
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.12"
-snakemake = ">=8.0.0"
-snakebids = ">=0.12.0"
+python = ">=3.11,<3.13"
+snakemake = "^8.0.0"
+snakebids = "^0.13.0"
 snakemake-storage-plugin-s3 = "^0.2.11"
 snakemake-storage-plugin-gcs = "^1.0.0"
 gcsfs = "^2024.3.1"
@@ -17,6 +17,8 @@ s3fs = "^2024.3.1"
 
 [tool.poetry.group.dev.dependencies]
 snakefmt = "^0.10.0"
+mkdocs-material = "^9.5.20"
+mkdocs-include-markdown-plugin = "^6.0.6"
 
 [build-system]
 requires = ["poetry-core"]
