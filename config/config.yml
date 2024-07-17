@@ -4,7 +4,7 @@ datasets: 'config/datasets.tsv'
 root: 'bids'
 work: 'work' 
 
-write_to_remote: True #save files marked as final() to cloud store
+write_to_remote: False #save files marked as final() to cloud store  
 remote_prefix: 'gcs://khanlab-bucket/lightsheet-data'
 remote_creds: '~/.config/gcloud/application_default_credentials.json' #this is needed so we can pass creds to container
 
@@ -54,7 +54,7 @@ bigstitcher:
 
 
   fuse_dataset:
-    downsampling: 1
+    downsampling: 8
     block_size_x: 4096 # for storage
     block_size_y: 4096
     block_size_z: 1
