@@ -7,6 +7,8 @@ from ome_zarr.writer import write_image
 from ome_zarr.format import format_from_version
 from ome_zarr.scale import Scaler
 from dask.diagnostics import ProgressBar
+from upath import UPath as Path
+from lib.cloud_io import get_fsspec, is_remote
 
 in_tif_glob = snakemake.params.in_tif_glob
 
@@ -17,7 +19,8 @@ rechunk_size=snakemake.params.rechunk_size
 out_zarr=snakemake.output.zarr
 stains=snakemake.params.stains
 scaling_method=snakemake.params.scaling_method
-storage_provider_settings=snakemake.params.storage_provider_settings
+uri = snakemake.params.uri
+
 
 # prepare metadata for ome-zarr
 with open(metadata_json) as fp:
@@ -64,34 +67,14 @@ for i,stain in enumerate(stains):
 darr_channels = da.stack(darr_list)
 
 
-if snakemake.config['write_to_remote']:
-    #use the uri
-    uri = snakemake.params.uri
-
-    if uri.startswith('gcs://'):
-        uri = uri[6:]
-        import gcsfs
-        gcsfs_opts={'project': storage_provider_settings['gcs'].get_settings().project,
-                        'token': snakemake.input.creds}
-        fs = gcsfs.GCSFileSystem(**gcsfs_opts)
-        store = zarr.storage.FSStore(uri,fs=fs,dimension_separator='/',mode='w')
-    elif uri.startswith('s3://'):
-        uri = uri[5:]
-        import s3fs
-        s3fs_opts={'anon': False}
-        fs = s3fs.S3FileSystem(**s3fs_opts)
-        store = zarr.storage.FSStore(uri,fs=fs,dimension_separator='/',mode='w')
-
-    else:
-        print(f'cannot parse uri {uri}')
-    zi = zarr.open(store=store,mode='w')
-
-
-   
+if is_remote(uri):
+    fs_args={'storage_provider_settings':snakemake.params.storage_provider_settings,'creds':snakemake.input.creds}
 else:
-    #load as directorystore
-    store = zarr.DirectoryStore(out_zarr)
-    zi = zarr.open(out_zarr,mode='w')
+    fs_args={}
+
+fs = get_fsspec(uri,**fs_args)
+store = zarr.storage.FSStore(Path(uri).path,fs=fs,dimension_separator='/',mode='w')
+ 
 
 
 

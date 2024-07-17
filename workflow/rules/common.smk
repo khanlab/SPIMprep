@@ -1,8 +1,49 @@
 import tarfile
+from snakebids import bids as _bids
+from upath import UPath as Path
+from lib.cloud_io import is_remote
+
+
+def expand_bids(expand_kwargs, **bids_kwargs):
+
+    files = expand(_bids(**bids_kwargs), **expand_kwargs)
+
+    if is_remote(files[0]):
+        return [storage(f) for f in files]
+    else:
+        return files
+
+
+def directory_bids(root, *args, **kwargs):
+    bids_str = _bids(root=root, *args, **kwargs)
+
+    if is_remote(root):
+        return storage(directory(bids_str))
+    else:
+        return bids_str
+
+
+def bids_toplevel(root, filename):
+    bids_str = str(Path(_bids(root=root)) / filename)
+
+    if is_remote(root):
+        return storage(bids_str)
+    else:
+        return bids_str
+
+
+def bids(root, *args, **kwargs):
+    bids_str = _bids(root=root, *args, **kwargs)
+
+    if is_remote(root):
+        return storage(bids_str)
+    else:
+        return bids_str
 
 
 def get_extension_ome_zarr():
-    if config["write_to_remote"]:
+
+    if is_remote(config["root"]):
         return "ome.zarr/.snakemake_touch"
     else:
         if config["ome_zarr"]["use_zipstore"]:
@@ -11,60 +52,43 @@ def get_extension_ome_zarr():
             return "ome.zarr"
 
 
-def final(path_or_paths):
-    if config["write_to_remote"]:
-        if type(path_or_paths) == list:
-            out_paths = []
-            for path in path_or_paths:
-                out_paths.append(storage(os.path.join(config["remote_prefix"], path)))
-            return out_paths
-        else:
-            return storage(os.path.join(config["remote_prefix"], path_or_paths))
-    else:
-        return path_or_paths
-
-
 # targets
 def get_all_targets():
     targets = []
     for i in range(len(datasets)):
         targets.extend(
-            final(
-                expand(
-                    bids(
-                        root=root,
-                        subject="{subject}",
-                        datatype="micr",
-                        sample="{sample}",
-                        acq="{acq}",
-                        suffix="SPIM.{extension}",
-                    ),
+            expand_bids(
+                root=root,
+                subject="{subject}",
+                datatype="micr",
+                sample="{sample}",
+                acq="{acq}",
+                suffix="SPIM.{extension}",
+                expand_kwargs=dict(
                     subject=datasets.loc[i, "subject"],
                     sample=datasets.loc[i, "sample"],
                     acq=datasets.loc[i, "acq"],
                     extension=[get_extension_ome_zarr(), "json"],
-                )
+                ),
             )
         )
         targets.extend(
-            final(
-                expand(
-                    bids(
-                        root=resampled,
-                        subject="{subject}",
-                        datatype="micr",
-                        sample="{sample}",
-                        acq="{acq}",
-                        res="{level}x",
-                        stain="{stain}",
-                        suffix="SPIM.nii",
-                    ),
+            expand_bids(
+                root=resampled,
+                subject="{subject}",
+                datatype="micr",
+                sample="{sample}",
+                acq="{acq}",
+                res="{level}x",
+                stain="{stain}",
+                suffix="SPIM.nii",
+                expand_kwargs=dict(
                     subject=datasets.loc[i, "subject"],
                     sample=datasets.loc[i, "sample"],
                     acq=datasets.loc[i, "acq"],
                     level=config["nifti"]["levels"],
                     stain=get_stains_by_row(i),
-                )
+                ),
             )
         )
 
@@ -73,12 +97,12 @@ def get_all_targets():
 
 def get_bids_toplevel_targets():
     targets = []
-    targets.append(Path(root) / "README.md")
-    targets.append(Path(root) / "dataset_description.json")
-    targets.append(Path(root) / "samples.tsv")
-    targets.append(Path(root) / "samples.json")
-    targets.append(Path(resampled) / "dataset_description.json")
-    return [final(target) for target in targets]
+    targets.append(bids_toplevel(root, "README.md"))
+    targets.append(bids_toplevel(root, "dataset_description.json"))
+    targets.append(bids_toplevel(root, "samples.tsv"))
+    targets.append(bids_toplevel(root, "samples.json"))
+    targets.append(bids_toplevel(resampled, "dataset_description.json"))
+    return targets
 
 
 def get_input_dataset(wildcards):
@@ -201,37 +225,31 @@ def get_macro_args_zarr_fusion(wildcards, input, output):
 
 
 def get_output_ome_zarr(acq_type):
-    if config["write_to_remote"]:
+    if is_remote(config["root"]):
         return {
             "zarr": touch(
-                final(
-                    bids(
-                        root=root,
-                        subject="{subject}",
-                        datatype="micr",
-                        sample="{sample}",
-                        acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
-                        suffix="SPIM.{extension}".format(
-                            extension=get_extension_ome_zarr()
-                        ),
-                    )
+                bids(
+                    root=root,
+                    subject="{subject}",
+                    datatype="micr",
+                    sample="{sample}",
+                    acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
+                    suffix="SPIM.{extension}".format(
+                        extension=get_extension_ome_zarr()
+                    ),
                 )
             )
         }
     else:
         if config["write_ome_zarr_direct"]:
             return {
-                "zarr": final(
-                    directory(
-                        bids(
-                            root=root,
-                            subject="{subject}",
-                            datatype="micr",
-                            sample="{sample}",
-                            acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
-                            suffix="SPIM.ome.zarr",
-                        )
-                    )
+                "zarr": directory_bids(
+                    root=root,
+                    subject="{subject}",
+                    datatype="micr",
+                    sample="{sample}",
+                    acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
+                    suffix="SPIM.ome.zarr",
                 )
             }
         else:
@@ -252,30 +270,24 @@ def get_output_ome_zarr(acq_type):
 
 
 def get_input_ome_zarr_to_nii():
-    if config["write_to_remote"]:
-        return final(
-            bids(
+    if is_remote(config["root"]):
+        return bids(
+            root=root,
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="SPIM.{extension}".format(extension=get_extension_ome_zarr()),
+        )
+    else:
+        if config["write_ome_zarr_direct"]:
+            return bids(
                 root=root,
                 subject="{subject}",
                 datatype="micr",
                 sample="{sample}",
                 acq="{acq}",
                 suffix="SPIM.{extension}".format(extension=get_extension_ome_zarr()),
-            )
-        )
-    else:
-        if config["write_ome_zarr_direct"]:
-            return final(
-                bids(
-                    root=root,
-                    subject="{subject}",
-                    datatype="micr",
-                    sample="{sample}",
-                    acq="{acq}",
-                    suffix="SPIM.{extension}".format(
-                        extension=get_extension_ome_zarr()
-                    ),
-                )
             )
         else:
             return bids(
@@ -290,7 +302,8 @@ def get_input_ome_zarr_to_nii():
 
 def get_storage_creds():
     """for rules that deal with remote storage directly"""
-    if config["write_to_remote"]:
+    protocol = Path(config["root"]).protocol
+    if protocol == "gcs":
         # currently only works with gcs
         creds = os.path.expanduser(config["remote_creds"])
         return {"creds": creds}

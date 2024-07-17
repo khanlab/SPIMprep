@@ -43,15 +43,13 @@ rule blaze_to_metadata:
             config["import_blaze"]["raw_tif_pattern"],
         ),
     output:
-        metadata_json=final(
-            bids(
-                root=root,
-                subject="{subject}",
-                datatype="micr",
-                sample="{sample}",
-                acq="{acq,[a-zA-Z0-9]*blaze[a-zA-Z0-9]*}",
-                suffix="SPIM.json",
-            )
+        metadata_json=bids(
+            root=root,
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq,[a-zA-Z0-9]*blaze[a-zA-Z0-9]*}",
+            suffix="SPIM.json",
         ),
     benchmark:
         bids(
@@ -87,15 +85,13 @@ rule prestitched_to_metadata:
         physical_size_y_um=config["import_prestitched"]["physical_size_y_um"],
         physical_size_z_um=config["import_prestitched"]["physical_size_z_um"],
     output:
-        metadata_json=final(
-            bids(
-                root=root,
-                subject="{subject}",
-                datatype="micr",
-                sample="{sample}",
-                acq="{acq,[a-zA-Z0-9]*prestitched[a-zA-Z0-9]*}",
-                suffix="SPIM.json",
-            )
+        metadata_json=bids(
+            root=root,
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq,[a-zA-Z0-9]*prestitched[a-zA-Z0-9]*}",
+            suffix="SPIM.json",
         ),
     benchmark:
         bids(

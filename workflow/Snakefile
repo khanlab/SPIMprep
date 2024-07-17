@@ -1,6 +1,6 @@
 import json
-from pathlib import Path
-from snakebids import bids, set_bids_spec
+from upath import UPath as Path
+from snakebids import set_bids_spec
 import pandas as pd
 from collections import defaultdict
 import os

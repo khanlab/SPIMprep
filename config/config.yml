@@ -1,11 +1,9 @@
 datasets: 'config/datasets.tsv'
 
 
-root: 'bids'
+root: 'bids' # can use a s3:// or gcs:// prefix to write output to cloud storage
 work: 'work' 
 
-write_to_remote: False #save files marked as final() to cloud store  
-remote_prefix: 'gcs://khanlab-bucket/lightsheet-data'
 remote_creds: '~/.config/gcloud/application_default_credentials.json' #this is needed so we can pass creds to container
 
 write_ome_zarr_direct: True #use this to skip writing the final zarr output to work first and copying afterwards -- useful when work is not a fast local disk

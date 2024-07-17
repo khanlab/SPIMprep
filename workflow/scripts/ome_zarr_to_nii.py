@@ -5,40 +5,23 @@ import nibabel as nib
 import dask.array as da
 from ome_zarr.io import parse_url
 from ome_zarr.reader import Reader
+from upath import UPath as Path
+from lib.cloud_io import get_fsspec, is_remote
 
-storage_provider_settings=snakemake.params.storage_provider_settings
+uri = snakemake.params.uri
 
 in_zarr = snakemake.input.zarr
 channel_index = snakemake.params.channel_index
 
-
-if snakemake.config['write_to_remote']:
-    #use the uri
-    uri = snakemake.params.uri
-
-    if uri.startswith('gcs://'):
-        uri = uri[6:]
-        import gcsfs
-        gcsfs_opts={'project': storage_provider_settings['gcs'].get_settings().project,
-                        'token': snakemake.input.creds}
-        fs = gcsfs.GCSFileSystem(**gcsfs_opts)
-        store = zarr.storage.FSStore(uri,fs=fs,dimension_separator='/',mode='r')
-    elif uri.startswith('s3://'):
-        uri = uri[5:]
-        import s3fs
-        s3fs_opts={'anon': False}
-        fs = s3fs.S3FileSystem(**s3fs_opts)
-        store = zarr.storage.FSStore(uri,fs=fs,dimension_separator='/',mode='w')
-    else:
-        print(f'cannot parse uri {uri}')
-    zi = zarr.open(store=store,mode='r')
-
-
-   
+if is_remote(uri):
+    fs_args={'storage_provider_settings':snakemake.params.storage_provider_settings,'creds':snakemake.input.creds}
 else:
-    #load as directorystore
-    store = zarr.DirectoryStore(in_zarr)
-    zi = zarr.open(in_zarr,mode='r')
+    fs_args={}
+
+fs = get_fsspec(uri,**fs_args)
+store = zarr.storage.FSStore(Path(uri).path,fs=fs,dimension_separator='/',mode='r')
+zi = zarr.open(store=store,mode='r')
+ 
 
 attrs=zi['/'].attrs.asdict()
 
