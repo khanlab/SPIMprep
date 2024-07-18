@@ -10,7 +10,6 @@ def is_remote(uri_string):
 def get_fsspec(uri_string,storage_provider_settings=None,creds=None):
     uri = Path(uri_string)
     if uri.protocol == 'gcs':
-        print('is gcs')
         from gcsfs import GCSFileSystem
         gcsfs_opts={}
         gcsfs_opts={'project': storage_provider_settings['gcs'].get_settings().project,

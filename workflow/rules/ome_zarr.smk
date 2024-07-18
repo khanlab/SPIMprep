@@ -23,7 +23,14 @@ rule zarr_to_ome_zarr:
         scaling_method=config["ome_zarr"]["scaling_method"],
         downsampling=config["bigstitcher"]["fuse_dataset"]["downsampling"],
         stains=get_stains,
-        uri=lambda wildcards, output: strip_snakemake_touch(output.zarr),
+        uri=_bids(
+            root=root,
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="SPIM.ome.zarr",
+        ),
         storage_provider_settings=workflow.storage_provider_settings,
     output:
         **get_output_ome_zarr("blaze"),
@@ -60,7 +67,14 @@ rule tif_stacks_to_ome_zarr:
         scaling_method=config["ome_zarr"]["scaling_method"],
         downsampling=config["bigstitcher"]["fuse_dataset"]["downsampling"],
         stains=get_stains,
-        uri=lambda wildcards, output: strip_snakemake_touch(output.zarr),
+        uri=_bids(
+            root=root,
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="SPIM.ome.zarr",
+        ),
         storage_provider_settings=workflow.storage_provider_settings,
     output:
         **get_output_ome_zarr("prestitched"),
@@ -121,7 +135,14 @@ rule ome_zarr_to_nii:
         zarr=get_input_ome_zarr_to_nii(),
     params:
         channel_index=lambda wildcards: get_stains(wildcards).index(wildcards.stain),
-        uri=lambda wildcards, input: strip_snakemake_touch(input.zarr),
+        uri=_bids(
+            root=root,
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="SPIM.ome.zarr",
+        ),
         storage_provider_settings=workflow.storage_provider_settings,
     output:
         nii=bids(

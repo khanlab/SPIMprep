@@ -68,17 +68,6 @@ def get_extension_ome_zarr():
             return "ome.zarr"
 
 
-def strip_snakemake_touch(path):
-    """This strips the .snakemake_touch (see get_extension_ome_zarr)
-    from the given path. Use this with params to obtain a uri for the
-    remote file."""
-    suffix = ".zarr/" + ".snakemake_touch"
-    if path.endswith(suffix):
-        return path[: -len(suffix)] + ".zarr"
-    else:
-        return path
-
-
 # targets
 def get_all_targets():
     targets = []
