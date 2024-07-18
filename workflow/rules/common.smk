@@ -248,6 +248,27 @@ def get_macro_args_zarr_fusion(wildcards, input, output):
     )
 
 
+def get_output_ome_zarr_uri():
+    if is_remote(config["root"]):
+        return _bids(
+            root=root,
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="SPIM.ome.zarr",
+        )
+    else:
+        return "local://" + _bids(
+            root=root,
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="SPIM.ome.zarr",
+        )
+
+
 def get_output_ome_zarr(acq_type):
     if is_remote(config["root"]):
         return {
