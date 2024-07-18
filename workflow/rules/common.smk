@@ -4,7 +4,22 @@ from upath import UPath as Path
 from lib.cloud_io import is_remote
 
 
+def bids(root, *args, **kwargs):
+    """replacement to _bids() that adds the storage() tag
+    if the path points is remote (eg s3, gcs)"""
+    bids_str = _bids(root=root, *args, **kwargs)
+
+    if is_remote(root):
+        return storage(bids_str)
+    else:
+        return bids_str
+
+
 def expand_bids(expand_kwargs, **bids_kwargs):
+    """replacement to expand(_bids()) that adds the storage() tag
+    if the path points is remote (eg s3, gcs), **after**
+    expanding (since it is not allowed before, hence why this
+    function is needed)"""
 
     files = expand(_bids(**bids_kwargs), **expand_kwargs)
 
@@ -15,6 +30,8 @@ def expand_bids(expand_kwargs, **bids_kwargs):
 
 
 def directory_bids(root, *args, **kwargs):
+    """Similar to expand_bids, this replacement function
+    is needed to ensure storage() comes after directory() tags"""
     bids_str = _bids(root=root, *args, **kwargs)
 
     if is_remote(root):
@@ -24,6 +41,9 @@ def directory_bids(root, *args, **kwargs):
 
 
 def bids_toplevel(root, filename):
+    """This obtains a path for a file at the top-level of the bids
+    dataset, applying the storage() tag if it is remote"""
+
     bids_str = str(Path(_bids(root=root)) / filename)
 
     if is_remote(root):
@@ -32,16 +52,12 @@ def bids_toplevel(root, filename):
         return bids_str
 
 
-def bids(root, *args, **kwargs):
-    bids_str = _bids(root=root, *args, **kwargs)
-
-    if is_remote(root):
-        return storage(bids_str)
-    else:
-        return bids_str
-
-
 def get_extension_ome_zarr():
+    """This function returns a ome.zarr extension. If the file is
+    remote, it appends a .snakemake_touch to the path so that the rule
+     can process the file remotely without having snakemake copy it over
+    (e.g. the touch file is used instead). Also appends a .zip if the
+    zipstore option is enabled."""
 
     if is_remote(config["root"]):
         return "ome.zarr/.snakemake_touch"
@@ -50,6 +66,17 @@ def get_extension_ome_zarr():
             return "ome.zarr.zip"
         else:
             return "ome.zarr"
+
+
+def strip_snakemake_touch(path):
+    """This strips the .snakemake_touch (see get_extension_ome_zarr)
+    from the given path. Use this with params to obtain a uri for the
+    remote file."""
+    suffix = ".zarr/" + ".snakemake_touch"
+    if path.endswith(suffix):
+        return path[: -len(suffix)] + ".zarr"
+    else:
+        return path
 
 
 # targets
