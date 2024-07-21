@@ -1,6 +1,6 @@
 import json
-from pathlib import Path
-from snakebids import bids, set_bids_spec
+from upath import UPath as Path
+from snakebids import set_bids_spec
 import pandas as pd
 from collections import defaultdict
 import os
@@ -16,6 +16,7 @@ container: config["containers"]["spimprep"]
 root = os.path.expandvars(config["root"])
 work = os.path.expandvars(config["work"])
 resampled = Path(root) / "derivatives" / "resampled"
+
 
 # this is needed to use the latest bids spec with the pre-release snakebids
 set_bids_spec("v0_11_0")

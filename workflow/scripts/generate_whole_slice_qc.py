@@ -5,6 +5,9 @@ from ome_zarr.reader import Reader
 import matplotlib.pyplot as plt
 import numpy as np
 from jinja2 import Environment, FileSystemLoader
+from upath import UPath as Path
+from lib.cloud_io import get_fsspec, is_remote
+import zarr
 
 # load jinja html template
 file_loader = FileSystemLoader(".")
@@ -23,8 +26,20 @@ ome= snakemake.input.ome
 image_dir = snakemake.output.images_dir
 out_html = snakemake.output.html
 
+from ome_zarr.io import ZarrLocation
+
+uri = snakemake.params.uri
+if is_remote(uri):
+    fs_args={'storage_provider_settings':snakemake.params.storage_provider_settings,'creds':snakemake.input.creds}
+else:
+    fs_args={}
+
+fs = get_fsspec(uri,**fs_args)
+store = zarr.storage.FSStore(Path(uri).path,fs=fs,dimension_separator='/',mode='r')
+zarrloc = ZarrLocation(store)
+
 # read ome-zarr data and convert to list
-proc_reader= Reader(parse_url(ome))
+proc_reader= Reader(zarrloc)
 proc_data=list(proc_reader())[0].data
 
 os.makedirs(image_dir, exist_ok=True)

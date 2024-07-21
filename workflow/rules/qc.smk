@@ -47,11 +47,14 @@ rule generate_flatfield_qc:
 rule generate_whole_slice_qc:
     "Generates an html file to view whole slices from preprocessed images"
     input:
+        **get_storage_creds(),
         ome=get_input_ome_zarr_to_nii(),
     params:
         ws_s_start=config["report"]["whole_slice_viewer"]["slice_start"],
         ws_s_step=config["report"]["whole_slice_viewer"]["slice_step"],
         ws_cmap=config["report"]["whole_slice_viewer"]["colour_map"],
+        uri=get_output_ome_zarr_uri(),
+        storage_provider_settings=workflow.storage_provider_settings,
     output:
         html="qc/sub-{subject}_sample-{sample}_acq-{acq}/whole_slice_qc.html",
         images_dir=directory("qc/sub-{subject}_sample-{sample}_acq-{acq}/images/whole"),
@@ -71,7 +74,11 @@ rule generate_whole_slice_qc:
 rule generate_volume_qc:
     "Generates an html file to view the volume rendered image"
     input:
+        **get_storage_creds(),
         ome=get_input_ome_zarr_to_nii(),
+    params:
+        uri=get_output_ome_zarr_uri(),
+        storage_provider_settings=workflow.storage_provider_settings,
     output:
         resources=directory(
             "qc/sub-{subject}_sample-{sample}_acq-{acq}/volume_resources"

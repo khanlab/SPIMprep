@@ -2,10 +2,13 @@ import json
 import zarr
 import dask.array as da
 from dask.array.image import imread as dask_imread
+from ome_zarr.io import parse_url
 from ome_zarr.writer import write_image
 from ome_zarr.format import format_from_version
 from ome_zarr.scale import Scaler
 from dask.diagnostics import ProgressBar
+from upath import UPath as Path
+from lib.cloud_io import get_fsspec, is_remote
 
 in_tif_glob = snakemake.params.in_tif_glob
 
@@ -16,6 +19,8 @@ rechunk_size=snakemake.params.rechunk_size
 out_zarr=snakemake.output.zarr
 stains=snakemake.params.stains
 scaling_method=snakemake.params.scaling_method
+uri = snakemake.params.uri
+
 
 # prepare metadata for ome-zarr
 with open(metadata_json) as fp:
@@ -62,18 +67,26 @@ for i,stain in enumerate(stains):
 darr_channels = da.stack(darr_list)
 
 
-store = zarr.DirectoryStore(out_zarr)
-root = zarr.group(store,path='/',overwrite=True)
-scaler = Scaler(max_layer=max_layer,method=scaling_method)
+if is_remote(uri):
+    fs_args={'storage_provider_settings':snakemake.params.storage_provider_settings,'creds':snakemake.input.creds}
+    fs = get_fsspec(uri,**fs_args)
+    store = zarr.storage.FSStore(Path(uri).path,fs=fs,dimension_separator='/',mode='w')
+else:
+    store = zarr.DirectoryStore(out_zarr) 
 
+
+
+
+
+group = zarr.group(store,overwrite=True)
+scaler = Scaler(max_layer=max_layer,method=scaling_method)
 
 
 with ProgressBar():
     write_image(image=darr_channels,
-                            group=root,
+                            group=group,
                             scaler=scaler,
                             coordinate_transformations=coordinate_transformations,
-                            storage_options={'dimension_separator': '/'},
                             axes=axes,
                             metadata={'omero':omero}
                                 )

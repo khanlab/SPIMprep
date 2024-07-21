@@ -5,7 +5,7 @@ rule raw_dataset_desc:
     params:
         dd=config["bids"]["raw"],
     output:
-        json=Path(root) / "dataset_description.json",
+        json=bids_toplevel(root, "dataset_description.json"),
     log:
         "logs/dd_raw.log",
     localrule: True
@@ -18,7 +18,7 @@ rule resampled_dataset_desc:
     params:
         dd=config["bids"]["resampled"],
     output:
-        json=Path(resampled) / "dataset_description.json",
+        json=bids_toplevel(resampled, "dataset_description.json"),
     log:
         "logs/dd_raw.log",
     localrule: True
@@ -31,7 +31,7 @@ rule bids_readme:
     input:
         config["bids"]["readme_md"],
     output:
-        Path(root) / "README.md",
+        bids_toplevel(root, "README.md"),
     log:
         "logs/bids_readme.log",
     localrule: True
@@ -43,7 +43,7 @@ rule bids_samples_json:
     input:
         config["bids"]["samples_json"],
     output:
-        Path(root) / "samples.json",
+        bids_toplevel(root, "samples.json"),
     log:
         "logs/bids_samples_json.log",
     localrule: True
@@ -55,7 +55,7 @@ rule create_samples_tsv:
     params:
         datasets_df=datasets,
     output:
-        tsv=Path(root) / "samples.tsv",
+        tsv=bids_toplevel(root, "samples.tsv"),
     log:
         "logs/bids_samples_tsv.log",
     localrule: True

@@ -16,7 +16,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: snakemake lint
-        run: poetry run snakemake --lint
+        run: poetry run snakemake --lint --storage-gcs-project placeholder
       - name: snakefmt
         run: poetry run snakefmt --check workflow
   test:
@@ -32,4 +32,4 @@ jobs:
           python-version: ${{ matrix.python-version }}
           install-library: true
       - name: Integration dry-run test
-        run: poetry run snakemake -np
+        run: poetry run snakemake -np --storage-gcs-project placeholder
