@@ -1,7 +1,7 @@
 import tarfile
 from snakebids import bids as _bids
 from upath import UPath as Path
-from lib.cloud_io import is_remote
+from lib.cloud_io import is_remote, is_remote_gcs
 
 
 def bids(root, *args, **kwargs):
@@ -134,6 +134,9 @@ def get_input_dataset(wildcards):
     dataset_path = Path(get_dataset_path(wildcards))
     suffix = dataset_path.suffix
 
+    if is_remote_gcs(dataset_path):
+        return rules.cp_from_gcs.output.ome_dir.format(**wildcards)
+
     if dataset_path.is_dir():
         print('is a dir')
         return get_dataset_path_remote(wildcards)
@@ -178,6 +181,11 @@ def get_dataset_path_remote(wildcards):
         return storage(path)
     else:
         return path
+
+def get_dataset_path_gs(wildcards):
+    path=Path(get_dataset_path(wildcards)).path
+    return f"gs://{path}"
+
 
 def get_dataset_path(wildcards):
     df = datasets.query(

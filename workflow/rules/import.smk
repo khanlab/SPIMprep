@@ -1,4 +1,3 @@
-
 rule extract_dataset:
     input:
         dataset_path=get_dataset_path_remote,
@@ -32,6 +31,41 @@ rule extract_dataset:
         ),
     shell:
         "{params.cmd}"
+
+rule cp_from_gcs:
+    params:
+        dataset_path=get_dataset_path_gs,
+    output:
+        ome_dir=temp(
+            directory(
+                bids(
+                    root=work,
+                    subject="{subject}",
+                    datatype="micr",
+                    sample="{sample}",
+                    acq="{acq}",
+                    desc="rawfromgcs",
+                    suffix="SPIM",
+                )
+            )
+        ),
+    threads: 32
+    group:
+        "preproc"
+    log:
+        bids(
+            root="logs",
+            subject="{subject}",
+            datatype="cp_from_gcs",
+            sample="{sample}",
+            acq="{acq}",
+            desc="raw",
+            suffix="log.txt",
+        ),
+    container: None
+    shell:
+        "mkdir -p {output} && gcloud storage cp --recursive {params.dataset_path}/* {output}"
+
 
 
 rule blaze_to_metadata:
