@@ -131,17 +131,16 @@ def get_bids_toplevel_targets():
 
 def get_input_dataset(wildcards):
     """returns path to extracted dataset or path to provided input folder"""
-    in_dataset = get_dataset_path(wildcards)
-
     dataset_path = Path(get_dataset_path(wildcards))
     suffix = dataset_path.suffix
 
     if dataset_path.is_dir():
-        # we have a directory already, just point to it
-        return str(dataset_path)
+        print('is a dir')
+        return get_dataset_path_remote(wildcards)
 
     elif tarfile.is_tarfile(dataset_path):
         # dataset was a tar file, so point to the extracted folder
+        print('is a tar')
         return rules.extract_dataset.output.ome_dir.format(**wildcards)
 
     else:
@@ -173,6 +172,12 @@ def cmd_extract_dataset(wildcards, input, output):
 
     return " && ".join(cmds)
 
+def get_dataset_path_remote(wildcards):
+    path=get_dataset_path(wildcards)
+    if is_remote(path):
+        return storage(path)
+    else:
+        return path
 
 def get_dataset_path(wildcards):
     df = datasets.query(

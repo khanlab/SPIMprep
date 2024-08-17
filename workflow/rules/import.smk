@@ -1,7 +1,7 @@
 
 rule extract_dataset:
     input:
-        dataset_path=get_dataset_path,
+        dataset_path=get_dataset_path_remote,
     params:
         cmd=cmd_extract_dataset,
     output:
