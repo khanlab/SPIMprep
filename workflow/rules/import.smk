@@ -32,6 +32,7 @@ rule extract_dataset:
     shell:
         "{params.cmd}"
 
+
 rule cp_from_gcs:
     params:
         dataset_path=get_dataset_path_gs,
@@ -62,10 +63,10 @@ rule cp_from_gcs:
             desc="raw",
             suffix="log.txt",
         ),
-    container: None
+    container:
+        None
     shell:
         "mkdir -p {output} && gcloud storage cp --recursive {params.dataset_path}/* {output}"
-
 
 
 rule blaze_to_metadata:

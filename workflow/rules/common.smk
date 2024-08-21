@@ -138,12 +138,10 @@ def get_input_dataset(wildcards):
         return rules.cp_from_gcs.output.ome_dir.format(**wildcards)
 
     if dataset_path.is_dir():
-        print('is a dir')
         return get_dataset_path_remote(wildcards)
 
     elif tarfile.is_tarfile(dataset_path):
         # dataset was a tar file, so point to the extracted folder
-        print('is a tar')
         return rules.extract_dataset.output.ome_dir.format(**wildcards)
 
     else:
@@ -175,15 +173,17 @@ def cmd_extract_dataset(wildcards, input, output):
 
     return " && ".join(cmds)
 
+
 def get_dataset_path_remote(wildcards):
-    path=get_dataset_path(wildcards)
+    path = get_dataset_path(wildcards)
     if is_remote(path):
         return storage(path)
     else:
         return path
 
+
 def get_dataset_path_gs(wildcards):
-    path=Path(get_dataset_path(wildcards)).path
+    path = Path(get_dataset_path(wildcards)).path
     return f"gs://{path}"
 
 
@@ -195,7 +195,6 @@ def get_dataset_path(wildcards):
 
 
 def get_stains_by_row(i):
-
     # Select columns that match the pattern 'stain_'
     stain_columns = datasets.filter(like="stain_").columns
 
