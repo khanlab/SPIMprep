@@ -50,7 +50,7 @@ rule cp_from_gcs:
                 )
             )
         ),
-    threads: 32
+    threads: config["cores_per_rule"]
     group:
         "preproc"
     log:
@@ -203,7 +203,7 @@ rule tif_to_zarr:
         ),
     group:
         "preproc"
-    threads: 32
+    threads: config["cores_per_rule"]
     container:
         config["containers"]["spimprep"]
     script:

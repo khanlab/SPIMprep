@@ -85,7 +85,7 @@ rule zarr_to_bdv:
             desc="{desc}",
             suffix="log.txt",
         ),
-    threads: 32
+    threads: config["cores_per_rule"]
     group:
         "preproc"
     container:
@@ -151,7 +151,7 @@ rule bigstitcher:
     resources:
         runtime=30,
         mem_mb=10000,
-    threads: 32
+    threads: config["cores_per_rule"]
     group:
         "preproc"
     shell:
@@ -239,7 +239,7 @@ rule fuse_dataset:
     resources:
         runtime=30,
         mem_mb=20000,
-    threads: 32
+    threads: config["cores_per_rule"]
     group:
         "preproc"
     shell:
@@ -311,7 +311,7 @@ rule fuse_dataset_spark:
     resources:
         runtime=30,
         mem_mb=20000,
-    threads: 32
+    threads: config["cores_per_rule"]
     group:
         "preproc"
     shell:

@@ -27,7 +27,7 @@ rule zarr_to_ome_zarr:
         storage_provider_settings=workflow.storage_provider_settings,
     output:
         **get_output_ome_zarr("blaze"),
-    threads: 32
+    threads: config["cores_per_rule"]
     log:
         bids(
             root="logs",
@@ -158,7 +158,7 @@ rule ome_zarr_to_nii:
         ),
     group:
         "preproc"
-    threads: 32
+    threads: config["cores_per_rule"]
     container:
         config["containers"]["spimprep"]
     script:
