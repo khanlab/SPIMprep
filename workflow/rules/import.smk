@@ -65,6 +65,8 @@ rule cp_from_gcs:
         ),
     container:
         None
+    conda:
+        'envs/google_cloud.yaml'
     shell:
         "mkdir -p {output} && gcloud storage cp --recursive {params.dataset_path}/* {output}"
 
