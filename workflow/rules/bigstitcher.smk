@@ -9,7 +9,7 @@ rule zarr_to_bdv:
             desc="{desc}",
             suffix="SPIM.zarr",
         ),
-        metadata_json=rules.blaze_to_metadata.output.metadata_json,
+        metadata_json=rules.copy_blaze_metadata.output.metadata_json,
     params:
         max_downsampling_layers=5,
         temp_h5=str(

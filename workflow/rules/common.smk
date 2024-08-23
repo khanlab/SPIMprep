@@ -128,6 +128,8 @@ def get_bids_toplevel_targets():
     targets.append(bids_toplevel(resampled, "dataset_description.json"))
     return targets
 
+def dataset_is_remote(wildcards):
+    return is_remote_gcs(Path(get_dataset_path(wildcards)))
 
 def get_input_dataset(wildcards):
     """returns path to extracted dataset or path to provided input folder"""
@@ -147,6 +149,16 @@ def get_input_dataset(wildcards):
     else:
         print(f"unsupported input: {dataset_path}")
 
+def get_metadata_json(wildcards):
+    """returns path to metadata, extracted from local or gcs"""
+    dataset_path = Path(get_dataset_path(wildcards))
+    suffix = dataset_path.suffix
+
+    if is_remote_gcs(dataset_path):
+        return rules.blaze_to_metadata_gcs.output.metadata_json.format(**wildcards)
+    else:
+        return rules.blaze_to_metadata.output.metadata_json.format(**wildcards)
+        
 
 # import
 def cmd_extract_dataset(wildcards, input, output):

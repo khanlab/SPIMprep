@@ -70,6 +70,48 @@ rule cp_from_gcs:
     shell:
         "mkdir -p {output} && gcloud storage cp --recursive {params.dataset_path}/* {output}"
 
+rule blaze_to_metadata_gcs:
+    input:
+        creds = os.path.expanduser(config["remote_creds"])
+    params:
+        dataset_path=get_dataset_path_gs,
+        in_tif_pattern=lambda wildcards: config["import_blaze"]["raw_tif_pattern"],
+        storage_provider_settings=workflow.storage_provider_settings,
+    output:
+        metadata_json=bids(
+            root=root,
+            desc='gcs',
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq,[a-zA-Z0-9]*blaze[a-zA-Z0-9]*}",
+            suffix="SPIM.json",
+        ),
+    benchmark:
+        bids(
+            root="benchmarks",
+            datatype="blaze_to_metadata_gcs",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="benchmark.tsv",
+        )
+    log:
+        bids(
+            root="logs",
+            datatype="blaze_to_metadata_gcs",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="log.txt",
+        ),
+    group:
+        "preproc"
+    container:
+        config["containers"]["spimprep"]
+    script:
+        "../scripts/blaze_to_metadata_gcs.py"
+
 
 rule blaze_to_metadata:
     input:
@@ -80,14 +122,15 @@ rule blaze_to_metadata:
             config["import_blaze"]["raw_tif_pattern"],
         ),
     output:
-        metadata_json=bids(
-            root=root,
+        metadata_json=temp(bids(
+            root=work,
             subject="{subject}",
+            desc='local',
             datatype="micr",
             sample="{sample}",
             acq="{acq,[a-zA-Z0-9]*blaze[a-zA-Z0-9]*}",
             suffix="SPIM.json",
-        ),
+        )),
     benchmark:
         bids(
             root="benchmarks",
@@ -113,6 +156,20 @@ rule blaze_to_metadata:
     script:
         "../scripts/blaze_to_metadata.py"
 
+
+rule copy_blaze_metadata:
+    input:
+        json=get_metadata_json
+    output:
+        metadata_json=bids(
+            root=root,
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq,[a-zA-Z0-9]*blaze[a-zA-Z0-9]*}",
+            suffix="SPIM.json",
+        ),
+    shell: 'cp {input} {output}'
 
 rule prestitched_to_metadata:
     input:
@@ -162,7 +219,7 @@ rule tif_to_zarr:
         images as the chunks"""
     input:
         ome_dir=get_input_dataset,
-        metadata_json=rules.blaze_to_metadata.output.metadata_json,
+        metadata_json=rules.copy_blaze_metadata.output.metadata_json,
     params:
         in_tif_pattern=lambda wildcards, input: os.path.join(
             input.ome_dir,
@@ -208,3 +265,56 @@ rule tif_to_zarr:
         config["containers"]["spimprep"]
     script:
         "../scripts/tif_to_zarr.py"
+
+rule tif_to_zarr_gcs:
+    """ use dask to load tifs in parallel and write to zarr 
+        output shape is (tiles,channels,z,y,x), with the 2d 
+        images as the chunks"""
+    input:
+        metadata_json=rules.copy_blaze_metadata.output.metadata_json,
+        creds = os.path.expanduser(config["remote_creds"])
+    params:
+        dataset_path=get_dataset_path_gs,
+        in_tif_pattern=lambda wildcards:
+            config["import_blaze"]["raw_tif_pattern"],
+        intensity_rescaling=config["import_blaze"]["intensity_rescaling"],
+        storage_provider_settings=workflow.storage_provider_settings,
+    output:
+        zarr=temp(
+            directory(
+                bids(
+                    root=work,
+                    subject="{subject}",
+                    datatype="micr",
+                    sample="{sample}",
+                    acq="{acq}",
+                    desc="rawfromgcs",
+                    suffix="SPIM.zarr",
+                )
+            )
+        ),
+    benchmark:
+        bids(
+            root="benchmarks",
+            datatype="tif_to_zarr",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="benchmark.tsv",
+        )
+    log:
+        bids(
+            root="logs",
+            datatype="tif_to_zarr",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="log.txt",
+        ),
+    group:
+        "preproc"
+    threads: config["cores_per_rule"]
+    container:
+        config["containers"]["spimprep"]
+    script:
+        "../scripts/tif_to_zarr_gcs.py"
