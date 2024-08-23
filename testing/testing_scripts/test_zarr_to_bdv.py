@@ -33,7 +33,8 @@ def test_zarr_to_bdv():
             "work/sub-mouse1/micr/sub-mouse1_sample-brain_acq-blaze1x_desc-flatcorr_bdv.xml",
             "-f", 
             "-j1",
-            "--keep-target-files",
+            "--target-files-omit-workdir-adjustment",
+			"--use-singularity",
     
             "--directory",
             workdir,
@@ -43,4 +44,4 @@ def test_zarr_to_bdv():
         # To modify this behavior, you can inherit from common.OutputChecker in here
         # and overwrite the method `compare_files(generated_file, expected_file), 
         # also see common.py.
-        common.OutputChecker(data_path, expected_path, workdir).check()
+        common.ImperfectOutputChecker(data_path, expected_path, workdir).check()

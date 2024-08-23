@@ -32,7 +32,8 @@ def test_apply_basic_flatfield_corr():
             "work/sub-mouse1/micr/sub-mouse1_sample-brain_acq-blaze1x_desc-flatcorr_SPIM.zarr",
             "-f", 
             "-j1",
-            "--keep-target-files",
+            "--target-files-omit-workdir-adjustment",
+			"--use-singularity",
     
             "--directory",
             workdir,

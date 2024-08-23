@@ -32,7 +32,8 @@ def test_ome_zarr_to_nii():
             "bids/derivatives/resampled/sub-mouse1/micr/sub-mouse1_sample-brain_acq-blaze1x_stain-abeta_res-3x_SPIM.nii",
             "-f", 
             "-j1",
-            "--keep-target-files",
+            "--target-files-omit-workdir-adjustment",
+			"--use-singularity",
     
             "--directory",
             workdir,

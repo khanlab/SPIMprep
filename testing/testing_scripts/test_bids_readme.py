@@ -23,6 +23,7 @@ def test_bids_readme():
 
         # dbg
         print("bids/README.md", file=sys.stderr)
+        #Hello
 
         # Run the test job.
         sp.check_output([
@@ -32,12 +33,12 @@ def test_bids_readme():
             "bids/README.md",
             "-f", 
             "-j1",
-            "--keep-target-files",
+            "--target-files-omit-workdir-adjustment",
+			"--use-singularity",
     
             "--directory",
             workdir,
         ])
-
         # Check the output byte by byte using cmp.
         # To modify this behavior, you can inherit from common.OutputChecker in here
         # and overwrite the method `compare_files(generated_file, expected_file), 

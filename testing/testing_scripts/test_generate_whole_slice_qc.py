@@ -35,7 +35,8 @@ def test_generate_whole_slice_qc():
             "qc/sub-mouse1_sample-brain_acq-blaze1x/images/whole",
             "-f", 
             "-j1",
-            "--keep-target-files",
+            "--target-files-omit-workdir-adjustment",
+			"--use-singularity",
     
             "--directory",
             workdir,

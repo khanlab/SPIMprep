@@ -32,7 +32,8 @@ def test_resampled_dataset_desc():
             "bids/derivatives/resampled/dataset_description.json",
             "-f", 
             "-j1",
-            "--keep-target-files",
+            "--target-files-omit-workdir-adjustment",
+			"--use-singularity",
     
             "--directory",
             workdir,

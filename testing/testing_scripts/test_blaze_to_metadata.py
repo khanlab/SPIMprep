@@ -32,7 +32,8 @@ def test_blaze_to_metadata():
             "bids/sub-mouse1/micr/sub-mouse1_sample-brain_acq-blaze1x_SPIM.json",
             "-f", 
             "-j1",
-            "--keep-target-files",
+            "--target-files-omit-workdir-adjustment",
+			"--use-singularity",
     
             "--directory",
             workdir,

@@ -32,7 +32,8 @@ def test_raw_dataset_desc():
             "bids/dataset_description.json",
             "-f", 
             "-j1",
-            "--keep-target-files",
+            "--target-files-omit-workdir-adjustment",
+			"--use-singularity",
     
             "--directory",
             workdir,

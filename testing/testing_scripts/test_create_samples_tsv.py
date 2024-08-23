@@ -32,7 +32,8 @@ def test_create_samples_tsv():
             "bids/samples.tsv",
             "-f", 
             "-j1",
-            "--keep-target-files",
+            "--target-files-omit-workdir-adjustment",
+			"--use-singularity",
     
             "--directory",
             workdir,

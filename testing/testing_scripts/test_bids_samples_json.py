@@ -32,7 +32,8 @@ def test_bids_samples_json():
             "bids/samples.json",
             "-f", 
             "-j1",
-            "--keep-target-files",
+            "--target-files-omit-workdir-adjustment",
+			"--use-singularity",
     
             "--directory",
             workdir,

@@ -34,7 +34,8 @@ def test_generate_subject_qc():
             "qc/sub-mouse1_sample-brain_acq-blaze1x/subject.html",
             "-f", 
             "-j1",
-            "--keep-target-files",
+            "--target-files-omit-workdir-adjustment",
+			"--use-singularity",
     
             "--directory",
             workdir,

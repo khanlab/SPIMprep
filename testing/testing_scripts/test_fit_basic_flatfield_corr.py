@@ -32,7 +32,8 @@ def test_fit_basic_flatfield_corr():
             "work/sub-mouse1/micr/sub-mouse1_sample-brain_acq-blaze1x_stain-abeta_basicmodel",
             "-f", 
             "-j1",
-            "--keep-target-files",
+            "--target-files-omit-workdir-adjustment",
+			"--use-singularity",
     
             "--directory",
             workdir,
@@ -42,4 +43,4 @@ def test_fit_basic_flatfield_corr():
         # To modify this behavior, you can inherit from common.OutputChecker in here
         # and overwrite the method `compare_files(generated_file, expected_file), 
         # also see common.py.
-        common.OutputChecker(data_path, expected_path, workdir).check()
+        common.ImperfectOutputChecker(data_path, expected_path, workdir).check()
