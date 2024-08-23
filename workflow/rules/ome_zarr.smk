@@ -16,7 +16,7 @@ rule zarr_to_ome_zarr:
             desc=config["ome_zarr"]["desc"],
             allow_missing=True,
         ),
-        metadata_json=rules.blaze_to_metadata.output.metadata_json,
+        metadata_json=rules.copy_blaze_metadata.output.metadata_json,
     params:
         max_downsampling_layers=config["ome_zarr"]["max_downsampling_layers"],
         rechunk_size=config["ome_zarr"]["rechunk_size"],
