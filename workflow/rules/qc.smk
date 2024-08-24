@@ -1,3 +1,14 @@
+
+rule setup_qc_dir:
+    "Copies QC resources to the output bids folder"
+    input:
+        readme_md=config["report"]["resources"]["readme_md"],
+    output:
+        readme_md=str(Path(root) / "qc" / "README.md"),
+    shell:
+        "cp {input.readme_md} {output.readme_md}"
+
+
 rule generate_flatfield_qc:
     "Generates an html file for comparing before and after flatfield correction"
     input:
@@ -19,17 +30,32 @@ rule generate_flatfield_qc:
             desc="flatcorr",
             suffix="SPIM.zarr",
         ),
+        ff_html=config["report"]["resources"]["ff_html"],
     params:
         ff_s_start=config["report"]["flatfield_corrected"]["slice_start"],
         ff_s_step=config["report"]["flatfield_corrected"]["slice_step"],
         ff_cmap=config["report"]["flatfield_corrected"]["colour_map"],
     output:
-        html="qc/sub-{subject}_sample-{sample}_acq-{acq}/flatfieldqc.html",
+        html=Path(root)
+        / "qc"
+        / "sub-{subject}_sample-{sample}_acq-{acq}/flatfieldqc.html",
         corr_images_dir=directory(
-            "qc/sub-{subject}_sample-{sample}_acq-{acq}/images/corr"
+            str(
+                Path(root)
+                / "qc"
+                / "sub-{subject}_sample-{sample}_acq-{acq}"
+                / "images"
+                / "corr"
+            )
         ),
         uncorr_images_dir=directory(
-            "qc/sub-{subject}_sample-{sample}_acq-{acq}/images/uncorr"
+            str(
+                Path(root)
+                / "qc"
+                / "sub-{subject}_sample-{sample}_acq-{acq}"
+                / "images"
+                / "uncorr"
+            )
         ),
     log:
         bids(
@@ -49,6 +75,7 @@ rule generate_whole_slice_qc:
     input:
         **get_storage_creds(),
         ome=get_input_ome_zarr_to_nii(),
+        ws_html=config["report"]["resources"]["ws_html"],
     params:
         ws_s_start=config["report"]["whole_slice_viewer"]["slice_start"],
         ws_s_step=config["report"]["whole_slice_viewer"]["slice_step"],
@@ -56,8 +83,21 @@ rule generate_whole_slice_qc:
         uri=get_output_ome_zarr_uri(),
         storage_provider_settings=workflow.storage_provider_settings,
     output:
-        html="qc/sub-{subject}_sample-{sample}_acq-{acq}/whole_slice_qc.html",
-        images_dir=directory("qc/sub-{subject}_sample-{sample}_acq-{acq}/images/whole"),
+        html=str(
+            Path(root)
+            / "qc"
+            / "sub-{subject}_sample-{sample}_acq-{acq}"
+            / "whole_slice_qc.html"
+        ),
+        images_dir=str(
+            directory(
+                Path(root)
+                / "qc"
+                / "sub-{subject}_sample-{sample}_acq-{acq}"
+                / "images"
+                / "whole"
+            )
+        ),
     log:
         bids(
             root="logs",
@@ -76,14 +116,21 @@ rule generate_volume_qc:
     input:
         **get_storage_creds(),
         ome=get_input_ome_zarr_to_nii(),
+        vol_viewer_dir=config["report"]["resources"]["vol_viewer_dir"],
     params:
         uri=get_output_ome_zarr_uri(),
         storage_provider_settings=workflow.storage_provider_settings,
     output:
         resources=directory(
-            "qc/sub-{subject}_sample-{sample}_acq-{acq}/volume_resources"
+            Path(root)
+            / "qc"
+            / "sub-{subject}_sample-{sample}_acq-{acq}"
+            / "volume_resources"
         ),
-        html="qc/sub-{subject}_sample-{sample}_acq-{acq}/volume_qc.html",
+        html=Path(root)
+        / "qc"
+        / "sub-{subject}_sample-{sample}_acq-{acq}"
+        / "volume_qc.html",
     log:
         bids(
             root="logs",
@@ -100,11 +147,24 @@ rule generate_volume_qc:
 rule generate_subject_qc:
     "Generates html files to access all the subjects qc reports in one place"
     input:
-        ws_html="qc/sub-{subject}_sample-{sample}_acq-{acq}/whole_slice_qc.html",
-        ff_html="qc/sub-{subject}_sample-{sample}_acq-{acq}/flatfieldqc.html",
-        vol_html="qc/sub-{subject}_sample-{sample}_acq-{acq}/volume_qc.html",
+        subject_html=config["report"]["resources"]["subject_html"],
+        ws_html=Path(root)
+        / "qc"
+        / "sub-{subject}_sample-{sample}_acq-{acq}"
+        / "whole_slice_qc.html",
+        ff_html=Path(root)
+        / "qc"
+        / "sub-{subject}_sample-{sample}_acq-{acq}"
+        / "flatfieldqc.html",
+        vol_html=Path(root)
+        / "qc"
+        / "sub-{subject}_sample-{sample}_acq-{acq}"
+        / "volume_qc.html",
     output:
-        sub_html="qc/sub-{subject}_sample-{sample}_acq-{acq}/subject.html",
+        sub_html=Path(root)
+        / "qc"
+        / "sub-{subject}_sample-{sample}_acq-{acq}"
+        / "subject.html",
     log:
         bids(
             root="logs",

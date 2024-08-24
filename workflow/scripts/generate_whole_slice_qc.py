@@ -12,7 +12,7 @@ import zarr
 # load jinja html template
 file_loader = FileSystemLoader(".")
 env = Environment(loader=file_loader)
-template = env.get_template("qc/resources/ws_html_temp.html")
+template = env.get_template(snakemake.input.ws_html)
 
 # user set configurations
 ws_s_step=snakemake.params.ws_s_step

@@ -138,6 +138,13 @@ report:
     slice_start: 0
     slice_step: 50
     colour_map: viridis
+  resources:
+    readme_md: resources/qc/README.md
+    vol_viewer_dir: resources/qc/volViewer
+    ff_html: resources/qc/ff_html_temp.html
+    report_html: resources/qc/qc_report_temp.html
+    subject_html: resources/qc/subject_html_temp.html
+    ws_html: resources/qc/ws_html_temp.html
 
 
 containers:
