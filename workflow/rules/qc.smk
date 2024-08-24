@@ -89,8 +89,8 @@ rule generate_whole_slice_qc:
             / "sub-{subject}_sample-{sample}_acq-{acq}"
             / "whole_slice_qc.html"
         ),
-        images_dir=str(
-            directory(
+        images_dir=directory(
+            str(
                 Path(root)
                 / "qc"
                 / "sub-{subject}_sample-{sample}_acq-{acq}"
@@ -148,18 +148,12 @@ rule generate_subject_qc:
     "Generates html files to access all the subjects qc reports in one place"
     input:
         subject_html=config["report"]["resources"]["subject_html"],
-        ws_html=Path(root)
-        / "qc"
-        / "sub-{subject}_sample-{sample}_acq-{acq}"
-        / "whole_slice_qc.html",
-        ff_html=Path(root)
-        / "qc"
-        / "sub-{subject}_sample-{sample}_acq-{acq}"
-        / "flatfieldqc.html",
-        vol_html=Path(root)
-        / "qc"
-        / "sub-{subject}_sample-{sample}_acq-{acq}"
-        / "volume_qc.html",
+        report_html=config["report"]["resources"]["report_html"],
+        ws_html=rules.generate_whole_slice_qc.output.html,
+        ff_html=rules.generate_flatfield_qc.output.html,
+        vol_html=rules.generate_volume_qc.output.html,
+    params:
+        total_html=str(Path(root) / "qc" / "qc_report.html"),  #this should really be an output of a rule that expands over subjects
     output:
         sub_html=Path(root)
         / "qc"
