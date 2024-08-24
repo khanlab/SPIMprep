@@ -5,6 +5,8 @@ rule setup_qc_dir:
         readme_md=config["report"]["resources"]["readme_md"],
     output:
         readme_md=str(Path(root) / "qc" / "README.md"),
+    log:
+        "logs/setup_qc_dir_log.txt",
     shell:
         "cp {input.readme_md} {output.readme_md}"
 
