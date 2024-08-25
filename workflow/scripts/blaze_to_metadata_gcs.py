@@ -26,20 +26,16 @@ tiles_y = sorted(list(set(tiley)))
 channels = sorted(list(set(channel)))
 zslices = sorted(list(set(zslice)))
 prefixes = sorted(list(set(prefix)))
-print(tiles_x)
-print(tiles_y)
+
+
 #read in series metadata from first file
 in_tif = in_tif_pattern.format(tilex=tiles_x[0],tiley=tiles_y[0],prefix=prefixes[0],channel=channels[0],zslice=zslices[0])
-
-print(in_tif)
-print(f"gcs://{in_tif}")
 
 with fs.open(f"gcs://{in_tif}", 'rb') as tif_file:
     raw_tif = tifffile.TiffFile(tif_file,mode='r')
 
     axes = raw_tif.series[0].get_axes()
     shape = raw_tif.series[0].get_shape()
-    print(axes)
 
     ome_dict = xmltodict.parse(raw_tif.ome_metadata)
 
