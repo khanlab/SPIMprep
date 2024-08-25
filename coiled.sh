@@ -1,1 +1,0 @@
-coiled run --file config --file resources --file workflow  --file qc --software spimprep-deps "snakemake -c all --set-resources bigstitcher:mem_mb=128000 fuse_dataset:mem_mb=128000 --storage-gcs-project t-system-193821 --config root='gcs://khanlab-lightsheet/data/marmoset_pilot/bids'" --vm-type e2-standard-32  --forward-gcp-adc
