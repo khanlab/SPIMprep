@@ -7,6 +7,14 @@ def is_remote(uri_string):
     else:
         return False
 
+def is_remote_gcs(uri_string):
+    uri = Path(uri_string)
+    if uri.protocol == 'gcs':
+        return True
+    else:
+        return False
+
+
 def get_fsspec(uri_string,storage_provider_settings=None,creds=None):
     uri = Path(uri_string)
     if uri.protocol == 'gcs':

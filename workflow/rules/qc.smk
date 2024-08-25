@@ -1,15 +1,15 @@
 rule generate_flatfield_qc:
     "Generates an html file for comparing before and after flatfield correction"
     input:
-        uncorr=bids(
+        uncorr=lambda wildcards: bids(
             root=work,
             subject="{subject}",
             datatype="micr",
             sample="{sample}",
             acq="{acq}",
-            desc="raw",
+            desc="rawfromgcs" if dataset_is_remote(wildcards) else "raw",
             suffix="SPIM.zarr",
-        ),
+        ).format(**wildcards),
         corr=bids(
             root=work,
             subject="{subject}",

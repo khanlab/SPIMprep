@@ -2,15 +2,15 @@
 rule fit_basic_flatfield_corr:
     """ BaSiC flatfield correction"""
     input:
-        zarr=bids(
+        zarr=lambda wildcards: bids(
             root=work,
             subject="{subject}",
             datatype="micr",
             sample="{sample}",
             acq="{acq}",
-            desc="raw",
+            desc="rawfromgcs" if dataset_is_remote(wildcards) else "raw",
             suffix="SPIM.zarr",
-        ),
+        ).format(**wildcards),
     params:
         channel=lambda wildcards: get_stains(wildcards).index(wildcards.stain),
         max_n_images=config["basic_flatfield_corr"]["max_n_images"],
@@ -64,15 +64,15 @@ rule fit_basic_flatfield_corr:
 rule apply_basic_flatfield_corr:
     """ apply BaSiC flatfield correction """
     input:
-        zarr=bids(
+        zarr=lambda wildcards: bids(
             root=work,
             subject="{subject}",
             datatype="micr",
             sample="{sample}",
             acq="{acq}",
-            desc="raw",
+            desc="rawfromgcs" if dataset_is_remote(wildcards) else "raw",
             suffix="SPIM.zarr",
-        ),
+        ).format(**wildcards),
         model_dirs=lambda wildcards: expand(
             rules.fit_basic_flatfield_corr.output.model_dir,
             stain=get_stains(wildcards),
@@ -113,7 +113,7 @@ rule apply_basic_flatfield_corr:
     resources:
         runtime=60,
         mem_mb=32000,
-    threads: 32
+    threads: config["cores_per_rule"]
     group:
         "preproc"
     script:
