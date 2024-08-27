@@ -4,7 +4,7 @@ rule setup_qc_dir:
     input:
         readme_md=config["report"]["resources"]["readme_md"],
     output:
-        readme_md=str(Path(root) / "qc" / "README.md"),
+        readme_md=remote_file(Path(root) / "qc" / "README.md"),
     log:
         "logs/setup_qc_dir_log.txt",
     shell:
@@ -38,26 +38,24 @@ rule generate_flatfield_qc:
         ff_s_step=config["report"]["flatfield_corrected"]["slice_step"],
         ff_cmap=config["report"]["flatfield_corrected"]["colour_map"],
     output:
-        html=Path(root)
-        / "qc"
-        / "sub-{subject}_sample-{sample}_acq-{acq}/flatfieldqc.html",
-        corr_images_dir=directory(
-            str(
-                Path(root)
-                / "qc"
-                / "sub-{subject}_sample-{sample}_acq-{acq}"
-                / "images"
-                / "corr"
-            )
+        html=remote_file(
+            Path(root)
+            / "qc"
+            / "sub-{subject}_sample-{sample}_acq-{acq}/flatfieldqc.html"
         ),
-        uncorr_images_dir=directory(
-            str(
-                Path(root)
-                / "qc"
-                / "sub-{subject}_sample-{sample}_acq-{acq}"
-                / "images"
-                / "uncorr"
-            )
+        corr_images_dir=remote_directory(
+            Path(root)
+            / "qc"
+            / "sub-{subject}_sample-{sample}_acq-{acq}"
+            / "images"
+            / "corr"
+        ),
+        uncorr_images_dir=remote_directory(
+            Path(root)
+            / "qc"
+            / "sub-{subject}_sample-{sample}_acq-{acq}"
+            / "images"
+            / "uncorr"
         ),
     log:
         bids(
@@ -85,20 +83,18 @@ rule generate_whole_slice_qc:
         uri=get_output_ome_zarr_uri(),
         storage_provider_settings=workflow.storage_provider_settings,
     output:
-        html=str(
+        html=remote_file(
             Path(root)
             / "qc"
             / "sub-{subject}_sample-{sample}_acq-{acq}"
             / "whole_slice_qc.html"
         ),
-        images_dir=directory(
-            str(
-                Path(root)
-                / "qc"
-                / "sub-{subject}_sample-{sample}_acq-{acq}"
-                / "images"
-                / "whole"
-            )
+        images_dir=remote_directory(
+            Path(root)
+            / "qc"
+            / "sub-{subject}_sample-{sample}_acq-{acq}"
+            / "images"
+            / "whole"
         ),
     log:
         bids(
@@ -123,16 +119,18 @@ rule generate_volume_qc:
         uri=get_output_ome_zarr_uri(),
         storage_provider_settings=workflow.storage_provider_settings,
     output:
-        resources=directory(
+        resources=remote_directory(
             Path(root)
             / "qc"
             / "sub-{subject}_sample-{sample}_acq-{acq}"
             / "volume_resources"
         ),
-        html=Path(root)
-        / "qc"
-        / "sub-{subject}_sample-{sample}_acq-{acq}"
-        / "volume_qc.html",
+        html=remote_file(
+            Path(root)
+            / "qc"
+            / "sub-{subject}_sample-{sample}_acq-{acq}"
+            / "volume_qc.html"
+        ),
     log:
         bids(
             root="logs",
@@ -150,17 +148,16 @@ rule generate_subject_qc:
     "Generates html files to access all the subjects qc reports in one place"
     input:
         subject_html=config["report"]["resources"]["subject_html"],
-        report_html=config["report"]["resources"]["report_html"],
         ws_html=rules.generate_whole_slice_qc.output.html,
         ff_html=rules.generate_flatfield_qc.output.html,
         vol_html=rules.generate_volume_qc.output.html,
-    params:
-        total_html=str(Path(root) / "qc" / "qc_report.html"),  #this should really be an output of a rule that expands over subjects
     output:
-        sub_html=Path(root)
-        / "qc"
-        / "sub-{subject}_sample-{sample}_acq-{acq}"
-        / "subject.html",
+        sub_html=remote_file(
+            Path(root)
+            / "qc"
+            / "sub-{subject}_sample-{sample}_acq-{acq}"
+            / "subject.html"
+        ),
     log:
         bids(
             root="logs",
@@ -172,3 +169,21 @@ rule generate_subject_qc:
         ),
     script:
         "../scripts/generate_subject_qc.py"
+
+
+rule generate_aggregate_qc:
+    input:
+        report_html=config["report"]["resources"]["report_html"],
+        subj_htmls=get_all_subj_html,
+    params:
+        datasets=datasets,
+    output:
+        total_html=remote_file(Path(root) / "qc" / "qc_report.html"),
+    log:
+        bids(
+            root="logs",
+            datatype="generate_aggregate_qc",
+            suffix="log.txt",
+        ),
+    script:
+        "../scripts/generate_aggregate_qc.py"

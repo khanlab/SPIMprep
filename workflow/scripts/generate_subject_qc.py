@@ -14,7 +14,6 @@ vol_html = snakemake.input.vol_html
 
 # output html files
 sub_html = snakemake.output.sub_html
-total_html = snakemake.params.total_html
 
 # Wildcards
 subject = snakemake.wildcards.subject
@@ -33,19 +32,3 @@ output = template.render(back_link="../qc_report.html",subject=subject,sample=sa
 with open(sub_html, 'w') as f:
     f.write(output)
 
-relative_path = Path(sub_html).relative_to(Path(snakemake.params.total_html).parent)
-# Create line to add link to subject into final qc report combining all subjects
-sub_link = f'\n\t\t<a href="{relative_path}">{subject}-{sample}-{acq}</a><br>'
-
-# if not first sample just add the one link
-if(path.exists(total_html)):
-    with open(total_html,'a') as f:
-        f.write(sub_link)
-
-# if it is the first sample write out the template
-else:
-    template = env.get_template(snakemake.input.report_html)
-    output = template.render()
-    output+=sub_link
-    with open(total_html, 'w') as f:
-        f.write(output)

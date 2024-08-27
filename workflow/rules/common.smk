@@ -29,6 +29,20 @@ def expand_bids(expand_kwargs, **bids_kwargs):
         return files
 
 
+def remote_file(filename):
+    if is_remote(filename):
+        return storage(str(filename))
+    else:
+        return filename
+
+
+def remote_directory(dirname):
+    if is_remote(dirname):
+        return storage(directory(str(dirname)))
+    else:
+        return directory(dirname)
+
+
 def directory_bids(root, *args, **kwargs):
     """Similar to expand_bids, this replacement function
     is needed to ensure storage() comes after directory() tags"""
@@ -107,19 +121,23 @@ def get_all_targets():
                 ),
             )
         )
-        if config["report"]["create_report"]:
-            targets.extend(
-                expand(
-                    Path(root)
-                    / "qc"
-                    / "sub-{subject}_sample-{sample}_acq-{acq}"
-                    / "subject.html",
-                    subject=datasets.loc[i, "subject"],
-                    sample=datasets.loc[i, "sample"],
-                    acq=datasets.loc[i, "acq"],
-                )
-            )
     return targets
+
+
+def get_all_subj_html(wildcards):
+    htmls = []
+
+    for i in range(len(datasets)):
+
+        html = "{root}/qc/sub-{subject}_sample-{sample}_acq-{acq}/subject.html".format(
+            root=root,
+            subject=datasets.loc[i, "subject"],
+            sample=datasets.loc[i, "sample"],
+            acq=datasets.loc[i, "acq"],
+        )
+        htmls.append(remote_file(html))
+
+    return htmls
 
 
 def get_bids_toplevel_targets():
@@ -129,6 +147,14 @@ def get_bids_toplevel_targets():
     targets.append(bids_toplevel(root, "samples.tsv"))
     targets.append(bids_toplevel(root, "samples.json"))
     targets.append(bids_toplevel(resampled, "dataset_description.json"))
+    return targets
+
+
+def get_qc_targets():
+    targets = []
+    if config["report"]["create_report"]:
+        targets.append(remote_file(Path(root) / "qc" / "qc_report.html"))
+        targets.append(remote_file(Path(root) / "qc" / "README.md"))
     return targets
 
 
