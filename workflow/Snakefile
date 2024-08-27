@@ -33,6 +33,7 @@ rule all:
     input:
         get_all_targets(),
         get_bids_toplevel_targets(),
+        get_qc_targets(),
     localrule: True
 
 

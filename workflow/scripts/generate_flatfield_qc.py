@@ -9,7 +9,7 @@ import math
 # load the html template from jinja
 file_loader = FileSystemLoader(".")
 env = Environment(loader=file_loader)
-template = env.get_template("qc/resources/ff_html_temp.html")
+template = env.get_template(snakemake.input.ff_html)
 
 # User set configurations
 ff_s_start=snakemake.params.ff_s_start
