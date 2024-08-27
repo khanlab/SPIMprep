@@ -1,7 +1,7 @@
 import tarfile
 from snakebids import bids as _bids
 from upath import UPath as Path
-from lib.cloud_io import is_remote
+from lib.cloud_io import is_remote, is_remote_gcs
 
 
 def bids(root, *args, **kwargs):
@@ -157,17 +157,21 @@ def get_qc_targets():
         targets.append(remote_file(Path(root) / "qc" / "README.md"))
     return targets
 
+  
+def dataset_is_remote(wildcards):
+    return is_remote_gcs(Path(get_dataset_path(wildcards)))
+
 
 def get_input_dataset(wildcards):
     """returns path to extracted dataset or path to provided input folder"""
-    in_dataset = get_dataset_path(wildcards)
-
     dataset_path = Path(get_dataset_path(wildcards))
     suffix = dataset_path.suffix
 
+    if is_remote_gcs(dataset_path):
+        return rules.cp_from_gcs.output.ome_dir.format(**wildcards)
+
     if dataset_path.is_dir():
-        # we have a directory already, just point to it
-        return str(dataset_path)
+        return get_dataset_path_remote(wildcards)
 
     elif tarfile.is_tarfile(dataset_path):
         # dataset was a tar file, so point to the extracted folder
@@ -175,6 +179,17 @@ def get_input_dataset(wildcards):
 
     else:
         print(f"unsupported input: {dataset_path}")
+
+
+def get_metadata_json(wildcards):
+    """returns path to metadata, extracted from local or gcs"""
+    dataset_path = Path(get_dataset_path(wildcards))
+    suffix = dataset_path.suffix
+
+    if is_remote_gcs(dataset_path):
+        return rules.blaze_to_metadata_gcs.output.metadata_json.format(**wildcards)
+    else:
+        return rules.blaze_to_metadata.output.metadata_json.format(**wildcards)
 
 
 # import
@@ -203,6 +218,19 @@ def cmd_extract_dataset(wildcards, input, output):
     return " && ".join(cmds)
 
 
+def get_dataset_path_remote(wildcards):
+    path = get_dataset_path(wildcards)
+    if is_remote(path):
+        return storage(path)
+    else:
+        return path
+
+
+def get_dataset_path_gs(wildcards):
+    path = Path(get_dataset_path(wildcards)).path
+    return f"gs://{path}"
+
+
 def get_dataset_path(wildcards):
     df = datasets.query(
         f"subject=='{wildcards.subject}' and sample=='{wildcards.sample}' and acq=='{wildcards.acq}'"
@@ -211,7 +239,6 @@ def get_dataset_path(wildcards):
 
 
 def get_stains_by_row(i):
-
     # Select columns that match the pattern 'stain_'
     stain_columns = datasets.filter(like="stain_").columns
 
