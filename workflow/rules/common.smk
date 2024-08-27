@@ -157,7 +157,7 @@ def get_qc_targets():
         targets.append(remote_file(Path(root) / "qc" / "README.md"))
     return targets
 
-  
+
 def dataset_is_remote(wildcards):
     return is_remote_gcs(Path(get_dataset_path(wildcards)))
 
