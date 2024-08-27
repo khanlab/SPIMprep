@@ -34,6 +34,7 @@ rule all:
         get_all_targets(),
         get_bids_toplevel_targets(),
         get_qc_targets(),
+        get_save_work_targets(),
     localrule: True
 
 

@@ -8,6 +8,8 @@ remote_creds: '~/.config/gcloud/application_default_credentials.json' #this is n
 
 write_ome_zarr_direct: True #use this to skip writing the final zarr output to work first and copying afterwards -- useful when work is not a fast local disk
 
+save_work: False #set to True to copy work files to the bids/work sub-directory
+
 cores_per_rule: 32 
 
 #import wildcards:  tilex, tiley, channel, zslice (and prefix - unused)

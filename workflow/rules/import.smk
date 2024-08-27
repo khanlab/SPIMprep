@@ -294,3 +294,40 @@ rule tif_to_zarr_gcs:
         config["containers"]["spimprep"]
     script:
         "../scripts/tif_to_zarr_gcs.py"
+
+
+rule save_imported_zarr:
+    """will be run if save_work=True"""
+    input:
+        zarr=lambda wildcards: bids(
+            root=work,
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq}",
+            desc="rawfromgcs" if dataset_is_remote(wildcards) else "raw",
+            suffix="SPIM.zarr",
+        ).format(**wildcards),
+    output:
+        zarr=bids(
+            root="bids/work",
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq}",
+            desc="raw",
+            suffix="SPIM.zarr",
+        ),
+    log:
+        bids(
+            root="logs",
+            datatype="save_imported_zarr",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="log.txt",
+        ),
+    group:
+        "preproc"
+    shell:
+        "cp -Rv {input} {output}"
