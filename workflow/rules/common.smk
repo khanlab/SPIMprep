@@ -260,7 +260,7 @@ def get_stains(wildcards):
 # bigstitcher
 def get_fiji_launcher_cmd(wildcards, output, threads, resources):
     launcher_opts_find = "-Xincgc"
-    launcher_opts_replace = f"-XX:+UseG1GC -verbose:gc -XX:+PrintGCDateStamps -XX:ActiveProcessorCount={threads}"
+    launcher_opts_replace = f"-XX:+UseG1GC -verbose:gc -XX:+PrintGCDateStamps -XX:ActiveProcessorCount={threads} -XX:ParallelGCThreads={threads/2} -XX:ConcGCThreads={threads/4}"
     pipe_cmds = []
     pipe_cmds.append("ImageJ-linux64 --dry-run --headless --console")
     pipe_cmds.append(f"sed 's/{launcher_opts_find}/{launcher_opts_replace}'/")
