@@ -40,6 +40,7 @@ rule zarr_to_bdv:
             )
             / "dataset.xml"
         ),
+        chunks=(1,1,32,32,32)
     output:
         bdv_n5=temp(
             directory(

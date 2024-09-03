@@ -34,7 +34,7 @@ in_zarr = snakemake.input.zarr
 max_downsampling_layers=snakemake.params.max_downsampling_layers
 
 #load data  (tiles,chans,zslices,x,y)
-darr = da.from_zarr(in_zarr)
+darr = da.from_zarr(in_zarr,chunks=snakemake.params.chunks).astype(np.int16)
 
 (n_tiles,n_chans,n_z,n_x,n_y) = darr.shape
 
@@ -52,7 +52,7 @@ bdv_writer = npy2bdv.BdvWriter(snakemake.params.temp_h5,
                                 overwrite=True,
                                 nchannels=len(metadata['channels']), 
                                 ntiles=len(metadata['tiles_x'])*len(metadata['tiles_y']),
-                                blockdim=((1,256,256),))
+                                blockdim=(snakemake.params.chunks[2:]))
 
 bdv_writer.set_attribute_labels('channel', metadata['channels'])
 
@@ -110,6 +110,6 @@ for setup_i,((chan_i,chan),(tile_i,tile)) in enumerate(product(enumerate(metadat
     #add attributes for downsampling as a list, and datatype to the setup# level
     g = zarr.open_group(store=n5_store,path=f'setup{setup_i}',mode='r+')
     g.attrs['downsamplingFactors']=ds_list
-    g.attrs['dataType']='uint16'
+    g.attrs['dataType']='int16'
 
 
