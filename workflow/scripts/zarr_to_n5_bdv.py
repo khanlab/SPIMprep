@@ -34,7 +34,7 @@ in_zarr = snakemake.input.zarr
 max_downsampling_layers=snakemake.params.max_downsampling_layers
 
 #load data  (tiles,chans,zslices,x,y)
-darr = da.from_zarr(in_zarr,chunks=snakemake.params.chunks).astype(np.int16)
+darr = da.from_zarr(in_zarr)
 
 (n_tiles,n_chans,n_z,n_x,n_y) = darr.shape
 
@@ -52,7 +52,7 @@ bdv_writer = npy2bdv.BdvWriter(snakemake.params.temp_h5,
                                 overwrite=True,
                                 nchannels=len(metadata['channels']), 
                                 ntiles=len(metadata['tiles_x'])*len(metadata['tiles_y']),
-                                blockdim=(snakemake.params.chunks[2:]))
+                                blockdim=((1,256,256),))
 
 bdv_writer.set_attribute_labels('channel', metadata['channels'])
 
@@ -90,6 +90,7 @@ update_xml_h5_to_n5(snakemake.params.temp_xml,snakemake.output.bdv_xml,snakemake
 print('removing empty bdv h5/xml')
 rmtree(temp_bdv_dir)
 
+
 print('writing data to n5')
 n5_store = zarr.n5.N5Store(snakemake.output.bdv_n5)
 
@@ -98,7 +99,7 @@ for setup_i,((chan_i,chan),(tile_i,tile)) in enumerate(product(enumerate(metadat
     ds_list=[] #for setup-level attrs
     for ds in range(max_downsampling_layers):
         step=2**ds  #1,2,4,8.. 
-        zstack = da.squeeze(darr[tile_i,chan_i,:,::step,::step])
+        zstack = da.squeeze(darr[tile_i,chan_i,:,::step,::step]).rechunk(snakemake.params.chunks).astype(np.int16)
         print(f'writing to setup{setup_i}/timepoint0/s{ds}')
         with ProgressBar():
             zstack.to_zarr(n5_store,component=f'setup{setup_i}/timepoint0/s{ds}',overwrite=True,compute=True) 

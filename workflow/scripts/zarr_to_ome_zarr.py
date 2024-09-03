@@ -68,6 +68,7 @@ for zarr_i in range(len(snakemake.input.zarr)):
 
     darr_list.append(da.from_zarr(in_zarr,component=f'{group_name}/s0',chunks=rechunk_size))
 
+
     #append to omero metadata
     channel_metadata={key:val for key,val in snakemake.config['ome_zarr']['omero_metadata']['channels']['defaults'].items()}
     channel_name=stains[zarr_i]
