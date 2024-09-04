@@ -99,7 +99,7 @@ for setup_i,((chan_i,chan),(tile_i,tile)) in enumerate(product(enumerate(metadat
     ds_list=[] #for setup-level attrs
     for ds in range(max_downsampling_layers):
         step=2**ds  #1,2,4,8.. 
-        zstack = da.squeeze(darr[tile_i,chan_i,:,::step,::step]).rechunk(snakemake.params.chunks).astype(np.int16)
+        zstack = da.squeeze(darr[tile_i,chan_i,:,::step,::step]).astype(np.int16)
         print(f'writing to setup{setup_i}/timepoint0/s{ds}')
         with ProgressBar():
             zstack.to_zarr(n5_store,component=f'setup{setup_i}/timepoint0/s{ds}',overwrite=True,compute=True) 

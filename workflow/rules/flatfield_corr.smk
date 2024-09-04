@@ -78,6 +78,8 @@ rule apply_basic_flatfield_corr:
             stain=get_stains(wildcards),
             allow_missing=True,
         ),
+    params:
+        out_chunks=(1,1,128,256,256) #make this a config option -- setting it here instead of rechunking in zarr2bdv
     output:
         zarr=temp(
             directory(

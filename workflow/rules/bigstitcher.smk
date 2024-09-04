@@ -40,7 +40,7 @@ rule zarr_to_bdv:
             )
             / "dataset.xml"
         ),
-        chunks=(32,32,32) #the previous default was 1 x Nx x Ny (Nx Ny were full tile size!)
+        chunks=(128,256,256) #the previous default was 1 x Nx x Ny (Nx Ny were full tile size!)
     output:
         bdv_n5=temp(
             directory(
