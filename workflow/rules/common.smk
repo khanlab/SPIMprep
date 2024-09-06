@@ -158,29 +158,6 @@ def get_qc_targets():
     return targets
 
 
-def get_save_work_targets():
-    targets = []
-    if config["save_work"]:
-        for i in range(len(datasets)):
-            targets.extend(
-                expand_bids(
-                    root="bids/work",
-                    subject="{subject}",
-                    datatype="micr",
-                    sample="{sample}",
-                    acq="{acq}",
-                    desc="raw",
-                    suffix="SPIM.zarr",
-                    expand_kwargs=dict(
-                        subject=datasets.loc[i, "subject"],
-                        sample=datasets.loc[i, "sample"],
-                        acq=datasets.loc[i, "acq"],
-                    ),
-                )
-            )
-    return targets
-
-
 def dataset_is_remote(wildcards):
     return is_remote_gcs(Path(get_dataset_path(wildcards)))
 
