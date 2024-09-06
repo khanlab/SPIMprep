@@ -79,7 +79,7 @@ rule apply_basic_flatfield_corr:
             allow_missing=True,
         ),
     params:
-        out_chunks=(1,1,128,256,256) #make this a config option -- setting it here instead of rechunking in zarr2bdv
+        out_chunks=config["ome_zarr"]["rechunk_size"],
     output:
         zarr=temp(
             directory(
