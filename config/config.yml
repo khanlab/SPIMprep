@@ -41,10 +41,10 @@ bigstitcher:
       phase_corr: "Phase Correlation"
       optical_flow: "Lucas-Kanade" 
   filter_pairwise_shifts:
-    enabled: 1
+    enabled: 0
     min_r: 0.7
   global_optimization:
-    enabled: 1
+    enabled: 0
     strategy: two_round
     strategies:
       one_round: "One-Round"
