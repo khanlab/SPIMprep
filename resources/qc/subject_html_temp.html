@@ -4,10 +4,9 @@
         <title>{{ subject }} - {{ sample }} - {{ acq }}</title>
     </head>
     <body>
+        {% for link_path, link_description in zip(link_paths, link_descriptions) %}
+        <a href="{{ link_path }}">{{ link_description }}</a><br>
+        {% endfor %}
         <a href="{{ back_link }}">Back</a><br>
-        <a href="{{ ffhtml }}">Flatfield Correction QC</a><br>
-        <a href="{{ wshtml }}">Whole Slice QC</a>
-        <br>
-        <a href="{{ volhtml }}">Volume Rendered Image</a>
     </body>
 </html>
