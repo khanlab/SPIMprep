@@ -57,18 +57,18 @@ bigstitcher:
     downsampling: 1
     block_size_x: 256 # for storage
     block_size_y: 256
-    block_size_z: 256
+    block_size_z: 1
     block_size_factor_x: 1 #e.g. 2 will use 2*block_size for computation
     block_size_factor_y: 1
-    block_size_factor_z: 1
+    block_size_factor_z: 256
 
 ome_zarr:
   desc: stitchedflatcorr
   max_downsampling_layers: 5 # e.g. 4 levels: { 0: orig, 1: ds2, 2: ds4, 3: ds8, 4: ds16}
   rechunk_size: #z, y, x 
-    - 256 
-    - 256
-    - 256
+    - 1 
+    - 4096
+    - 4096
   scaling_method: 'local_mean' #can be nearest, gaussian, local_mean, zoom (zoom uses spline interp)
  
   omero_metadata:
@@ -76,7 +76,11 @@ ome_zarr:
       default_color: 'FFFFFF'
       color_mapping:
         autof: 'FFFFFF'
+        AutoF: 'FFFFFF'
         abeta: '00FF00'
+        Abeta: '00FF00'
+        PI: 'FFFFFF'
+        AlphaSynuclein: '00FF00'
       defaults:
         active: True
         coefficient: 1.0

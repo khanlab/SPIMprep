@@ -1,17 +1,16 @@
 import json
 import zarr
 import dask.array as da
-from dask.array.image import imread as dask_imread
+from dask.array.image import imread as dask_imread 
 from ome_zarr.io import parse_url
 from ome_zarr.writer import write_image
 from ome_zarr.format import format_from_version
 from ome_zarr.scale import Scaler
-from dask.diagnostics import ProgressBar
 from upath import UPath as Path
 from lib.cloud_io import get_fsspec, is_remote
+from dask.distributed import Client, LocalCluster
 
 in_tif_glob = snakemake.params.in_tif_glob
-
 metadata_json=snakemake.input.metadata_json
 downsampling=snakemake.params.downsampling
 max_layer=snakemake.params.max_downsampling_layers #number of downsamplings by 2 to include in zarr
@@ -21,6 +20,9 @@ stains=snakemake.params.stains
 scaling_method=snakemake.params.scaling_method
 uri = snakemake.params.uri
 
+cluster = LocalCluster(processes=False)
+client = Client(cluster)
+print(client.dashboard_link)
 
 # prepare metadata for ome-zarr
 with open(metadata_json) as fp:
@@ -48,6 +50,8 @@ axes =  [{'name': 'c', 'type': 'channel'}] + [{'name': ax, 'type': 'space', 'uni
 omero={key:val for key,val in snakemake.config['ome_zarr']['omero_metadata']['defaults'].items()}
 omero['channels']=[]
 
+
+
 darr_list=[]
 for i,stain in enumerate(stains):
     
@@ -63,7 +67,6 @@ for i,stain in enumerate(stains):
     channel_metadata['color'] = color
     omero['channels'].append(channel_metadata)
     
-
 darr_channels = da.stack(darr_list)
 
 
@@ -72,23 +75,19 @@ if is_remote(uri):
     fs = get_fsspec(uri,**fs_args)
     store = zarr.storage.FSStore(Path(uri).path,fs=fs,dimension_separator='/',mode='w')
 else:
-    store = zarr.DirectoryStore(out_zarr) 
-
-
+    store = zarr.DirectoryStore(out_zarr,dimension_separator='/') 
 
 
 
 group = zarr.group(store,overwrite=True)
 scaler = Scaler(max_layer=max_layer,method=scaling_method)
 
-
-with ProgressBar():
-    write_image(image=darr_channels,
+delayed = write_image(image=darr_channels,
                             group=group,
                             scaler=scaler,
                             coordinate_transformations=coordinate_transformations,
                             axes=axes,
-                            metadata={'omero':omero}
+                            metadata={'omero':omero},
+                            compute=True
                                 )
-
 
