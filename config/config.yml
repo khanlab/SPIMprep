@@ -41,10 +41,10 @@ bigstitcher:
       phase_corr: "Phase Correlation"
       optical_flow: "Lucas-Kanade" 
   filter_pairwise_shifts:
-    enabled: 0
+    enabled: 1
     min_r: 0.7
   global_optimization:
-    enabled: 0
+    enabled: 1
     strategy: two_round
     strategies:
       one_round: "One-Round"
@@ -66,9 +66,9 @@ ome_zarr:
   desc: stitchedflatcorr
   max_downsampling_layers: 5 # e.g. 4 levels: { 0: orig, 1: ds2, 2: ds4, 3: ds8, 4: ds16}
   rechunk_size: #z, y, x 
-    - 256 
-    - 256
-    - 256
+    - 1 
+    - 4096
+    - 4096
   scaling_method: 'local_mean' #can be nearest, gaussian, local_mean, zoom (zoom uses spline interp)
  
   omero_metadata:
