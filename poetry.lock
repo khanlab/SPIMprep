@@ -3440,14 +3440,14 @@ snakemake-interface-common = ">=1.16.0,<2.0.0"
 
 [[package]]
 name = "snakemake-interface-storage-plugins"
-version = "3.2.3"
+version = "3.3.0"
 description = "This package provides a stable interface for interactions between Snakemake and its storage plugins."
 category = "main"
 optional = false
 python-versions = "<4.0,>=3.11"
 files = [
-    {file = "snakemake_interface_storage_plugins-3.2.3-py3-none-any.whl", hash = "sha256:5de2fe1cf3efa680675b5650b768cdd82138ca3751f72d56acdc6a1df9b57f21"},
-    {file = "snakemake_interface_storage_plugins-3.2.3.tar.gz", hash = "sha256:b5be7c7dd0b4ec283bfc24f56070aa4047f67de44d8bc64c7aa9bf6ee590b27d"},
+    {file = "snakemake_interface_storage_plugins-3.3.0-py3-none-any.whl", hash = "sha256:090292ee9e867d98513fb7c948461186357aa7d08db10f4b3018fc9e9008dd80"},
+    {file = "snakemake_interface_storage_plugins-3.3.0.tar.gz", hash = "sha256:203d8f794dfb37d568ad01a6c375fa8beac36df8e488c0f9b9f75984769c362a"},
 ]
 
 [package.dependencies]
@@ -3458,21 +3458,21 @@ wrapt = ">=1.15.0,<2.0.0"
 
 [[package]]
 name = "snakemake-storage-plugin-gcs"
-version = "1.0.0"
+version = "1.1.1"
 description = "A Snakemake storage plugin for Google Cloud Storage"
 category = "main"
 optional = false
 python-versions = "<4.0,>=3.11"
 files = [
-    {file = "snakemake_storage_plugin_gcs-1.0.0-py3-none-any.whl", hash = "sha256:0e52fca115a6be3cb1df6067e37a0d2e9ff440a9521391b7239ddb5217ea61aa"},
-    {file = "snakemake_storage_plugin_gcs-1.0.0.tar.gz", hash = "sha256:a5ca15813a74ae18d41cc5dbde0792e2ec5bfc32e8615d458b41dded1b430e14"},
+    {file = "snakemake_storage_plugin_gcs-1.1.1-py3-none-any.whl", hash = "sha256:4e2c7b32d1f77931cee606c6c591e74636b503985235220e69e5b13e6a827a8d"},
+    {file = "snakemake_storage_plugin_gcs-1.1.1.tar.gz", hash = "sha256:ac6fc6aaf63ec6ae7453e1cb080e07da346ad4497bd2a87947c352f0fb311d31"},
 ]
 
 [package.dependencies]
 google-cloud-storage = ">=2.12.0,<3.0.0"
 google-crc32c = ">=1.1.2,<2.0.0"
 snakemake-interface-common = ">=1.14.2,<2.0.0"
-snakemake-interface-storage-plugins = ">=3.0.0,<4.0.0"
+snakemake-interface-storage-plugins = ">=3.3.0,<4.0.0"
 
 [[package]]
 name = "snakemake-storage-plugin-s3"
@@ -4073,4 +4073,4 @@ pyyaml = ">=6.0,<7.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.13"
-content-hash = "70667ab3b94aa9d80eaf8852088fa107f30f98e142b8176d7f475785b1f8e7af"
+content-hash = "36156af32b44ffacce51d65da14d67a6dbb8d7dfc6d16986c0bcbc373bff18c3"
