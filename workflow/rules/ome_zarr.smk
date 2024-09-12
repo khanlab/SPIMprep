@@ -80,7 +80,7 @@ rule tif_stacks_to_ome_zarr:
     threads: config["cores_per_rule"]
     resources:
         runtime=360,
-        mem_mb=35000,
+        mem_mb=32000,
     script:
         "../scripts/tif_stacks_to_ome_zarr.py"
 
