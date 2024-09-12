@@ -1,6 +1,5 @@
 datasets: 'config/datasets.tsv'
 
-
 root: 'bids' # can use a s3:// or gcs:// prefix to write output to cloud storage
 work: 'work' 
 
@@ -13,6 +12,7 @@ cores_per_rule: 32
 #import wildcards:  tilex, tiley, channel, zslice (and prefix - unused)
 import_blaze:
   raw_tif_pattern: "{prefix}_Blaze[{tilex} x {tiley}]_C{channel}_xyz-Table Z{zslice}.ome.tif"
+  raw_tif_pattern_zstack:  "{prefix}_Blaze[{tilex} x {tiley}]_C{channel}.ome.tif"
   intensity_rescaling: 0.5 #raw images seem to be at the upper end of uint16 (over-saturated) -- causes wrapping issues when adjusting with flatfield correction etc. this rescales the raw data as it imports it..
 
 import_prestitched:

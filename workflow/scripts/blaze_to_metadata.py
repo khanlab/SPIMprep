@@ -4,25 +4,48 @@ import json
 import re
 from itertools import product
 from snakemake.io import glob_wildcards
+from glob import glob
+from pathlib import Path
+import os
 
-in_tif_pattern = snakemake.params.in_tif_pattern
+tif_files = glob(f"{snakemake.input.ome_dir}/*.tif")
+
+#check first tif file to see if it is zstack or not:
+if 'xyz-Table Z' in Path(tif_files[0]).name:
+    is_zstack=False
+else:
+    is_zstack=True
+
+if is_zstack:
+    in_tif_pattern = os.path.join(snakemake.input.ome_dir,snakemake.config["import_blaze"]["raw_tif_pattern_zstack"])
+else:
+    in_tif_pattern = os.path.join(snakemake.input.ome_dir,snakemake.config["import_blaze"]["raw_tif_pattern"])
 
 #add a wildcard constraint to ensure no
 #subfolders get parsed (ie don't match anything with / in it):
 prefix_constraint=r'[^/]+' 
 in_tif_pattern_constrained = in_tif_pattern.replace('{prefix}',f'{{prefix,{prefix_constraint}}}')
 
+
 #parse the filenames to get number of channels, tiles etc..
-prefix, tilex, tiley, channel, zslice = glob_wildcards(in_tif_pattern_constrained)
+if is_zstack:
+    prefix, tilex, tiley, channel = glob_wildcards(in_tif_pattern_constrained,tif_files)
+else:
+    prefix, tilex, tiley, channel, zslice = glob_wildcards(in_tif_pattern_constrained,tif_files)
 
 tiles_x = sorted(list(set(tilex)))
 tiles_y = sorted(list(set(tiley)))
 channels = sorted(list(set(channel)))
-zslices = sorted(list(set(zslice)))
 prefixes = sorted(list(set(prefix)))
 
-#read in series metadata from first file
-in_tif = in_tif_pattern.format(tilex=tiles_x[0],tiley=tiles_y[0],prefix=prefixes[0],channel=channels[0],zslice=zslices[0])
+if not is_zstack:
+    zslices = sorted(list(set(zslice)))
+
+    #read in series metadata from first file
+    in_tif = in_tif_pattern.format(tilex=tiles_x[0],tiley=tiles_y[0],prefix=prefixes[0],channel=channels[0],zslice=zslices[0])
+
+else:
+    in_tif = in_tif_pattern.format(tilex=tiles_x[0],tiley=tiles_y[0],prefix=prefixes[0],channel=channels[0])
 
 raw_tif = tifffile.TiffFile(in_tif,mode='r')
 
@@ -37,12 +60,18 @@ physical_size_z = ome_dict['OME']['Image']['Pixels']['@PhysicalSizeZ']
 custom_metadata = ome_dict['OME']['Image']['ca:CustomAttributes']
 
 
-
 #read tile configuration from the microscope metadata
 if axes == 'CZYX':
-    tile_config_pattern=r"Blaze\[(?P<tilex>[0-9]+) x (?P<tiley>[0-9]+)\]_C(?P<channel>[0-9]+)_xyz-Table Z(?P<zslice>[0-9]+).ome.tif;;\((?P<x>\S+), (?P<y>\S+),(?P<chan>\S+), (?P<z>\S+)\)"
+    if is_zstack:
+        tile_config_pattern=r"Blaze\[(?P<tilex>[0-9]+) x (?P<tiley>[0-9]+)\]_C(?P<channel>[0-9]+).ome.tif;;\((?P<x>\S+), (?P<y>\S+),(?P<chan>\S+)\)"
+    else:
+        tile_config_pattern=r"Blaze\[(?P<tilex>[0-9]+) x (?P<tiley>[0-9]+)\]_C(?P<channel>[0-9]+)_xyz-Table Z(?P<zslice>[0-9]+).ome.tif;;\((?P<x>\S+), (?P<y>\S+),(?P<chan>\S+), (?P<z>\S+)\)"
 elif axes == 'ZYX': 
-    tile_config_pattern=r"Blaze\[(?P<tilex>[0-9]+) x (?P<tiley>[0-9]+)\]_C(?P<channel>[0-9]+)_xyz-Table Z(?P<zslice>[0-9]+).ome.tif;;\((?P<x>\S+), (?P<y>\S+), (?P<z>\S+)\)"
+    if is_zstack:
+        tile_config_pattern=r"Blaze\[(?P<tilex>[0-9]+) x (?P<tiley>[0-9]+)\]_C(?P<channel>[0-9]+).ome.tif;;\((?P<x>\S+), (?P<y>\S+)\)"
+    else:
+        tile_config_pattern=r"Blaze\[(?P<tilex>[0-9]+) x (?P<tiley>[0-9]+)\]_C(?P<channel>[0-9]+)_xyz-Table Z(?P<zslice>[0-9]+).ome.tif;;\((?P<x>\S+), (?P<y>\S+), (?P<z>\S+)\)"
+
 
 tile_pattern = re.compile(tile_config_pattern)
 
@@ -58,23 +87,29 @@ for chunk,(tilex,tiley) in enumerate(product(tiles_x,tiles_y)):
     chunks.append(chunk)
 
 for line in  custom_metadata['TileConfiguration']['@TileConfiguration'].split('  ')[1:]:
-    
     d = re.search(tile_pattern,line).groupdict()
     chunk = map_tiles_to_chunk[d['tilex']+d['tiley']] # want the key to have chunk instad of tilex,tiley, so map to that first
-    
-    #key is:  tile-{chunk}_chan-{channel}_z-{zslice} 
-    key = f"tile-{chunk}_chan-{d['channel']}_z-{d['zslice']}" 
+   
+    if is_zstack:
+        key = f"tile-{chunk}_chan-{d['channel']}_z-0" 
+    else:
+        #key is:  tile-{chunk}_chan-{channel}_z-{zslice} 
+        key = f"tile-{chunk}_chan-{d['channel']}_z-{d['zslice']}" 
 
     map_x[key] = float(d['x'])
     map_y[key] = float(d['y'])
-    map_z[key] = float(d['z'])
+    if is_zstack:
+        map_z[key] = float(0)
+    else:
+        map_z[key] = float(d['z'])
     
 
 metadata={}
 metadata['tiles_x'] = tiles_x
 metadata['tiles_y'] = tiles_y
 metadata['channels'] = channels
-metadata['zslices'] = zslices
+if not is_zstack:
+    metadata['zslices'] = zslices
 metadata['prefixes'] = prefixes
 metadata['chunks'] = chunks
 metadata['axes'] = axes
@@ -88,6 +123,7 @@ metadata['lookup_tile_offset_z'] = map_z
 metadata['ome_full_metadata'] = ome_dict
 metadata['PixelSize'] = [ metadata['physical_size_z']/1000.0, metadata['physical_size_y']/1000.0, metadata['physical_size_x']/1000.0 ] #zyx since OME-Zarr is ZYX
 metadata['PixelSizeUnits'] = 'mm' 
+metadata['is_zstack'] = is_zstack
 
 #write metadata to json
 with open(snakemake.output.metadata_json, 'w') as fp:

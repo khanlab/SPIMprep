@@ -1,7 +1,9 @@
 import tifffile
+import os
 import json
 import dask.array as da
-import dask.array.image 
+from dask.array.image import imread as imread_tifs
+from lib.dask_image import imread_pages
 from itertools import product
 from dask.diagnostics import ProgressBar
 
@@ -21,13 +23,23 @@ def single_imread(*args):
     return tifffile.imread(*args,key=0)
 
 
-#use tif pattern but replace the [ and ] with [[] and []] so glob doesn't choke
-in_tif_glob = replace_square_brackets(str(snakemake.params.in_tif_pattern))
-
 
 #read metadata json
 with open(snakemake.input.metadata_json) as fp:
     metadata = json.load(fp)
+
+
+is_zstack = metadata['is_zstack']
+
+if is_zstack:
+    in_tif_pattern = os.path.join(snakemake.input.ome_dir,snakemake.config["import_blaze"]["raw_tif_pattern_zstack"])
+else:
+    in_tif_pattern = os.path.join(snakemake.input.ome_dir,snakemake.config["import_blaze"]["raw_tif_pattern"])
+
+
+#use tif pattern but replace the [ and ] with [[] and []] so glob doesn't choke
+in_tif_glob = replace_square_brackets(str(in_tif_pattern))
+
 
 #TODO: put these in top-level metadata for easier access..
 size_x=metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeX']
@@ -36,31 +48,39 @@ size_z=metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeZ']
 size_c=metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeC']
 size_tiles=len(metadata['tiles_x'])*len(metadata['tiles_y'])
 
-
 #now get the first channel and first zslice tif 
 tiles=[]
 for i_tile,(tilex,tiley) in enumerate(product(metadata['tiles_x'],metadata['tiles_y'])):
-        
+    print(f'tile {tilex}x{tiley}, {i_tile}') 
     zstacks=[]
     for i_chan,channel in enumerate(metadata['channels']):
 
-            
-        zstacks.append(dask.array.image.imread(in_tif_glob.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel,zslice='*'), imread=single_imread))
-        
+        print(f'channel {i_chan}')
+
+        if is_zstack:
+            tif_file = in_tif_pattern.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel)
+
+            zstacks.append(imread_pages(tif_file))
+            print(zstacks[-1].shape)
+        else:
+            zstacks.append(imread_tifs(in_tif_glob.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel,zslice='*'), imread=single_imread))
 
     #have list of zstack dask arrays for the tile, one for each channel
     #stack them up and append to list of tiles
     tiles.append(da.stack(zstacks))
 
 
+
 #now we have list of tiles, each a dask array
 #stack them up to get our final array
 darr = da.stack(tiles)
 
+print(darr.shape)
+print(darr.chunksize)
+
 #rescale intensities, and recast 
 darr = darr * snakemake.params.intensity_rescaling
 darr = darr.astype('uint16')
-
 #now we can do the computation itself, storing to zarr
 print('writing images to zarr with dask')
 with ProgressBar():

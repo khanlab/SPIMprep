@@ -79,11 +79,6 @@ rule blaze_to_metadata_gcs:
 rule blaze_to_metadata:
     input:
         ome_dir=get_input_dataset,
-    params:
-        in_tif_pattern=lambda wildcards, input: os.path.join(
-            input.ome_dir,
-            config["import_blaze"]["raw_tif_pattern"],
-        ),
     output:
         metadata_json=temp(
             bids(
@@ -197,10 +192,6 @@ rule tif_to_zarr:
         ome_dir=get_input_dataset,
         metadata_json=rules.copy_blaze_metadata.output.metadata_json,
     params:
-        in_tif_pattern=lambda wildcards, input: os.path.join(
-            input.ome_dir,
-            config["import_blaze"]["raw_tif_pattern"],
-        ),
         intensity_rescaling=config["import_blaze"]["intensity_rescaling"],
     output:
         zarr=temp(

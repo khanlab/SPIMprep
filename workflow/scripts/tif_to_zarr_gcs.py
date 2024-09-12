@@ -4,6 +4,7 @@ import dask.array as da
 import dask.array.image 
 from itertools import product
 from dask.diagnostics import ProgressBar
+from lib.dask_image import imread_pages
 import gcsfs
 
 gcsfs_opts={'project': snakemake.params.storage_provider_settings['gcs'].get_settings().project,
@@ -19,6 +20,19 @@ def replace_square_brackets(pattern):
     pattern = pattern.replace('##LEFTBRACKET##','[[]')
     pattern = pattern.replace('##RIGHTBRACKET##','[]]')
     return pattern
+
+def get_zstack_metadata(gcs_uri,fs):
+    with fs.open(gcs_uri, 'rb') as file:
+        tif = tifffile.TiffFile(file)
+        pages = tif.pages
+        n_z = len(pages)
+        sample = tif.pages[0].asarray()
+        return {'n_z': n_z, 'shape': sample.shape, 'dtype': sample.dtype}
+
+
+def get_tiff_num_pages(fs,gcs_uri):
+    with fs.open(gcs_uri, 'rb') as file:
+        return len(tifffile.TiffFile(file).pages)
 
 def read_tiff_slice(fs,gcs_uri, key=0):
     """Read a single TIFF slice from GCS."""
@@ -37,15 +51,37 @@ def build_zstack(gcs_uris,fs):
     # Convert the list of delayed objects into a Dask array
     return da.stack([da.from_delayed(lazy_array, shape=sample_array.shape, dtype=dtype) for lazy_array in lazy_arrays], axis=0)
 
+def build_zstack_from_single(gcs_uri,zstack_metadata,fs):
+    """Build a z-stack from a single GCS URI  """
 
+    pages = [i for i in range(zstack_metadata['n_z'])]
+    lazy_arrays = [
+        dask.delayed(read_tiff_slice)(fs,gcs_uri,page) for page in pages
+    ]
 
-#use tif pattern but replace the [ and ] with [[] and []] so glob doesn't choke
-in_tif_glob = replace_square_brackets(str(snakemake.params.in_tif_pattern))
+    # Convert the list of delayed objects into a Dask array
+    return da.stack([da.from_delayed(lazy_array, shape=zstack_metadata['shape'], dtype=zstack_metadata['dtype']) for lazy_array in lazy_arrays], axis=0)
+
 
 
 #read metadata json
 with open(snakemake.input.metadata_json) as fp:
     metadata = json.load(fp)
+
+
+is_zstack = metadata['is_zstack']
+
+if is_zstack:
+    in_tif_pattern = snakemake.config["import_blaze"]["raw_tif_pattern_zstack"]
+else:
+    in_tif_pattern = snakemake.config["import_blaze"]["raw_tif_pattern"]
+
+
+
+#use tif pattern but replace the [ and ] with [[] and []] so glob doesn't choke
+in_tif_glob = replace_square_brackets(str(in_tif_pattern))
+
+
 
 #TODO: put these in top-level metadata for easier access..
 size_x=metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeX']
@@ -56,14 +92,21 @@ size_tiles=len(metadata['tiles_x'])*len(metadata['tiles_y'])
 
 
 #now get the first channel and first zslice tif 
+
+if is_zstack:
+    #prepopulate this since its the same for all tiles, and takes time to query
+    zstack_metadata = get_zstack_metadata('gcs://'+in_tif_pattern.format(tilex=metadata['tiles_x'][0],tiley=metadata['tiles_y'][0],prefix=metadata['prefixes'][0],channel=metadata['channels'][0]),fs=fs)
+
 tiles=[]
 for i_tile,(tilex,tiley) in enumerate(product(metadata['tiles_x'],metadata['tiles_y'])):
         
     zstacks=[]
     for i_chan,channel in enumerate(metadata['channels']):
-
-            
-        zstacks.append(build_zstack(fs.glob('gcs://'+in_tif_glob.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel,zslice='*')),fs=fs))
+    
+        if is_zstack:            
+            zstacks.append(build_zstack_from_single('gcs://'+in_tif_pattern.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel),fs=fs,zstack_metadata=zstack_metadata))
+        else:
+            zstacks.append(build_zstack(fs.glob('gcs://'+in_tif_glob.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel,zslice='*')),fs=fs))
         
 
     #have list of zstack dask arrays for the tile, one for each channel
