@@ -158,7 +158,7 @@ rule bigstitcher:
         "cp {input.dataset_xml} {output.dataset_xml} && "
         " {params.fiji_launcher_cmd} && "
         " echo ' -macro {input.ijm} \"{params.macro_args}\"' >> {output.launcher} "
-        " && {output.launcher} &> {log} && {params.rm_old_xml}"
+        " && {output.launcher} |& tee {log} && {params.rm_old_xml}"
 
 
 rule fuse_dataset:
@@ -245,7 +245,7 @@ rule fuse_dataset:
     shell:
         " {params.fiji_launcher_cmd} && "
         " echo ' -macro {input.ijm} \"{params.macro_args}\"' >> {output.launcher} "
-        " && {output.launcher} &> {log}"
+        " && {output.launcher} |& tee {log}"
 
 
 rule fuse_dataset_spark:

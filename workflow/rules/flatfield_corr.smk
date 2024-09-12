@@ -78,6 +78,8 @@ rule apply_basic_flatfield_corr:
             stain=get_stains(wildcards),
             allow_missing=True,
         ),
+    params:
+        out_chunks=config["ome_zarr"]["rechunk_size"],
     output:
         zarr=temp(
             directory(

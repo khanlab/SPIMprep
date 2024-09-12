@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if ! command -v singularity >/dev/null 2>&1; then
+    echo "Error: 'singularity' is not installed or not in the PATH." >&2
+    exit 1
+fi
+
+container='docker://khanlab/spimprep-deps:main'
+unset SNAKEMAKE_PROFILE
+singularity exec ${container} snakemake --config --set-resources bigstitcher:mem_mb=30000 fuse_dataset:mem_mb=30000 -pr $@
+

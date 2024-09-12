@@ -53,7 +53,7 @@ if is_remote(uri):
     fs = get_fsspec(uri,**fs_args)
     store = zarr.storage.FSStore(Path(uri).path,fs=fs,dimension_separator='/',mode='w')
 else:
-    store = zarr.DirectoryStore(out_zarr) 
+    store = zarr.DirectoryStore(out_zarr,dimension_separator='/') 
 
 
 
@@ -67,6 +67,7 @@ for zarr_i in range(len(snakemake.input.zarr)):
     group_name = [g for g in zi.group_keys()][0]
 
     darr_list.append(da.from_zarr(in_zarr,component=f'{group_name}/s0',chunks=rechunk_size))
+
 
     #append to omero metadata
     channel_metadata={key:val for key,val in snakemake.config['ome_zarr']['omero_metadata']['channels']['defaults'].items()}
