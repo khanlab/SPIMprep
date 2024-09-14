@@ -79,7 +79,7 @@ rule apply_basic_flatfield_corr:
             allow_missing=True,
         ),
     params:
-        out_chunks=(128,128,128)
+        out_chunks=(128, 128, 128),
     output:
         zarr=temp(
             directory(
