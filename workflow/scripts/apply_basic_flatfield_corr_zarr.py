@@ -41,7 +41,7 @@ for i_channel,model in enumerate(snakemake.input.model_dirs):
     #now we want to apply correction to all images
     #define a function to map
     def apply_basic_parallel(x):
-        return np.reshape(basic.transform(x.squeeze()),(1,1,img_shape[0],img_shape[1])).astype('uint16')
+        return np.reshape(basic.transform(x.squeeze()),(1,1,img_shape[0],img_shape[1])).astype('int16')
     arr_corr = da.map_blocks(apply_basic_parallel,arr_chan)
 
     chan_arr_list.append(arr_corr)
