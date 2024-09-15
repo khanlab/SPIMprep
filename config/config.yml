@@ -55,12 +55,12 @@ bigstitcher:
 
   fuse_dataset:
     downsampling: 1
-    block_size_x: 128 # for storage
-    block_size_y: 128
-    block_size_z: 128
-    block_size_factor_x: 2 #e.g. 2 will use 2*block_size for computation
-    block_size_factor_y: 2
-    block_size_factor_z: 2
+    block_size_x: 256 # for storage
+    block_size_y: 256
+    block_size_z: 1
+    block_size_factor_x: 1 #e.g. 2 will use 2*block_size for computation
+    block_size_factor_y: 1
+    block_size_factor_z: 256
 
 ome_zarr:
   desc: stitchedflatcorr
