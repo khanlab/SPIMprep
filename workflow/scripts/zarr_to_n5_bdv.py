@@ -111,6 +111,6 @@ for setup_i,((chan_i,chan),(tile_i,tile)) in enumerate(product(enumerate(metadat
     #add attributes for downsampling as a list, and datatype to the setup# level
     g = zarr.open_group(store=n5_store,path=f'setup{setup_i}',mode='r+')
     g.attrs['downsamplingFactors']=ds_list
-    g.attrs['dataType']='uint16'
+    g.attrs['dataType']='int16'
 
 
