@@ -77,7 +77,7 @@ darr = da.stack(tiles)
 
 #rescale intensities, and recast 
 darr = darr * snakemake.params.intensity_rescaling
-darr = darr.astype('int16')
+darr = darr.astype('uint16')
 
 #now we can do the computation itself, storing to zarr
 print('writing images to zarr with dask')

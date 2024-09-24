@@ -269,6 +269,20 @@ rule fuse_dataset_spark:
             suffix="bigstitcher.xml",
         ),
         ijm=Path(workflow.basedir) / "macros" / "FuseImageMacroZarr.ijm",
+    params:
+        channel=lambda wildcards: "--channelId={channel}".format(
+            channel=get_stains(wildcards).index(wildcards.stain)
+        ),
+        block_size="--blockSize={bsx},{bsy},{bsz}".format(
+            bsx=config["bigstitcher"]["fuse_dataset"]["block_size_x"],
+            bsy=config["bigstitcher"]["fuse_dataset"]["block_size_y"],
+            bsz=config["bigstitcher"]["fuse_dataset"]["block_size_z"],
+        ),
+        block_size_factor="--blockScale={bsfx},{bsfy},{bsfz}".format(
+            bsfx=config["bigstitcher"]["fuse_dataset"]["block_size_factor_x"],
+            bsfy=config["bigstitcher"]["fuse_dataset"]["block_size_factor_y"],
+            bsfz=config["bigstitcher"]["fuse_dataset"]["block_size_factor_z"],
+        ),
     output:
         zarr=temp(
             directory(
@@ -315,4 +329,10 @@ rule fuse_dataset_spark:
     group:
         "preproc"
     shell:
-        "affine-fusion ..."
+        "affine-fusion --preserveAnisotropy -x {input.dataset_xml} "
+        " -o {output.zarr} -d /fused/s0 -s ZARR "
+        " --UINT16 --minIntensity 0 --maxIntensity 65535 "
+
+
+#        " --UINT8 --minIntensity 0 --maxIntensity 255 "
+"{params}"  # all the params
