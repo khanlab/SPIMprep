@@ -64,7 +64,7 @@ bigstitcher:
     block_size_factor_z: 32
 
 ome_zarr:
-  desc: sparkstitchedraw #flatcorr
+  desc: sparkstitchedflatcorr
   max_downsampling_layers: 5 # e.g. 4 levels: { 0: orig, 1: ds2, 2: ds4, 3: ds8, 4: ds16}
   rechunk_size: #z, y, x 
     - 1 
