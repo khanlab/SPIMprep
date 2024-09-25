@@ -283,6 +283,7 @@ rule fuse_dataset_spark:
             bsfy=config["bigstitcher"]["fuse_dataset"]["block_size_factor_y"],
             bsfz=config["bigstitcher"]["fuse_dataset"]["block_size_factor_z"],
         ),
+        mem_gb=lambda wikdcards, resources: '{mem_gb}'.format(mem_gb=int(resources.mem_mb/1000))
     output:
         zarr=temp(
             directory(
@@ -329,10 +330,7 @@ rule fuse_dataset_spark:
     group:
         "preproc"
     shell:
-        "affine-fusion --preserveAnisotropy -x {input.dataset_xml} "
+        "affine-fusion {params.mem_gb} {threads} --preserveAnisotropy -x {input.dataset_xml} "
         " -o {output.zarr} -d /fused/s0 -s ZARR "
         " --UINT16 --minIntensity 0 --maxIntensity 65535 "
-
-
-#        " --UINT8 --minIntensity 0 --maxIntensity 255 "
-"{params}"  # all the params
+        "{params.block_size} {params.block_size_factor} {params.channel}"
