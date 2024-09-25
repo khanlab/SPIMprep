@@ -117,14 +117,15 @@ rule ome_zarr_to_zipstore:
 
 rule ome_zarr_to_nii:
     input:
-        zarr=bids(
-                root=root,
-                subject="{subject}",
-                datatype="micr",
-                sample="{sample}",
-                acq="{acq}",
-                suffix="SPIM.{ext}".format(ext=get_extension_ome_zarr())),
         **get_storage_creds(),
+        zarr=bids(
+            root=root,
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="SPIM.{ext}".format(ext=get_extension_ome_zarr()),
+        ),
     params:
         channel_index=lambda wildcards: get_stains(wildcards).index(wildcards.stain),
         uri=get_output_ome_zarr_uri(),

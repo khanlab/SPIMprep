@@ -19,18 +19,11 @@ else:
 
 fs = get_fsspec(uri,**fs_args)
 
-print(fs)
-print(uri)
-print(Path(uri))
-print(Path(uri).path)
-       
-print(Path(uri).suffix)
 if Path(uri).suffix == '.zip':
     store = zarr.storage.ZipStore(Path(uri).path,dimension_separator='/',mode='r')
 else:
     store = zarr.storage.FSStore(Path(uri).path,fs=fs,dimension_separator='/',mode='r')
 
-print(store)
 zi = zarr.open(store=store,mode='r')
  
 

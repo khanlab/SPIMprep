@@ -6,7 +6,7 @@ work: 'work'
 
 remote_creds: '~/.config/gcloud/application_default_credentials.json' #this is needed so we can pass creds to container
 
-write_ome_zarr_direct: False #use this to skip writing the final zarr output to work first and copying afterwards -- useful when work is not a fast local disk
+write_ome_zarr_direct: True #use this to skip writing the final zarr output to work first and copying afterwards -- useful when work is not a fast local disk
 
 cores_per_rule: 32 
 
@@ -36,18 +36,18 @@ bigstitcher:
     downsample_in_x: 4
     downsample_in_y: 4
     downsample_in_z: 1
-    method: "phase_corr"
-    methods:
-      phase_corr: "Phase Correlation"
-      optical_flow: "Lucas-Kanade" 
+    method: "phase_corr" #unused
+    methods: #unused
+      phase_corr: "Phase Correlation" 
+      optical_flow: "Lucas-Kanade"  
   filter_pairwise_shifts:
-    enabled: 1
-    min_r: 0.2
-    max_shift_total: 50 
+    enabled: 1 #unused
+    min_r: 0.7
+    max_shift_total: 50
   global_optimization:
     enabled: 1 
-    method: ONE_ROUND_SIMPLE
-    methods:
+    method: TWO_ROUND_ITERATIVE
+    methods: #unused, only for reference
       ONE_ROUND_SIMPLE: "One-Round"
       ONE_ROUND_ITERATIVE: "One-Round with iterative dropping of bad links"
       TWO_ROUND_SIMPLE:  "Two-Round using metadata to align unconnected Tiles"
@@ -64,7 +64,7 @@ bigstitcher:
     block_size_factor_z: 32
 
 ome_zarr:
-  desc: sparkstitchedflatcorr
+  desc: sparkstitchedraw #flatcorr
   max_downsampling_layers: 5 # e.g. 4 levels: { 0: orig, 1: ds2, 2: ds4, 3: ds8, 4: ds16}
   rechunk_size: #z, y, x 
     - 1 
@@ -100,7 +100,7 @@ ome_zarr:
       id: 0
       name: spim
       version: "0.4"  
-  use_zipstore: True #if True, produce SPIM.ome.zarr.zip instead of SPIM.ome.zarr
+  use_zipstore: False #if True, produce SPIM.ome.zarr.zip instead of SPIM.ome.zarr
 
 nifti:
   levels: #cannot be higher than max_downsampling_layers in ome_zarr
@@ -155,7 +155,5 @@ report:
 
 
 containers:
-  #spimprep: 'docker://khanlab/spimprep-deps:main'
-  spimprep: '/local/scratch/spimprep-deps_spark.sif'
-  # updated.sif'
+  spimprep: 'docker://khanlab/spimprep-deps:main'
 

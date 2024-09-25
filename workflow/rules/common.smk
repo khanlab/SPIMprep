@@ -368,13 +368,6 @@ def get_output_ome_zarr(acq_type):
             }
 
 
-def get_output_ome_zarr_as_input(wildcards):
-    if 'blaze' in wildcards.acq:
-        return get_output_ome_zarr('blaze')
-    elif 'prestitched' in wildcards.acq:
-        return get_output_ome_zarr('prestitched')
-
-
 def get_storage_creds():
     """for rules that deal with remote storage directly"""
     protocol = Path(config["root"]).protocol

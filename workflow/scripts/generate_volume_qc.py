@@ -14,8 +14,6 @@ resource_dir = snakemake.output.resources
 # where html file should be written
 html_dest = snakemake.output.html
 
-# inputted ome-zarr path
-ome_data = snakemake.input.zarr
 
 # move volume renderer into the subjects directory
 copy_tree(snakemake.input.vol_viewer_dir, resource_dir)
@@ -28,7 +26,11 @@ else:
     fs_args={}
 
 fs = get_fsspec(uri,**fs_args)
-store = zarr.storage.FSStore(Path(uri).path,fs=fs,dimension_separator='/',mode='r')
+
+if Path(uri).suffix == '.zip':
+    store = zarr.storage.ZipStore(Path(uri).path,dimension_separator='/',mode='r')
+else:
+    store = zarr.storage.FSStore(Path(uri).path,fs=fs,dimension_separator='/',mode='r')
 darr = da.from_zarr(store,component='/5')
 
 # Get most downsampled ome-zarr image

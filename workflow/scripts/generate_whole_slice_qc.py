@@ -1,7 +1,6 @@
 import os
 import math
-from ome_zarr.io import parse_url
-from ome_zarr.reader import Reader
+import dask.array as da
 import matplotlib.pyplot as plt
 import numpy as np
 from jinja2 import Environment, FileSystemLoader
@@ -19,14 +18,10 @@ ws_s_step=snakemake.params.ws_s_step
 ws_s_start=snakemake.params.ws_s_start
 ws_cmap=snakemake.params.ws_cmap
 
-# input ome-zarr file
-ome= snakemake.input.zarr
-
 # output paths
 image_dir = snakemake.output.images_dir
 out_html = snakemake.output.html
 
-from ome_zarr.io import ZarrLocation
 
 uri = snakemake.params.uri
 if is_remote(uri):
@@ -35,18 +30,19 @@ else:
     fs_args={}
 
 fs = get_fsspec(uri,**fs_args)
-store = zarr.storage.FSStore(Path(uri).path,fs=fs,dimension_separator='/',mode='r')
-zarrloc = ZarrLocation(store)
 
-# read ome-zarr data and convert to list
-proc_reader= Reader(zarrloc)
-proc_data=list(proc_reader())[0].data
+if Path(uri).suffix == '.zip':
+    store = zarr.storage.ZipStore(Path(uri).path,dimension_separator='/',mode='r')
+else:
+    store = zarr.storage.FSStore(Path(uri).path,fs=fs,dimension_separator='/',mode='r')
+
+darr = da.from_zarr(store,component='/5')
 
 os.makedirs(image_dir, exist_ok=True)
 
 channels = []
 # for each channel add the images of the most downsampled data
-for chan_num, channel in enumerate(proc_data[-1]):
+for chan_num, channel in enumerate(darr):
     slice = ws_s_start
     chan = []
     slices = []

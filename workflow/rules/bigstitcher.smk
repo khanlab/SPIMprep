@@ -93,7 +93,7 @@ rule zarr_to_bdv:
     script:
         "../scripts/zarr_to_n5_bdv.py"
 
-"""
+
 rule bigstitcher:
     input:
         dataset_n5=rules.zarr_to_bdv.output.bdv_n5,
@@ -112,7 +112,7 @@ rule bigstitcher:
                 sample="{sample}",
                 acq="{acq}",
                 desc="{desc}",
-                suffix="bigstitcherproc.sh",
+                suffix="bigstitcherfiji.sh",
             )
         ),
         dataset_xml=temp(
@@ -123,13 +123,13 @@ rule bigstitcher:
                 sample="{sample}",
                 acq="{acq}",
                 desc="{desc}",
-                suffix="bigstitcher.xml",
+                suffix="bigstitcherfiji.xml",
             )
         ),
     benchmark:
         bids(
             root="benchmarks",
-            datatype="bigstitcherproc",
+            datatype="bigstitcherfiji",
             subject="{subject}",
             sample="{sample}",
             acq="{acq}",
@@ -139,7 +139,7 @@ rule bigstitcher:
     log:
         bids(
             root="logs",
-            datatype="bigstitcherproc",
+            datatype="bigstitcherfiji",
             subject="{subject}",
             sample="{sample}",
             acq="{acq}",
@@ -159,19 +159,30 @@ rule bigstitcher:
         " {params.fiji_launcher_cmd} && "
         " echo ' -macro {input.ijm} \"{params.macro_args}\"' >> {output.launcher} "
         " && {output.launcher} |& tee {log} && {params.rm_old_xml}"
-"""
+
 
 rule bigstitcher_spark_stitching:
     input:
         dataset_n5=rules.zarr_to_bdv.output.bdv_n5,
         dataset_xml=rules.zarr_to_bdv.output.bdv_xml,
     params:
-        downsampling='--downsampling={dsx},{dsy},{dsz}'.format(dsx=config['bigstitcher']['calc_pairwise_shifts']['downsample_in_x'],
-                                                            dsy=config['bigstitcher']['calc_pairwise_shifts']['downsample_in_y'],
-                                                            dsz=config['bigstitcher']['calc_pairwise_shifts']['downsample_in_z']),
-        min_r='--minR={min_r}'.format(min_r=config['bigstitcher']['filter_pairwise_shifts']['min_r']),
-        max_shift='--maxShiftTotal={max_shift}'.format(max_shift=config['bigstitcher']['filter_pairwise_shifts']['max_shift_total']),
-        mem_gb=lambda wildcards, resources: '{mem_gb}'.format(mem_gb=int(resources.mem_mb/1000))
+        downsampling="--downsampling={dsx},{dsy},{dsz}".format(
+            dsx=config["bigstitcher"]["calc_pairwise_shifts"]["downsample_in_x"],
+            dsy=config["bigstitcher"]["calc_pairwise_shifts"]["downsample_in_y"],
+            dsz=config["bigstitcher"]["calc_pairwise_shifts"]["downsample_in_z"],
+        ),
+        min_r="--minR={min_r}".format(
+            min_r=config["bigstitcher"]["filter_pairwise_shifts"]["min_r"]
+        ),
+        max_shift="--maxShiftTotal={max_shift}".format(
+            max_shift=config["bigstitcher"]["filter_pairwise_shifts"][
+                "max_shift_total"
+            ]
+        ),
+        mem_gb=lambda wildcards, resources: "{mem_gb}".format(
+            mem_gb=int(resources.mem_mb / 1000)
+        ),
+        rm_old_xml=lambda wildcards, output: f"rm -f {output.dataset_xml}~?",
     output:
         dataset_xml=temp(
             bids(
@@ -215,7 +226,8 @@ rule bigstitcher_spark_stitching:
     shell:
         "cp {input.dataset_xml} {output.dataset_xml} && "
         "stitching {params.mem_gb} {threads} -x {output.dataset_xml} "
-        " {params.min_r} {params.downsampling} "
+        " {params.min_r} {params.downsampling} {params.max_shift} && "
+        "{params.rm_old_xml}"
 
 
 rule bigstitcher_spark_solver:
@@ -223,11 +235,18 @@ rule bigstitcher_spark_solver:
         dataset_n5=rules.zarr_to_bdv.output.bdv_n5,
         dataset_xml=rules.bigstitcher_spark_stitching.output.dataset_xml,
     params:
-        downsampling='--downsampling={dsx},{dsy},{dsz}'.format(dsx=config['bigstitcher']['calc_pairwise_shifts']['downsample_in_x'],
-                                                            dsy=config['bigstitcher']['calc_pairwise_shifts']['downsample_in_y'],
-                                                            dsz=config['bigstitcher']['calc_pairwise_shifts']['downsample_in_z']),
-        method='--method={method}'.format(method=config['bigstitcher']['global_optimization']['method']),
-        mem_gb=lambda wildcards, resources: '{mem_gb}'.format(mem_gb=int(resources.mem_mb/1000))
+        downsampling="--downsampling={dsx},{dsy},{dsz}".format(
+            dsx=config["bigstitcher"]["calc_pairwise_shifts"]["downsample_in_x"],
+            dsy=config["bigstitcher"]["calc_pairwise_shifts"]["downsample_in_y"],
+            dsz=config["bigstitcher"]["calc_pairwise_shifts"]["downsample_in_z"],
+        ),
+        method="--method={method}".format(
+            method=config["bigstitcher"]["global_optimization"]["method"]
+        ),
+        mem_gb=lambda wildcards, resources: "{mem_gb}".format(
+            mem_gb=int(resources.mem_mb / 1000)
+        ),
+        rm_old_xml=lambda wildcards, output: f"rm -f {output.dataset_xml}~?",
     output:
         dataset_xml=temp(
             bids(
@@ -271,12 +290,13 @@ rule bigstitcher_spark_solver:
     shell:
         "cp {input.dataset_xml} {output.dataset_xml} && "
         "solver {params.mem_gb} {threads} -x {output.dataset_xml} "
-        " -s STITCHING --lambda 0.1 " #lambda 0.1 is default (can expose this if needed)
-        " {params.method} "
+        " -s STITCHING --lambda 0.1 "
+        " {params.method} && "
+        "{params.rm_old_xml}"
+        #lambda 0.1 is default (can expose this if needed)
 
 
-
-rule fuse_dataset:
+rule bigstitcher_fusion:
     input:
         dataset_n5=bids(
             root=work,
@@ -294,7 +314,11 @@ rule fuse_dataset:
             sample="{sample}",
             acq="{acq}",
             desc="{desc}",
-            suffix="bigstitcher{}.xml".format('solver' if config['bigstitcher']['global_optimization']['enabled'] else 'stitching'),
+            suffix="bigstitcher{}.xml".format(
+                "solver"
+                if config["bigstitcher"]["global_optimization"]["enabled"]
+                else "stitching"
+            ),
         ),
         ijm=Path(workflow.basedir) / "macros" / "FuseImageMacroZarr.ijm",
     params:
@@ -363,7 +387,7 @@ rule fuse_dataset:
         " && {output.launcher} |& tee {log}"
 
 
-rule fuse_dataset_spark:
+rule bigstitcher_spark_fusion:
     input:
         dataset_n5=bids(
             root=work,
@@ -381,7 +405,11 @@ rule fuse_dataset_spark:
             sample="{sample}",
             acq="{acq}",
             desc="{desc}",
-            suffix="bigstitcher{}.xml".format('solver' if config['bigstitcher']['global_optimization']['enabled'] else 'stitching'),
+            suffix="bigstitcher{}.xml".format(
+                "solver"
+                if config["bigstitcher"]["global_optimization"]["enabled"]
+                else "stitching"
+            ),
         ),
         ijm=Path(workflow.basedir) / "macros" / "FuseImageMacroZarr.ijm",
     params:
@@ -398,7 +426,9 @@ rule fuse_dataset_spark:
             bsfy=config["bigstitcher"]["fuse_dataset"]["block_size_factor_y"],
             bsfz=config["bigstitcher"]["fuse_dataset"]["block_size_factor_z"],
         ),
-        mem_gb=lambda wildcards, resources: '{mem_gb}'.format(mem_gb=int(resources.mem_mb/1000))
+        mem_gb=lambda wildcards, resources: "{mem_gb}".format(
+            mem_gb=int(resources.mem_mb / 1000)
+        ),
     output:
         zarr=temp(
             directory(
@@ -440,7 +470,7 @@ rule fuse_dataset_spark:
         config["containers"]["spimprep"]
     resources:
         runtime=30,
-        mem_mb=40000,
+        mem_mb=30000,
     threads: config["cores_per_rule"]
     group:
         "preproc"
