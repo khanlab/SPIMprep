@@ -6,7 +6,7 @@ work: 'work'
 
 remote_creds: '~/.config/gcloud/application_default_credentials.json' #this is needed so we can pass creds to container
 
-write_ome_zarr_direct: True #use this to skip writing the final zarr output to work first and copying afterwards -- useful when work is not a fast local disk
+write_ome_zarr_direct: False #use this to skip writing the final zarr output to work first and copying afterwards -- useful when work is not a fast local disk
 
 cores_per_rule: 32 
 
@@ -42,28 +42,29 @@ bigstitcher:
       optical_flow: "Lucas-Kanade" 
   filter_pairwise_shifts:
     enabled: 1
-    min_r: 0.7
+    min_r: 0.2
+    max_shift_total: 50 
   global_optimization:
-    enabled: 1
-    strategy: two_round
-    strategies:
-      one_round: "One-Round"
-      one_round_iterative: "One-Round with iterative dropping of bad links"
-      two_round:  "Two-Round using metadata to align unconnected Tiles"
-      two_round_iterative: "Two-Round using Metadata to align unconnected Tiles and iterative dropping of bad links"
+    enabled: 1 
+    method: ONE_ROUND_SIMPLE
+    methods:
+      ONE_ROUND_SIMPLE: "One-Round"
+      ONE_ROUND_ITERATIVE: "One-Round with iterative dropping of bad links"
+      TWO_ROUND_SIMPLE:  "Two-Round using metadata to align unconnected Tiles"
+      TWO_ROUND_ITERATIVE: "Two-Round using Metadata to align unconnected Tiles and iterative dropping of bad links"
 
 
   fuse_dataset:
     downsampling: 1
     block_size_x: 256 # for storage
     block_size_y: 256
-    block_size_z: 1
+    block_size_z: 8
     block_size_factor_x: 1 #e.g. 2 will use 2*block_size for computation
     block_size_factor_y: 1
-    block_size_factor_z: 256
+    block_size_factor_z: 32
 
 ome_zarr:
-  desc: stitchedflatcorr
+  desc: sparkstitchedflatcorr
   max_downsampling_layers: 5 # e.g. 4 levels: { 0: orig, 1: ds2, 2: ds4, 3: ds8, 4: ds16}
   rechunk_size: #z, y, x 
     - 1 
@@ -99,7 +100,7 @@ ome_zarr:
       id: 0
       name: spim
       version: "0.4"  
-  use_zipstore: False #if True, produce SPIM.ome.zarr.zip instead of SPIM.ome.zarr
+  use_zipstore: True #if True, produce SPIM.ome.zarr.zip instead of SPIM.ome.zarr
 
 nifti:
   levels: #cannot be higher than max_downsampling_layers in ome_zarr
@@ -154,5 +155,7 @@ report:
 
 
 containers:
-  spimprep: 'docker://khanlab/spimprep-deps:main'
+  #spimprep: 'docker://khanlab/spimprep-deps:main'
+  spimprep: '/local/scratch/spimprep-deps_spark.sif'
+  # updated.sif'
 

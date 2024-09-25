@@ -312,7 +312,7 @@ def get_output_ome_zarr_uri():
             datatype="micr",
             sample="{sample}",
             acq="{acq}",
-            suffix="SPIM.ome.zarr",
+            suffix="SPIM.{ext}".format(ext=get_extension_ome_zarr()),
         )
     else:
         return "local://" + _bids(
@@ -321,7 +321,7 @@ def get_output_ome_zarr_uri():
             datatype="micr",
             sample="{sample}",
             acq="{acq}",
-            suffix="SPIM.ome.zarr",
+            suffix="SPIM.{ext}".format(ext=get_extension_ome_zarr()),
         )
 
 
@@ -368,35 +368,11 @@ def get_output_ome_zarr(acq_type):
             }
 
 
-def get_input_ome_zarr_to_nii():
-    if is_remote(config["root"]):
-        return bids(
-            root=root,
-            subject="{subject}",
-            datatype="micr",
-            sample="{sample}",
-            acq="{acq}",
-            suffix="SPIM.{extension}".format(extension=get_extension_ome_zarr()),
-        )
-    else:
-        if config["write_ome_zarr_direct"]:
-            return bids(
-                root=root,
-                subject="{subject}",
-                datatype="micr",
-                sample="{sample}",
-                acq="{acq}",
-                suffix="SPIM.{extension}".format(extension=get_extension_ome_zarr()),
-            )
-        else:
-            return bids(
-                root=work,
-                subject="{subject}",
-                datatype="micr",
-                sample="{sample}",
-                acq="{acq}",
-                suffix=f"SPIM.ome.zarr",
-            )
+def get_output_ome_zarr_as_input(wildcards):
+    if 'blaze' in wildcards.acq:
+        return get_output_ome_zarr('blaze')
+    elif 'prestitched' in wildcards.acq:
+        return get_output_ome_zarr('prestitched')
 
 
 def get_storage_creds():

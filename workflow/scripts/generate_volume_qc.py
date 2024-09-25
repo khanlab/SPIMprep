@@ -15,7 +15,7 @@ resource_dir = snakemake.output.resources
 html_dest = snakemake.output.html
 
 # inputted ome-zarr path
-ome_data = snakemake.input.ome
+ome_data = snakemake.input.zarr
 
 # move volume renderer into the subjects directory
 copy_tree(snakemake.input.vol_viewer_dir, resource_dir)

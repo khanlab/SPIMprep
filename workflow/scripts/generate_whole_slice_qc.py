@@ -20,7 +20,7 @@ ws_s_start=snakemake.params.ws_s_start
 ws_cmap=snakemake.params.ws_cmap
 
 # input ome-zarr file
-ome= snakemake.input.ome
+ome= snakemake.input.zarr
 
 # output paths
 image_dir = snakemake.output.images_dir
