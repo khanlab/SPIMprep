@@ -74,7 +74,14 @@ rule generate_whole_slice_qc:
     "Generates an html file to view whole slices from preprocessed images"
     input:
         **get_storage_creds(),
-        ome=get_input_ome_zarr_to_nii(),
+        zarr=bids(
+            root=root,
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="SPIM.{ext}".format(ext=get_extension_ome_zarr()),
+        ),
         ws_html=config["report"]["resources"]["ws_html"],
     params:
         ws_s_start=config["report"]["whole_slice_viewer"]["slice_start"],
@@ -113,7 +120,14 @@ rule generate_volume_qc:
     "Generates an html file to view the volume rendered image"
     input:
         **get_storage_creds(),
-        ome=get_input_ome_zarr_to_nii(),
+        zarr=bids(
+            root=root,
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="SPIM.{ext}".format(ext=get_extension_ome_zarr()),
+        ),
         vol_viewer_dir=config["report"]["resources"]["vol_viewer_dir"],
     params:
         uri=get_output_ome_zarr_uri(),

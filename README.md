@@ -63,7 +63,7 @@ or for snakemake<8.0, use:
 snakemake -c all --use-singularity 
 ```
 
-Note: if you run the workflow on a system with large memory, you will need to set the heap size for the stitching and fusion rules. This can be done with e.g.: `--set-resources bigstitcher:mem_mb=60000 fuse_dataset:mem_mb=100000`
+Note: if you run the workflow on a system with large memory, you will need to set the heap size for the stitching and fusion rules. This can be done with e.g.: `--set-resources bigstitcher_spark_stitching:mem_mb=60000 bigstitcher_spark_fusion:mem_mb=100000`
 
 7. If you want to run the workflow using a batch job submission server, please see the executor plugins here: https://snakemake.github.io/snakemake-plugin-catalog/
 

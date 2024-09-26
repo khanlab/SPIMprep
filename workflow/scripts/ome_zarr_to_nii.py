@@ -18,7 +18,12 @@ else:
     fs_args={}
 
 fs = get_fsspec(uri,**fs_args)
-store = zarr.storage.FSStore(Path(uri).path,fs=fs,dimension_separator='/',mode='r')
+
+if Path(uri).suffix == '.zip':
+    store = zarr.storage.ZipStore(Path(uri).path,dimension_separator='/',mode='r')
+else:
+    store = zarr.storage.FSStore(Path(uri).path,fs=fs,dimension_separator='/',mode='r')
+
 zi = zarr.open(store=store,mode='r')
  
 

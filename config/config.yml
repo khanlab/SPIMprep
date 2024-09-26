@@ -36,34 +36,35 @@ bigstitcher:
     downsample_in_x: 4
     downsample_in_y: 4
     downsample_in_z: 1
-    method: "phase_corr"
-    methods:
-      phase_corr: "Phase Correlation"
-      optical_flow: "Lucas-Kanade" 
+    method: "phase_corr" #unused
+    methods: #unused
+      phase_corr: "Phase Correlation" 
+      optical_flow: "Lucas-Kanade"  
   filter_pairwise_shifts:
-    enabled: 1
+    enabled: 1 #unused
     min_r: 0.7
+    max_shift_total: 50
   global_optimization:
-    enabled: 1
-    strategy: two_round
-    strategies:
-      one_round: "One-Round"
-      one_round_iterative: "One-Round with iterative dropping of bad links"
-      two_round:  "Two-Round using metadata to align unconnected Tiles"
-      two_round_iterative: "Two-Round using Metadata to align unconnected Tiles and iterative dropping of bad links"
+    enabled: 1 
+    method: TWO_ROUND_ITERATIVE
+    methods: #unused, only for reference
+      ONE_ROUND_SIMPLE: "One-Round"
+      ONE_ROUND_ITERATIVE: "One-Round with iterative dropping of bad links"
+      TWO_ROUND_SIMPLE:  "Two-Round using metadata to align unconnected Tiles"
+      TWO_ROUND_ITERATIVE: "Two-Round using Metadata to align unconnected Tiles and iterative dropping of bad links"
 
 
   fuse_dataset:
     downsampling: 1
     block_size_x: 256 # for storage
     block_size_y: 256
-    block_size_z: 1
+    block_size_z: 8
     block_size_factor_x: 1 #e.g. 2 will use 2*block_size for computation
     block_size_factor_y: 1
-    block_size_factor_z: 256
+    block_size_factor_z: 32
 
 ome_zarr:
-  desc: stitchedflatcorr
+  desc: sparkstitchedflatcorr
   max_downsampling_layers: 5 # e.g. 4 levels: { 0: orig, 1: ds2, 2: ds4, 3: ds8, 4: ds16}
   rechunk_size: #z, y, x 
     - 1 
