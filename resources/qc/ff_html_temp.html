@@ -43,13 +43,13 @@
         <tr>
     {%- for image in channel %}
             <td>
-                <img src="{{ image.img_corr }}"></img>
-                <h3>Corrected</h3>
+                <img src="{{ image.img_uncorr }}"></img>
+                <h3>Uncorrected</h3>
                 <p>Slice-{{ image.slice }}</p>
             </td>
             <td>
-                <img src="{{ image.img_uncorr }}"></img>
-                <h3>Uncorrected</h3>
+                <img src="{{ image.img_corr }}"></img>
+                <h3>Corrected</h3>
                 <p>Slice-{{ image.slice }}</p>
             </td>
     {%- endfor %}
