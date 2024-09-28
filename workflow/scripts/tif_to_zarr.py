@@ -1,7 +1,9 @@
 import tifffile
 import os
 import json
+import pyvips
 import dask.array as da
+from dask.delayed import delayed
 from dask.array.image import imread as imread_tifs
 from lib.dask_image import imread_pages
 from itertools import product
@@ -23,6 +25,10 @@ def single_imread(*args):
     return tifffile.imread(*args,key=0)
 
 
+def read_page_as_numpy(tif_file,page):    
+    """gets a single page (i.e. 2d image) from a tif file zstack"""
+    return pyvips.Image.new_from_file(tif_file, page=page).numpy()
+
 
 #read metadata json
 with open(snakemake.input.metadata_json) as fp:
@@ -42,10 +48,10 @@ in_tif_glob = replace_square_brackets(str(in_tif_pattern))
 
 
 #TODO: put these in top-level metadata for easier access..
-size_x=metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeX']
-size_y=metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeY']
-size_z=metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeZ']
-size_c=metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeC']
+size_x=int(metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeX'])
+size_y=int(metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeY'])
+size_z=int(metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeZ'])
+size_c=int(metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeC'])
 size_tiles=len(metadata['tiles_x'])*len(metadata['tiles_y'])
 
 #now get the first channel and first zslice tif 
@@ -59,8 +65,13 @@ for i_tile,(tilex,tiley) in enumerate(product(metadata['tiles_x'],metadata['tile
 
         if is_zstack:
             tif_file = in_tif_pattern.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel)
-
-            zstacks.append(imread_pages(tif_file))
+            
+            pages=[]
+            #read each page
+            for i_z in range(size_z):
+                pages.append(da.from_delayed(delayed(read_page_as_numpy)(tif_file,i_z),shape=(size_y,size_x),dtype='uint16'))
+            
+            zstacks.append(da.stack(pages))
             print(zstacks[-1].shape)
         else:
             zstacks.append(imread_tifs(in_tif_glob.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel,zslice='*'), imread=single_imread))
