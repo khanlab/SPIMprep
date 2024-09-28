@@ -94,74 +94,7 @@ rule zarr_to_bdv:
         "../scripts/zarr_to_n5_bdv.py"
 
 
-rule bigstitcher:
-    input:
-        dataset_n5=rules.zarr_to_bdv.output.bdv_n5,
-        dataset_xml=rules.zarr_to_bdv.output.bdv_xml,
-        ijm=Path(workflow.basedir) / "macros" / "AutostitchMacro.ijm",
-    params:
-        fiji_launcher_cmd=get_fiji_launcher_cmd,
-        macro_args=get_macro_args_bigstitcher,
-        rm_old_xml=lambda wildcards, output: f"rm -f {output.dataset_xml}~?",
-    output:
-        launcher=temp(
-            bids(
-                root=work,
-                subject="{subject}",
-                datatype="micr",
-                sample="{sample}",
-                acq="{acq}",
-                desc="{desc}",
-                suffix="bigstitcherfiji.sh",
-            )
-        ),
-        dataset_xml=temp(
-            bids(
-                root=work,
-                subject="{subject}",
-                datatype="micr",
-                sample="{sample}",
-                acq="{acq}",
-                desc="{desc}",
-                suffix="bigstitcherfiji.xml",
-            )
-        ),
-    benchmark:
-        bids(
-            root="benchmarks",
-            datatype="bigstitcherfiji",
-            subject="{subject}",
-            sample="{sample}",
-            acq="{acq}",
-            desc="{desc}",
-            suffix="benchmark.tsv",
-        )
-    log:
-        bids(
-            root="logs",
-            datatype="bigstitcherfiji",
-            subject="{subject}",
-            sample="{sample}",
-            acq="{acq}",
-            desc="{desc}",
-            suffix="log.txt",
-        ),
-    container:
-        config["containers"]["spimprep"]
-    resources:
-        runtime=30,
-        mem_mb=10000,
-    threads: config["cores_per_rule"]
-    group:
-        "preproc"
-    shell:
-        "cp {input.dataset_xml} {output.dataset_xml} && "
-        " {params.fiji_launcher_cmd} && "
-        " echo ' -macro {input.ijm} \"{params.macro_args}\"' >> {output.launcher} "
-        " && {output.launcher} |& tee {log} && {params.rm_old_xml}"
-
-
-rule bigstitcher_spark_stitching:
+rule bigstitcher_stitching:
     input:
         dataset_n5=rules.zarr_to_bdv.output.bdv_n5,
         dataset_xml=rules.zarr_to_bdv.output.bdv_xml,
@@ -230,10 +163,10 @@ rule bigstitcher_spark_stitching:
         "{params.rm_old_xml}"
 
 
-rule bigstitcher_spark_solver:
+rule bigstitcher_solver:
     input:
         dataset_n5=rules.zarr_to_bdv.output.bdv_n5,
-        dataset_xml=rules.bigstitcher_spark_stitching.output.dataset_xml,
+        dataset_xml=rules.bigstitcher_stitching.output.dataset_xml,
     params:
         downsampling="--downsampling={dsx},{dsy},{dsz}".format(
             dsx=config["bigstitcher"]["calc_pairwise_shifts"]["downsample_in_x"],
@@ -295,7 +228,6 @@ rule bigstitcher_spark_solver:
         "{params.rm_old_xml}"
         #lambda 0.1 is default (can expose this if needed)
 
-
 rule bigstitcher_fusion:
     input:
         dataset_n5=bids(
@@ -320,98 +252,6 @@ rule bigstitcher_fusion:
                 else "stitching"
             ),
         ),
-        ijm=Path(workflow.basedir) / "macros" / "FuseImageMacroZarr.ijm",
-    params:
-        fiji_launcher_cmd=get_fiji_launcher_cmd,
-        macro_args=get_macro_args_zarr_fusion,
-    output:
-        launcher=temp(
-            bids(
-                root=work,
-                subject="{subject}",
-                datatype="micr",
-                sample="{sample}",
-                acq="{acq}",
-                desc="stitched{desc}",
-                stain="{stain}",
-                suffix="fuseimagen5.sh",
-            )
-        ),
-        zarr=temp(
-            directory(
-                bids(
-                    root=work,
-                    subject="{subject}",
-                    datatype="micr",
-                    sample="{sample}",
-                    acq="{acq}",
-                    desc="stitched{desc}",
-                    stain="{stain}",
-                    suffix="SPIM.zarr",
-                )
-            )
-        ),
-    benchmark:
-        bids(
-            root="benchmarks",
-            datatype="fuse_dataset",
-            subject="{subject}",
-            sample="{sample}",
-            acq="{acq}",
-            desc="stitched{desc}",
-            stain="{stain}",
-            suffix="benchmark.tsv",
-        )
-    log:
-        bids(
-            root="logs",
-            datatype="fuse_dataset",
-            subject="{subject}",
-            sample="{sample}",
-            acq="{acq}",
-            desc="stitched{desc}",
-            stain="{stain}",
-            suffix="log.txt",
-        ),
-    container:
-        config["containers"]["spimprep"]
-    resources:
-        runtime=30,
-        mem_mb=40000,
-    threads: config["cores_per_rule"]
-    group:
-        "preproc"
-    shell:
-        " {params.fiji_launcher_cmd} && "
-        " echo ' -macro {input.ijm} \"{params.macro_args}\"' >> {output.launcher} "
-        " && {output.launcher} |& tee {log}"
-
-
-rule bigstitcher_spark_fusion:
-    input:
-        dataset_n5=bids(
-            root=work,
-            subject="{subject}",
-            datatype="micr",
-            sample="{sample}",
-            acq="{acq}",
-            desc="{desc}",
-            suffix="bdv.n5",
-        ),
-        dataset_xml=bids(
-            root=work,
-            subject="{subject}",
-            datatype="micr",
-            sample="{sample}",
-            acq="{acq}",
-            desc="{desc}",
-            suffix="bigstitcher{}.xml".format(
-                "solver"
-                if config["bigstitcher"]["global_optimization"]["enabled"]
-                else "stitching"
-            ),
-        ),
-        ijm=Path(workflow.basedir) / "macros" / "FuseImageMacroZarr.ijm",
     params:
         channel=lambda wildcards: "--channelId={channel}".format(
             channel=get_stains(wildcards).index(wildcards.stain)
@@ -438,7 +278,7 @@ rule bigstitcher_spark_fusion:
                     datatype="micr",
                     sample="{sample}",
                     acq="{acq}",
-                    desc="sparkstitched{desc}",
+                    desc="stitched{desc}",
                     stain="{stain}",
                     suffix="SPIM.zarr",
                 )

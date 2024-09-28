@@ -257,52 +257,6 @@ def get_stains(wildcards):
     return df.iloc[0][stain_columns].dropna().tolist()
 
 
-# bigstitcher
-def get_fiji_launcher_cmd(wildcards, output, threads, resources):
-    launcher_opts_find = "-Xincgc"
-    launcher_opts_replace = f"-XX:+UseG1GC -verbose:gc -XX:+PrintGCDateStamps -XX:ActiveProcessorCount={threads}"
-    pipe_cmds = []
-    pipe_cmds.append("ImageJ-linux64 --dry-run --headless --console")
-    pipe_cmds.append(f"sed 's/{launcher_opts_find}/{launcher_opts_replace}'/")
-    pipe_cmds.append(
-        rf"sed 's/-Xmx[0-9a-z]\+/-Xmx{resources.mem_mb}m -Xms{resources.mem_mb}m/'"
-    )
-    pipe_cmds.append("tr --delete '\\n'")
-    return "|".join(pipe_cmds) + f" > {output.launcher} && chmod a+x {output.launcher} "
-
-
-def get_macro_args_bigstitcher(wildcards, input, output):
-    return "{dataset_xml} {pairwise_method} {ds_x} {ds_y} {ds_z} {do_filter} {min_r} {do_global} {global_strategy}".format(
-        dataset_xml=output.dataset_xml,
-        pairwise_method=config["bigstitcher"]["calc_pairwise_shifts"]["methods"][
-            config["bigstitcher"]["calc_pairwise_shifts"]["method"]
-        ],
-        ds_x=config["bigstitcher"]["calc_pairwise_shifts"]["downsample_in_x"],
-        ds_y=config["bigstitcher"]["calc_pairwise_shifts"]["downsample_in_y"],
-        ds_z=config["bigstitcher"]["calc_pairwise_shifts"]["downsample_in_z"],
-        do_filter=config["bigstitcher"]["filter_pairwise_shifts"]["enabled"],
-        min_r=config["bigstitcher"]["filter_pairwise_shifts"]["min_r"],
-        do_global=config["bigstitcher"]["global_optimization"]["enabled"],
-        global_strategy=config["bigstitcher"]["global_optimization"]["strategies"][
-            config["bigstitcher"]["global_optimization"]["strategy"]
-        ],
-    )
-
-
-def get_macro_args_zarr_fusion(wildcards, input, output):
-    return "{dataset_xml} {downsampling} {channel:02d} {output_zarr} {bsx} {bsy} {bsz} {bsfx} {bsfy} {bsfz}".format(
-        dataset_xml=input.dataset_xml,
-        downsampling=config["bigstitcher"]["fuse_dataset"]["downsampling"],
-        channel=get_stains(wildcards).index(wildcards.stain),
-        output_zarr=output.zarr,
-        bsx=config["bigstitcher"]["fuse_dataset"]["block_size_x"],
-        bsy=config["bigstitcher"]["fuse_dataset"]["block_size_y"],
-        bsz=config["bigstitcher"]["fuse_dataset"]["block_size_z"],
-        bsfx=config["bigstitcher"]["fuse_dataset"]["block_size_factor_x"],
-        bsfy=config["bigstitcher"]["fuse_dataset"]["block_size_factor_y"],
-        bsfz=config["bigstitcher"]["fuse_dataset"]["block_size_factor_z"],
-    )
-
 
 def get_output_ome_zarr_uri():
     if is_remote(config["root"]):

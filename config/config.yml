@@ -36,12 +36,10 @@ bigstitcher:
     downsample_in_x: 4
     downsample_in_y: 4
     downsample_in_z: 1
-    method: "phase_corr" #unused
-    methods: #unused
+    methods: #unused, only for reference
       phase_corr: "Phase Correlation" 
       optical_flow: "Lucas-Kanade"  
   filter_pairwise_shifts:
-    enabled: 1 #unused
     min_r: 0.7
     max_shift_total: 50
   global_optimization:
@@ -64,7 +62,7 @@ bigstitcher:
     block_size_factor_z: 32
 
 ome_zarr:
-  desc: sparkstitchedflatcorr
+  desc: stitchedflatcorr
   max_downsampling_layers: 5 # e.g. 4 levels: { 0: orig, 1: ds2, 2: ds4, 3: ds8, 4: ds16}
   rechunk_size: #z, y, x 
     - 1 
@@ -155,5 +153,5 @@ report:
 
 
 containers:
-  spimprep: 'docker://khanlab/spimprep-deps:main'
+  spimprep: 'docker://khanlab/spimprep-deps:v0.1.0'
 
