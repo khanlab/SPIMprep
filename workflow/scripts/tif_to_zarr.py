@@ -36,11 +36,16 @@ with open(snakemake.input.metadata_json) as fp:
 
 
 is_zstack = metadata['is_zstack']
+is_tiled = metadata['is_tiled']
 
-if is_zstack:
-    in_tif_pattern = os.path.join(snakemake.input.ome_dir,snakemake.config["import_blaze"]["raw_tif_pattern_zstack"])
+if is_tiled:
+    if is_zstack:
+        in_tif_pattern = os.path.join(snakemake.input.ome_dir,snakemake.config["import_blaze"]["raw_tif_pattern_zstack"])
+    else:
+        in_tif_pattern = os.path.join(snakemake.input.ome_dir,snakemake.config["import_blaze"]["raw_tif_pattern"])
 else:
-    in_tif_pattern = os.path.join(snakemake.input.ome_dir,snakemake.config["import_blaze"]["raw_tif_pattern"])
+    in_tif_pattern = os.path.join(snakemake.input.ome_dir,snakemake.config["import_blaze"]["raw_tif_pattern_notile"])
+
 
 
 #use tif pattern but replace the [ and ] with [[] and []] so glob doesn't choke
@@ -52,39 +57,58 @@ size_x=int(metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeX'])
 size_y=int(metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeY'])
 size_z=int(metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeZ'])
 size_c=int(metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeC'])
-size_tiles=len(metadata['tiles_x'])*len(metadata['tiles_y'])
 
-#now get the first channel and first zslice tif 
-tiles=[]
-for i_tile,(tilex,tiley) in enumerate(product(metadata['tiles_x'],metadata['tiles_y'])):
-    print(f'tile {tilex}x{tiley}, {i_tile}') 
+
+
+
+if is_tiled:
+
+    size_tiles=len(metadata['tiles_x'])*len(metadata['tiles_y'])
+
+    #now get the first channel and first zslice tif 
+    tiles=[]
+    for i_tile,(tilex,tiley) in enumerate(product(metadata['tiles_x'],metadata['tiles_y'])):
+        print(f'tile {tilex}x{tiley}, {i_tile}') 
+        zstacks=[]
+        for i_chan,channel in enumerate(metadata['channels']):
+
+            print(f'channel {i_chan}')
+
+            if is_zstack:
+                tif_file = in_tif_pattern.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel)
+                
+                pages=[]
+                #read each page
+                for i_z in range(size_z):
+                    pages.append(da.from_delayed(delayed(read_page_as_numpy)(tif_file,i_z),shape=(size_y,size_x),dtype='uint16'))
+                
+                zstacks.append(da.stack(pages))
+                print(zstacks[-1].shape)
+            else:
+                zstacks.append(imread_tifs(in_tif_glob.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel,zslice='*'), imread=single_imread))
+
+        #have list of zstack dask arrays for the tile, one for each channel
+        #stack them up and append to list of tiles
+        tiles.append(da.stack(zstacks))
+
+
+
+    #now we have list of tiles, each a dask array
+    #stack them up to get our final array
+    darr = da.stack(tiles)
+
+else:
+    #single tile, zslices:
     zstacks=[]
     for i_chan,channel in enumerate(metadata['channels']):
 
         print(f'channel {i_chan}')
+        zstacks.append(imread_tifs(in_tif_glob.format(prefix=metadata['prefixes'][0],channel=channel,zslice='*'), imread=single_imread))
 
-        if is_zstack:
-            tif_file = in_tif_pattern.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel)
-            
-            pages=[]
-            #read each page
-            for i_z in range(size_z):
-                pages.append(da.from_delayed(delayed(read_page_as_numpy)(tif_file,i_z),shape=(size_y,size_x),dtype='uint16'))
-            
-            zstacks.append(da.stack(pages))
-            print(zstacks[-1].shape)
-        else:
-            zstacks.append(imread_tifs(in_tif_glob.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel,zslice='*'), imread=single_imread))
-
-    #have list of zstack dask arrays for the tile, one for each channel
-    #stack them up and append to list of tiles
-    tiles.append(da.stack(zstacks))
+    #stack the channels up
+    darr = da.stack(zstacks)
 
 
-
-#now we have list of tiles, each a dask array
-#stack them up to get our final array
-darr = da.stack(tiles)
 
 print(darr.shape)
 print(darr.chunksize)
