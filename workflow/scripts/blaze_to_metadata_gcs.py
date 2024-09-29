@@ -97,7 +97,7 @@ for line in  custom_metadata['TileConfiguration']['@TileConfiguration'].split(' 
     chunk = map_tiles_to_chunk[d['tilex']+d['tiley']] # want the key to have chunk instad of tilex,tiley, so map to that first
     
     if is_zstack:
-        key = f"tile-{chunk}_chan-{d['channel']}_z-0" 
+        key = f"tile-{chunk}_chan-{d['channel']}_z-0000" 
     else:
         #key is:  tile-{chunk}_chan-{channel}_z-{zslice} 
         key = f"tile-{chunk}_chan-{d['channel']}_z-{d['zslice']}" 
