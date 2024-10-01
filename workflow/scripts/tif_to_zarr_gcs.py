@@ -1,6 +1,7 @@
 import tifffile
 import json
 import dask.array as da
+from dask.delayed import delayed
 import dask.array.image 
 from itertools import product
 from dask.diagnostics import ProgressBar
@@ -21,14 +22,6 @@ def replace_square_brackets(pattern):
     pattern = pattern.replace('##RIGHTBRACKET##','[]]')
     return pattern
 
-def get_zstack_metadata(gcs_uri,fs):
-    with fs.open(gcs_uri, 'rb') as file:
-        tif = tifffile.TiffFile(file)
-        pages = tif.pages
-        n_z = len(pages)
-        sample = tif.pages[0].asarray()
-        return {'n_z': n_z, 'shape': sample.shape, 'dtype': sample.dtype}
-
 
 def get_tiff_num_pages(fs,gcs_uri):
     with fs.open(gcs_uri, 'rb') as file:
@@ -38,6 +31,19 @@ def read_tiff_slice(fs,gcs_uri, key=0):
     """Read a single TIFF slice from GCS."""
     with fs.open(gcs_uri, 'rb') as file:
         return tifffile.imread(file, key=key)
+
+def read_page_as_numpy(tif_file_uri, page, fs=None):
+    """Gets a single page (i.e., 2D image) from a tif file z-stack stored in a cloud URI."""
+    
+    # Open the file from the cloud storage using fsspec
+    with fs.open(tif_file_uri, 'rb') as f:
+        # Read the file content into a buffer
+        file_buffer = f.read()
+    
+    # Use pyvips to read from the buffer
+    return pyvips.Image.new_from_buffer(file_buffer, "", page=page).numpy()
+
+
 
 def build_zstack(gcs_uris,fs):
     """Build a z-stack from a list of GCS URIs."""
@@ -70,11 +76,16 @@ with open(snakemake.input.metadata_json) as fp:
 
 
 is_zstack = metadata['is_zstack']
+is_tiled = metadata['is_tiled']
 
-if is_zstack:
-    in_tif_pattern = snakemake.config["import_blaze"]["raw_tif_pattern_zstack"]
+if is_tiled:
+    if is_zstack:
+        in_tif_pattern = snakemake.config["import_blaze"]["raw_tif_pattern_zstack"]
+    else:
+        in_tif_pattern = snakemake.config["import_blaze"]["raw_tif_pattern"]
 else:
-    in_tif_pattern = snakemake.config["import_blaze"]["raw_tif_pattern"]
+    in_tif_pattern = snakemake.config["import_blaze"]["raw_tif_pattern_notile"]
+
 
 
 
@@ -84,39 +95,55 @@ in_tif_glob = replace_square_brackets(str(in_tif_pattern))
 
 
 #TODO: put these in top-level metadata for easier access..
-size_x=metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeX']
-size_y=metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeY']
-size_z=metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeZ']
-size_c=metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeC']
-size_tiles=len(metadata['tiles_x'])*len(metadata['tiles_y'])
+size_x=int(metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeX'])
+size_y=int(metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeY'])
+size_z=int(metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeZ'])
+size_c=int(metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeC'])
 
 
-#now get the first channel and first zslice tif 
 
-if is_zstack:
-    #prepopulate this since its the same for all tiles, and takes time to query
-    zstack_metadata = get_zstack_metadata('gcs://'+in_tif_pattern.format(tilex=metadata['tiles_x'][0],tiley=metadata['tiles_y'][0],prefix=metadata['prefixes'][0],channel=metadata['channels'][0]),fs=fs)
+if is_tiled:
 
-tiles=[]
-for i_tile,(tilex,tiley) in enumerate(product(metadata['tiles_x'],metadata['tiles_y'])):
+    size_tiles=len(metadata['tiles_x'])*len(metadata['tiles_y'])
+
+    #now get the first channel and first zslice tif 
+
+
+    tiles=[]
+    for i_tile,(tilex,tiley) in enumerate(product(metadata['tiles_x'],metadata['tiles_y'])):
+            
+        print(f'tile {tilex}x{tiley}, {i_tile}') 
+        zstacks=[]
+        for i_chan,channel in enumerate(metadata['channels']):
         
-    zstacks=[]
-    for i_chan,channel in enumerate(metadata['channels']):
-    
-        if is_zstack:            
-            zstacks.append(build_zstack_from_single('gcs://'+in_tif_pattern.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel),fs=fs,zstack_metadata=zstack_metadata))
-        else:
-            zstacks.append(build_zstack(fs.glob('gcs://'+in_tif_glob.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel,zslice='*')),fs=fs))
-        
+            print(f'channel {i_chan}')
+            if is_zstack:            
 
-    #have list of zstack dask arrays for the tile, one for each channel
-    #stack them up and append to list of tiles
-    tiles.append(da.stack(zstacks))
+                tif_file = in_tif_pattern.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel)
+                
+                pages=[]
+                #read each page
+                for i_z in range(size_z):
+                    pages.append(da.from_delayed(delayed(read_page_as_numpy)('gcs://'+tif_file,i_z),shape=(size_y,size_x),dtype='uint16'))
+                
+                zstacks.append(da.stack(pages))
+
+            else:
+                zstacks.append(build_zstack(fs.glob('gcs://'+in_tif_glob.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel,zslice='*')),fs=fs))
+            
+
+        #have list of zstack dask arrays for the tile, one for each channel
+        #stack them up and append to list of tiles
+        tiles.append(da.stack(zstacks))
 
 
-#now we have list of tiles, each a dask array
-#stack them up to get our final array
-darr = da.stack(tiles)
+    #now we have list of tiles, each a dask array
+    #stack them up to get our final array
+    darr = da.stack(tiles)
+
+else:
+    print("single tile data not supported for tif_to_zarr_gcs")
+
 
 #rescale intensities, and recast 
 darr = darr * snakemake.params.intensity_rescaling
