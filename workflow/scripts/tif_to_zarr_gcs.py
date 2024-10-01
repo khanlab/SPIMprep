@@ -7,6 +7,7 @@ from itertools import product
 from dask.diagnostics import ProgressBar
 from lib.dask_image import imread_pages
 import gcsfs
+import pyvips
 
 gcsfs_opts={'project': snakemake.params.storage_provider_settings['gcs'].get_settings().project,
                         'token': snakemake.input.creds}
