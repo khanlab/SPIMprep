@@ -32,7 +32,7 @@ def read_tiff_slice(fs,gcs_uri, key=0):
     with fs.open(gcs_uri, 'rb') as file:
         return tifffile.imread(file, key=key)
 
-def read_page_as_numpy(tif_file_uri, page, fs=None):
+def read_page_as_numpy(tif_file_uri, page, fs):
     """Gets a single page (i.e., 2D image) from a tif file z-stack stored in a cloud URI."""
     
     # Open the file from the cloud storage using fsspec
@@ -124,7 +124,7 @@ if is_tiled:
                 pages=[]
                 #read each page
                 for i_z in range(size_z):
-                    pages.append(da.from_delayed(delayed(read_page_as_numpy)('gcs://'+tif_file,i_z),shape=(size_y,size_x),dtype='uint16'))
+                    pages.append(da.from_delayed(delayed(read_page_as_numpy)('gcs://'+tif_file,i_z,fs),shape=(size_y,size_x),dtype='uint16'))
                 
                 zstacks.append(da.stack(pages))
 
