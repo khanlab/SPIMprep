@@ -280,7 +280,7 @@ rule tif_to_zarr_gcs:
         ),
     group:
         "preproc"
-    threads: config["cores_per_rule"]
+    threads: 8
     container:
         config["containers"]["spimprep"]
     script:
