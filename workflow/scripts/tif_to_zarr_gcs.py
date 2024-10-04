@@ -11,13 +11,12 @@ from dask.diagnostics import ProgressBar
 from lib.dask_image import imread_pages
 import gcsfs
 import pyvips
-from dask.distributed import Client, LocalCluster
 
 gcsfs_opts={'project': snakemake.params.storage_provider_settings['gcs'].get_settings().project,
                         'token': snakemake.input.creds}
 fs = gcsfs.GCSFileSystem(**gcsfs_opts)
 
-cluster = LocalCluster(n_workers=snakemake.threads, threads_per_worker=1)
+dask.config.set(scheduler='threads', num_workers=snakemake.threads)  
 
 def replace_square_brackets(pattern):
     """replace all [ and ] in the string (have to use 
