@@ -16,7 +16,6 @@ gcsfs_opts={'project': snakemake.params.storage_provider_settings['gcs'].get_set
                         'token': snakemake.input.creds}
 fs = gcsfs.GCSFileSystem(**gcsfs_opts)
 
-dask.config.set(scheduler='synchronous')  # overwrite default with single-threaded scheduler
 
 def replace_square_brackets(pattern):
     """replace all [ and ] in the string (have to use 
@@ -136,7 +135,7 @@ if is_tiled:
 
                 tif_file = in_tif_pattern.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel)
                 
-                zstacks.append(da.from_delayed(delayed(read_stack_as_numpy)('gcs://'+tif_file,fs,size_z,size_y,size_x),shape=(size_z,size_y,size_x),dtype='uint16'))
+                zstacks.append(da.from_delayed(delayed(read_stack_as_numpy)('gcs://'+tif_file,fs,size_z,size_y,size_x),shape=(size_z,size_y,size_x),chunks=(1,size_y,size_x),dtype='uint16'))
 
             else:
                 zstacks.append(build_zstack(fs.glob('gcs://'+in_tif_glob.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel,zslice='*')),fs=fs))
