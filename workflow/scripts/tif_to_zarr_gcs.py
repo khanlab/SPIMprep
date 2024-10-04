@@ -1,6 +1,9 @@
+import tempfile
 import tifffile
 import json
 import dask.array as da
+import numpy as np
+import dask
 from dask.delayed import delayed
 import dask.array.image 
 from itertools import product
@@ -13,6 +16,7 @@ gcsfs_opts={'project': snakemake.params.storage_provider_settings['gcs'].get_set
                         'token': snakemake.input.creds}
 fs = gcsfs.GCSFileSystem(**gcsfs_opts)
 
+dask.config.set(scheduler='synchronous')  # overwrite default with single-threaded scheduler
 
 def replace_square_brackets(pattern):
     """replace all [ and ] in the string (have to use 
@@ -33,16 +37,26 @@ def read_tiff_slice(fs,gcs_uri, key=0):
     with fs.open(gcs_uri, 'rb') as file:
         return tifffile.imread(file, key=key)
 
-def read_stack_as_numpy(tif_file_uri, fs):
+def read_stack_as_numpy(tif_file_uri, fs, Nz,Ny,Nx):
     """Gets the full stack (i.e., 3D image) from a tif file z-stack stored in a cloud URI."""
     
-    # Open the file from the cloud storage using fsspec
-    with fs.open(tif_file_uri, 'rb') as f:
-        # Read the file content into a buffer
-        file_buffer = f.read()
+    #init array
+    vol = np.zeros((Nz,Ny,Nx),dtype='uint16')
+
+    # Create a temporary file with a .tif extension
+    with tempfile.NamedTemporaryFile(suffix=".tif", delete=True) as temp_file:
+        temp_file_path = temp_file.name
+        
+        # Open the remote file and write it to the temporary file
+        with fs.open(tif_file_uri, 'rb') as remote_file:
+            temp_file.write(remote_file.read())
+
+
+        # Use pyvips to read from the file
+        for i in range(Nz):
+            vol[i,:,:] = pyvips.Image.new_from_file(temp_file_path,  page=i).numpy()
     
-    # Use pyvips to read from the buffer
-    return pyvips.Image.new_from_buffer(file_buffer, "").numpy()
+    return vol
 
 
 
@@ -122,7 +136,7 @@ if is_tiled:
 
                 tif_file = in_tif_pattern.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel)
                 
-                zstacks.append(da.from_delayed(delayed(read_page_as_numpy)('gcs://'+tif_file,fs),shape=(size_z,size_y,size_x),dtype='uint16'))
+                zstacks.append(da.from_delayed(delayed(read_stack_as_numpy)('gcs://'+tif_file,fs,size_z,size_y,size_x),shape=(size_z,size_y,size_x),dtype='uint16'))
 
             else:
                 zstacks.append(build_zstack(fs.glob('gcs://'+in_tif_glob.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel,zslice='*')),fs=fs))
