@@ -127,11 +127,11 @@ if is_tiled:
     tiles=[]
     for i_tile,(tilex,tiley) in enumerate(product(metadata['tiles_x'],metadata['tiles_y'])):
             
-        print(f'tile {tilex}x{tiley}, {i_tile}') 
+        #print(f'tile {tilex}x{tiley}, {i_tile}') 
         zstacks=[]
         for i_chan,channel in enumerate(metadata['channels']):
         
-            print(f'channel {i_chan}')
+            #print(f'channel {i_chan}')
             if is_zstack:            
 
                 tif_file = in_tif_pattern.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel)
@@ -161,7 +161,7 @@ darr = darr.astype('uint16')
 
 #now we can do the computation itself, storing to zarr
 print('writing images to zarr with dask')
-with ProgressBar():
+with ProgressBar(dt=10):
     da.to_zarr(darr,snakemake.output.zarr,overwrite=True,dimension_separator='/')
 
 
