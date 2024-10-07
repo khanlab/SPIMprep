@@ -128,7 +128,6 @@ def get_all_subj_html(wildcards):
     htmls = []
 
     for i in range(len(datasets)):
-
         html = "{root}/qc/sub-{subject}_sample-{sample}_acq-{acq}/subject.html".format(
             root=root,
             subject=datasets.loc[i, "subject"],
@@ -255,7 +254,6 @@ def get_stains(wildcards):
     stain_columns = df.filter(like="stain_").columns
 
     return df.iloc[0][stain_columns].dropna().tolist()
-
 
 
 def get_output_ome_zarr_uri():

@@ -1,3 +1,5 @@
+
+
 rule zarr_to_ome_zarr:
     input:
         **get_storage_creds(),
@@ -27,7 +29,9 @@ rule zarr_to_ome_zarr:
         storage_provider_settings=workflow.storage_provider_settings,
     output:
         **get_output_ome_zarr("blaze"),
-    threads: config["cores_per_rule"]
+    resources:
+        mem_mb=config["total_mem_mb"],
+    threads: config["total_cores"]
     log:
         bids(
             root="logs",
@@ -77,10 +81,10 @@ rule tif_stacks_to_ome_zarr:
         config["containers"]["spimprep"]
     group:
         "preproc"
-    threads: config["cores_per_rule"]
+    threads: config["total_cores"]
     resources:
         runtime=360,
-        mem_mb=32000,
+        mem_mb=config["total_mem_mb"],
     script:
         "../scripts/tif_stacks_to_ome_zarr.py"
 
@@ -165,7 +169,7 @@ rule ome_zarr_to_nii:
         ),
     group:
         "preproc"
-    threads: config["cores_per_rule"]
+    threads: config["total_cores"]
     container:
         config["containers"]["spimprep"]
     script:

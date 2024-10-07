@@ -227,7 +227,9 @@ rule tif_to_zarr:
         ),
     group:
         "preproc"
-    threads: config["cores_per_rule"]
+    resources:
+        mem_mb=config["total_mem_mb"],
+    threads: int(config["total_mem_mb"] / 8000)  #this is memory-limited -- seems to need ~8000mb for each thread, so threads=total_mem_mb / 8000 
     container:
         config["containers"]["spimprep"]
     script:
@@ -280,7 +282,9 @@ rule tif_to_zarr_gcs:
         ),
     group:
         "preproc"
-    threads: 16
+    resources:
+        mem_mb=config["total_mem_mb"],
+    threads: int(config["total_mem_mb"] / 8000)  #this is memory-limited -- seems to need ~8000mb for each thread, so threads=total_mem_mb / 8000 
     container:
         config["containers"]["spimprep"]
     script:

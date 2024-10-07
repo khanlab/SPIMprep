@@ -85,7 +85,7 @@ rule zarr_to_bdv:
             desc="{desc}",
             suffix="log.txt",
         ),
-    threads: config["cores_per_rule"]
+    threads: config["total_cores"]
     group:
         "preproc"
     container:
@@ -152,8 +152,8 @@ rule bigstitcher_stitching:
         config["containers"]["spimprep"]
     resources:
         runtime=30,
-        mem_mb=40000,
-    threads: config["cores_per_rule"]
+        mem_mb=int(config["total_mem_mb"] * 0.9),
+    threads: config["total_cores"]
     group:
         "preproc"
     shell:
@@ -216,8 +216,8 @@ rule bigstitcher_solver:
         config["containers"]["spimprep"]
     resources:
         runtime=30,
-        mem_mb=40000,
-    threads: config["cores_per_rule"]
+        mem_mb=int(config["total_mem_mb"] * 0.9),
+    threads: config["total_cores"]
     group:
         "preproc"
     shell:
@@ -226,7 +226,7 @@ rule bigstitcher_solver:
         " -s STITCHING --lambda 0.1 "
         " {params.method} && "
         "{params.rm_old_xml}"
-        #lambda 0.1 is default (can expose this if needed)
+
 
 rule bigstitcher_fusion:
     input:
@@ -310,8 +310,8 @@ rule bigstitcher_fusion:
         config["containers"]["spimprep"]
     resources:
         runtime=30,
-        mem_mb=30000,
-    threads: config["cores_per_rule"]
+        mem_mb=int(config["total_mem_mb"] * 0.9),
+    threads: config["total_cores"]
     group:
         "preproc"
     shell:

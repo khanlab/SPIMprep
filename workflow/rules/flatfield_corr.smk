@@ -79,7 +79,11 @@ rule apply_basic_flatfield_corr:
             allow_missing=True,
         ),
     params:
-        out_chunks=[128, 128, 128],
+        out_chunks=[
+            config["bigstitcher"]["fuse_dataset"]["block_size_z"],
+            config["bigstitcher"]["fuse_dataset"]["block_size_y"],
+            config["bigstitcher"]["fuse_dataset"]["block_size_x"],
+        ],
     output:
         zarr=temp(
             directory(
@@ -115,7 +119,7 @@ rule apply_basic_flatfield_corr:
     resources:
         runtime=60,
         mem_mb=32000,
-    threads: config["cores_per_rule"]
+    threads: config["total_cores"]
     group:
         "preproc"
     script:
