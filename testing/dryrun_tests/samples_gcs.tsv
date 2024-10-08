@@ -1,2 +1,2 @@
-subject	sample	acq	stain_0	stain_1	stain_2	dataset_path
+subject	sample	acq	stain_0	stain_1	stain_2	sample_path
 mouse1	brain	blaze	Lectin	PI	Abeta	gcs://my-bucket/test_data

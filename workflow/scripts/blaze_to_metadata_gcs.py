@@ -9,13 +9,13 @@ from pathlib import Path
 import gcsfs
 from lib.cloud_io import get_fsspec
 
-dataset_uri = snakemake.params.dataset_path
+sample_uri = snakemake.params.sample_path
 
 gcsfs_opts={'project': snakemake.params.storage_provider_settings['gcs'].get_settings().project,
                         'token': snakemake.input.creds}
 fs = gcsfs.GCSFileSystem(**gcsfs_opts)
 
-tifs = fs.glob(f"{dataset_uri}/*.tif")
+tifs = fs.glob(f"{sample_uri}/*.tif")
 
 #check first tif file to see if it is zstack or not:
 if 'xyz-Table Z' in Path(tifs[0]).name:

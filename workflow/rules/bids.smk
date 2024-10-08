@@ -53,7 +53,7 @@ rule bids_samples_json:
 
 rule create_samples_tsv:
     params:
-        datasets_df=datasets,
+        samples_df=samples,
     output:
         tsv=bids_toplevel(root, "samples.tsv"),
     log:

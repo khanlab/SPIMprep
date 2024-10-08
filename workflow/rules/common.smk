@@ -85,7 +85,7 @@ def get_extension_ome_zarr():
 # targets
 def get_all_targets():
     targets = []
-    for i in range(len(datasets)):
+    for i in range(len(samples)):
         targets.extend(
             expand_bids(
                 root=root,
@@ -95,9 +95,9 @@ def get_all_targets():
                 acq="{acq}",
                 suffix="SPIM.{extension}",
                 expand_kwargs=dict(
-                    subject=datasets.loc[i, "subject"],
-                    sample=datasets.loc[i, "sample"],
-                    acq=datasets.loc[i, "acq"],
+                    subject=samples.loc[i, "subject"],
+                    sample=samples.loc[i, "sample"],
+                    acq=samples.loc[i, "acq"],
                     extension=[get_extension_ome_zarr(), "json"],
                 ),
             )
@@ -113,9 +113,9 @@ def get_all_targets():
                 stain="{stain}",
                 suffix="SPIM.nii",
                 expand_kwargs=dict(
-                    subject=datasets.loc[i, "subject"],
-                    sample=datasets.loc[i, "sample"],
-                    acq=datasets.loc[i, "acq"],
+                    subject=samples.loc[i, "subject"],
+                    sample=samples.loc[i, "sample"],
+                    acq=samples.loc[i, "acq"],
                     level=config["nifti"]["levels"],
                     stain=get_stains_by_row(i),
                 ),
@@ -127,12 +127,12 @@ def get_all_targets():
 def get_all_subj_html(wildcards):
     htmls = []
 
-    for i in range(len(datasets)):
+    for i in range(len(samples)):
         html = "{root}/qc/sub-{subject}_sample-{sample}_acq-{acq}/subject.html".format(
             root=root,
-            subject=datasets.loc[i, "subject"],
-            sample=datasets.loc[i, "sample"],
-            acq=datasets.loc[i, "acq"],
+            subject=samples.loc[i, "subject"],
+            sample=samples.loc[i, "sample"],
+            acq=samples.loc[i, "acq"],
         )
         htmls.append(remote_file(html))
 
@@ -157,51 +157,50 @@ def get_qc_targets():
     return targets
 
 
-def dataset_is_remote(wildcards):
-    return is_remote_gcs(Path(get_dataset_path(wildcards)))
+def sample_is_remote(wildcards):
+    return is_remote_gcs(Path(get_sample_path(wildcards)))
 
 
-def get_input_dataset(wildcards):
-    """returns path to extracted dataset or path to provided input folder"""
-    dataset_path = Path(get_dataset_path(wildcards))
-    suffix = dataset_path.suffix
+def get_input_sample(wildcards):
+    """returns path to extracted sample or path to provided input folder"""
+    sample_path = Path(get_sample_path(wildcards))
 
-    if is_remote_gcs(dataset_path):
+    if is_remote_gcs(sample_path):
         return rules.cp_from_gcs.output.ome_dir.format(**wildcards)
 
-    if dataset_path.is_dir():
-        return get_dataset_path_remote(wildcards)
+    if sample_path.is_dir():
+        return get_sample_path_remote(wildcards)
 
-    elif tarfile.is_tarfile(dataset_path):
-        # dataset was a tar file, so point to the extracted folder
-        return rules.extract_dataset.output.ome_dir.format(**wildcards)
+    elif tarfile.is_tarfile(sample_path):
+        # sample was a tar file, so point to the extracted folder
+        return rules.extract_sample.output.ome_dir.format(**wildcards)
 
     else:
-        print(f"unsupported input: {dataset_path}")
+        print(f"unsupported input: {sample_path}")
 
 
 def get_metadata_json(wildcards):
     """returns path to metadata, extracted from local or gcs"""
-    dataset_path = Path(get_dataset_path(wildcards))
+    sample_path = Path(get_sample_path(wildcards))
 
-    if is_remote_gcs(dataset_path):
+    if is_remote_gcs(sample_path):
         return rules.blaze_to_metadata_gcs.output.metadata_json.format(**wildcards)
     else:
         return rules.blaze_to_metadata.output.metadata_json.format(**wildcards)
 
 
 # import
-def cmd_extract_dataset(wildcards, input, output):
+def cmd_extract_sample(wildcards, input, output):
     cmds = []
 
     # supports tar, tar.gz, tgz, or folder name
-    dataset_path = Path(input.dataset_path)
-    suffix = dataset_path.suffix
-    if dataset_path.is_dir():
+    sample_path = Path(input.sample_path)
+    suffix = sample_path.suffix
+    if sample_path.is_dir():
         # we have a directory
         print("input directory not copied/extracted by this rule")
 
-    elif tarfile.is_tarfile(dataset_path):
+    elif tarfile.is_tarfile(sample_path):
         # we have a tar file
         # check if gzipped:
         cmds.append(f"mkdir -p {output}")
@@ -211,41 +210,41 @@ def cmd_extract_dataset(wildcards, input, output):
             cmds.append(f"tar -xf {input} -C {output}")
 
     else:
-        print(f"unsupported input: {dataset_path}")
+        print(f"unsupported input: {sample_path}")
 
     return " && ".join(cmds)
 
 
-def get_dataset_path_remote(wildcards):
-    path = get_dataset_path(wildcards)
+def get_sample_path_remote(wildcards):
+    path = get_sample_path(wildcards)
     if is_remote(path):
         return storage(path)
     else:
         return path
 
 
-def get_dataset_path_gs(wildcards):
-    path = Path(get_dataset_path(wildcards)).path
+def get_sample_path_gs(wildcards):
+    path = Path(get_sample_path(wildcards)).path
     return f"gs://{path}"
 
 
-def get_dataset_path(wildcards):
-    df = datasets.query(
+def get_sample_path(wildcards):
+    df = samples.query(
         f"subject=='{wildcards.subject}' and sample=='{wildcards.sample}' and acq=='{wildcards.acq}'"
     )
-    return df.dataset_path.to_list()[0]
+    return df.sample_path.to_list()[0]
 
 
 def get_stains_by_row(i):
     # Select columns that match the pattern 'stain_'
-    stain_columns = datasets.filter(like="stain_").columns
+    stain_columns = samples.filter(like="stain_").columns
 
     # Select values for a given row
-    return datasets.loc[i, stain_columns].dropna().tolist()
+    return samples.loc[i, stain_columns].dropna().tolist()
 
 
 def get_stains(wildcards):
-    df = datasets.query(
+    df = samples.query(
         f"subject=='{wildcards.subject}' and sample=='{wildcards.sample}' and acq=='{wildcards.acq}'"
     )
 

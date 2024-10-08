@@ -3,3 +3,7 @@ resources/**
 logs/**
 .snakemake
 .snakemake/**
+__pycache__
+.ipynb_checkpoints
+benchmarks
+*.swp

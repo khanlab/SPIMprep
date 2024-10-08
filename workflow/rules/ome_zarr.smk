@@ -52,7 +52,7 @@ rule zarr_to_ome_zarr:
 rule tif_stacks_to_ome_zarr:
     input:
         **get_storage_creds(),
-        tif_dir=get_input_dataset,
+        tif_dir=get_input_sample,
         metadata_json=rules.prestitched_to_metadata.output.metadata_json,
     params:
         in_tif_glob=lambda wildcards, input: os.path.join(
