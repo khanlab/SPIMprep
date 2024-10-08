@@ -42,7 +42,7 @@ rule blaze_to_metadata_gcs:
         storage_provider_settings=workflow.storage_provider_settings,
     output:
         metadata_json=bids(
-            root=root,
+            root=work,
             desc="gcs",
             subject="{subject}",
             datatype="micr",

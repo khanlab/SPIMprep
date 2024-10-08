@@ -183,7 +183,6 @@ def get_input_dataset(wildcards):
 def get_metadata_json(wildcards):
     """returns path to metadata, extracted from local or gcs"""
     dataset_path = Path(get_dataset_path(wildcards))
-    suffix = dataset_path.suffix
 
     if is_remote_gcs(dataset_path):
         return rules.blaze_to_metadata_gcs.output.metadata_json.format(**wildcards)

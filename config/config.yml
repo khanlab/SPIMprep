@@ -5,8 +5,6 @@ work: 'work'
 
 remote_creds: '~/.config/gcloud/application_default_credentials.json' #this is needed so we can pass creds to container
 
-write_ome_zarr_direct: True #use this to skip writing the final zarr output to work first and copying afterwards -- useful when work is not a fast local disk
-
 use_zipstore: False #if True, produce SPIM.ome.zarr.zip instead of SPIM.ome.zarr
 
 #total resources available, used to set rule resources
@@ -47,7 +45,7 @@ bigstitcher:
     min_r: 0.7
     max_shift_total: 50
   global_optimization:
-    enabled: 1 
+    enabled: 1
     method: TWO_ROUND_ITERATIVE
     methods: #unused, only for reference
       ONE_ROUND_SIMPLE: "One-Round"
