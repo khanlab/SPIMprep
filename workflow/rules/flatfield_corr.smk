@@ -79,11 +79,7 @@ rule apply_basic_flatfield_corr:
             allow_missing=True,
         ),
     params:
-        out_chunks=[
-            config["bigstitcher"]["fuse_dataset"]["block_size_z"],
-            config["bigstitcher"]["fuse_dataset"]["block_size_y"],
-            config["bigstitcher"]["fuse_dataset"]["block_size_x"],
-        ],
+        out_chunks=[128, 128, 128],
     output:
         zarr=temp(
             directory(
