@@ -61,7 +61,7 @@ def read_stack_as_numpy(tif_file_uri, fs, Nz,Ny,Nx):
 
 
 
-def build_zstack(gcs_uris,fs,shape,dtype):
+def build_zstack(gcs_uris,fs,size_z,size_y,size_x,dtype):
     """Build a z-stack from a list of GCS URIs."""
     
     lazy_arrays = [
@@ -69,7 +69,7 @@ def build_zstack(gcs_uris,fs,shape,dtype):
     ]
 
     # Convert the list of delayed objects into a Dask array
-    return da.stack([da.from_delayed(lazy_array, shape=shape, dtype=dtype) for lazy_array in lazy_arrays], axis=0)
+    return da.stack([da.from_delayed(lazy_array, shape=(size_y,size_x), dtype=dtype) for lazy_array in lazy_arrays], axis=0)
 
 def build_zstack_from_single(gcs_uri,zstack_metadata,fs):
     """Build a z-stack from a single GCS URI  """
@@ -125,7 +125,6 @@ if is_tiled:
 
     tiles=[]
     for i_tile,(tilex,tiley) in enumerate(product(metadata['tiles_x'],metadata['tiles_y'])):
-            
         #print(f'tile {tilex}x{tiley}, {i_tile}') 
         zstacks=[]
         for i_chan,channel in enumerate(metadata['channels']):
@@ -140,7 +139,7 @@ if is_tiled:
             else:
                 uris = expand('gcs://'+in_tif_pattern,tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel,zslice=metadata['zslices'])
 
-                zstacks.append(build_zstack(uris,fs=fs,shape=(size_z,size_y,size_x),dtype='uint16'))
+                zstacks.append(build_zstack(uris,fs=fs,size_z=size_z,size_y=size_y,size_x=size_x,dtype='uint16'))
             
 
         #have list of zstack dask arrays for the tile, one for each channel
