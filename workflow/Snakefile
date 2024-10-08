@@ -21,9 +21,9 @@ resampled = Path(root) / "derivatives" / "resampled"
 # this is needed to use the latest bids spec with the pre-release snakebids
 set_bids_spec("v0_11_0")
 
-# read datasets tsv
+# read samples tsv
 dtype = defaultdict(lambda: str, num_tiles=int)
-datasets = pd.read_csv(config["datasets"], sep="\t", dtype=dtype)
+samples = pd.read_csv(config["samples"], sep="\t", dtype=dtype)
 
 
 include: "rules/common.smk"

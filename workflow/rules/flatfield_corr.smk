@@ -8,7 +8,7 @@ rule fit_basic_flatfield_corr:
             datatype="micr",
             sample="{sample}",
             acq="{acq}",
-            desc="rawfromgcs" if dataset_is_remote(wildcards) else "raw",
+            desc="rawfromgcs" if sample_is_remote(wildcards) else "raw",
             suffix="SPIM.zarr",
         ).format(**wildcards),
     params:
@@ -70,7 +70,7 @@ rule apply_basic_flatfield_corr:
             datatype="micr",
             sample="{sample}",
             acq="{acq}",
-            desc="rawfromgcs" if dataset_is_remote(wildcards) else "raw",
+            desc="rawfromgcs" if sample_is_remote(wildcards) else "raw",
             suffix="SPIM.zarr",
         ).format(**wildcards),
         model_dirs=lambda wildcards: expand(

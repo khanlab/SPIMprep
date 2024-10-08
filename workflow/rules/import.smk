@@ -1,8 +1,8 @@
-rule extract_dataset:
+rule extract_sample:
     input:
-        dataset_path=get_dataset_path_remote,
+        sample_path=get_sample_path_remote,
     params:
-        cmd=cmd_extract_dataset,
+        cmd=cmd_extract_sample,
     output:
         ome_dir=temp(
             directory(
@@ -23,7 +23,7 @@ rule extract_dataset:
         bids(
             root="logs",
             subject="{subject}",
-            datatype="extract_dataset",
+            datatype="extract_sample",
             sample="{sample}",
             acq="{acq}",
             desc="raw",
@@ -37,7 +37,7 @@ rule blaze_to_metadata_gcs:
     input:
         creds=os.path.expanduser(config["remote_creds"]),
     params:
-        dataset_path=get_dataset_path_gs,
+        sample_path=get_sample_path_gs,
         in_tif_pattern=lambda wildcards: config["import_blaze"]["raw_tif_pattern"],
         storage_provider_settings=workflow.storage_provider_settings,
     output:
@@ -78,7 +78,7 @@ rule blaze_to_metadata_gcs:
 
 rule blaze_to_metadata:
     input:
-        ome_dir=get_input_dataset,
+        ome_dir=get_input_sample,
     output:
         metadata_json=temp(
             bids(
@@ -144,7 +144,7 @@ rule copy_blaze_metadata:
 
 rule prestitched_to_metadata:
     input:
-        ome_dir=get_input_dataset,
+        ome_dir=get_input_sample,
     params:
         physical_size_x_um=config["import_prestitched"]["physical_size_x_um"],
         physical_size_y_um=config["import_prestitched"]["physical_size_y_um"],
@@ -189,7 +189,7 @@ rule tif_to_zarr:
         output shape is (tiles,channels,z,y,x), with the 2d 
         images as the chunks"""
     input:
-        ome_dir=get_input_dataset,
+        ome_dir=get_input_sample,
         metadata_json=rules.copy_blaze_metadata.output.metadata_json,
     params:
         intensity_rescaling=config["import_blaze"]["intensity_rescaling"],
@@ -244,7 +244,7 @@ rule tif_to_zarr_gcs:
         metadata_json=rules.copy_blaze_metadata.output.metadata_json,
         creds=os.path.expanduser(config["remote_creds"]),
     params:
-        dataset_path=get_dataset_path_gs,
+        sample_path=get_sample_path_gs,
         in_tif_pattern=lambda wildcards: config["import_blaze"]["raw_tif_pattern"],
         intensity_rescaling=config["import_blaze"]["intensity_rescaling"],
         storage_provider_settings=workflow.storage_provider_settings,

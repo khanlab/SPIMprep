@@ -1,4 +1,4 @@
-datasets: 'config/datasets.tsv'
+samples: 'config/samples.tsv'
 
 root: 'bids' # can use a s3:// or gcs:// prefix to write output to cloud storage
 work: 'work' 

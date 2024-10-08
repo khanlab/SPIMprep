@@ -1,6 +1,6 @@
 import pandas as pd
 
-df = snakemake.params.datasets_df
+df = snakemake.params.samples_df
 
 df['participant_id'] = 'sub-' + df['subject'] 
 df['sample_id'] = 'sample-' + df['sample'] 

@@ -20,7 +20,7 @@ rule generate_flatfield_qc:
             datatype="micr",
             sample="{sample}",
             acq="{acq}",
-            desc="rawfromgcs" if dataset_is_remote(wildcards) else "raw",
+            desc="rawfromgcs" if sample_is_remote(wildcards) else "raw",
             suffix="SPIM.zarr",
         ).format(**wildcards),
         corr=bids(
@@ -190,7 +190,7 @@ rule generate_aggregate_qc:
         report_html=config["report"]["resources"]["report_html"],
         subj_htmls=get_all_subj_html,
     params:
-        datasets=datasets,
+        samples=samples,
     output:
         total_html=remote_file(Path(root) / "qc" / "qc_report.html"),
     log:
