@@ -8,7 +8,6 @@ from dask.delayed import delayed
 import dask.array.image 
 from itertools import product
 from dask.diagnostics import ProgressBar
-from lib.dask_image import imread_pages
 import gcsfs
 import pyvips
 from snakemake.io import expand

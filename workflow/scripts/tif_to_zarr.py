@@ -5,7 +5,6 @@ import pyvips
 import dask.array as da
 from dask.delayed import delayed
 from dask.array.image import imread as imread_tifs
-from lib.dask_image import imread_pages
 from itertools import product
 from dask.diagnostics import ProgressBar
 
