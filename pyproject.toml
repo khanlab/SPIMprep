@@ -20,12 +20,21 @@ universal-pathlib = "^0.2.2"
 snakefmt = "^0.10.0"
 mkdocs-material = "^9.5.20"
 mkdocs-include-markdown-plugin = "^6.0.6"
+poethepoet = "^0.29.0"
 
 
 [tool.poetry.group.dataset_creation.dependencies]
 typer = "^0.12.3"
 xmltodict = "^0.13.0"
 tifffile = "^2024.5.10"
+
+[tool.poe.tasks]
+test_localin_gcsout = "snakemake --dry-run --config datasets=testing/dryrun_tests/datasets_local.tsv root='gcs://khanlab-lightsheet/data/test_bids'"
+test_localin_localout = "snakemake --dry-run --config datasets=testing/dryrun_tests/datasets_local.tsv root=bids"
+test_gcsin_gcsout = "snakemake --dry-run --config datasets=testing/dryrun_tests/datasets_gcs.tsv root='gcs://khanlab-lightsheet/data/test_bids'"
+test_gcsin_localout = "snakemake --dry-run --config datasets=testing/dryrun_tests/datasets_gcs.tsv root=bids"
+test_localin_localout_zipstore = "snakemake --dry-run --config datasets=testing/dryrun_tests/datasets_local.tsv root=bids use_zipstore=True"
+test_localin_gcsout_zipstore = "snakemake --dry-run --config datasets=testing/dryrun_tests/datasets_local.tsv root='gcs://khanlab-lightsheet/data/test_bids' use_zipstore=True"
 
 [build-system]
 requires = ["poetry-core"]

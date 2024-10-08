@@ -42,7 +42,7 @@ rule blaze_to_metadata_gcs:
         storage_provider_settings=workflow.storage_provider_settings,
     output:
         metadata_json=bids(
-            root=root,
+            root=work,
             desc="gcs",
             subject="{subject}",
             datatype="micr",
@@ -79,11 +79,6 @@ rule blaze_to_metadata_gcs:
 rule blaze_to_metadata:
     input:
         ome_dir=get_input_dataset,
-    params:
-        in_tif_pattern=lambda wildcards, input: os.path.join(
-            input.ome_dir,
-            config["import_blaze"]["raw_tif_pattern"],
-        ),
     output:
         metadata_json=temp(
             bids(
@@ -197,10 +192,6 @@ rule tif_to_zarr:
         ome_dir=get_input_dataset,
         metadata_json=rules.copy_blaze_metadata.output.metadata_json,
     params:
-        in_tif_pattern=lambda wildcards, input: os.path.join(
-            input.ome_dir,
-            config["import_blaze"]["raw_tif_pattern"],
-        ),
         intensity_rescaling=config["import_blaze"]["intensity_rescaling"],
     output:
         zarr=temp(
@@ -236,7 +227,9 @@ rule tif_to_zarr:
         ),
     group:
         "preproc"
-    threads: config["cores_per_rule"]
+    resources:
+        mem_mb=config["total_mem_mb"],
+    threads: int(config["total_mem_mb"] / 8000)  #this is memory-limited -- seems to need ~8000mb for each thread, so threads=total_mem_mb / 8000 
     container:
         config["containers"]["spimprep"]
     script:
@@ -289,7 +282,9 @@ rule tif_to_zarr_gcs:
         ),
     group:
         "preproc"
-    threads: config["cores_per_rule"]
+    resources:
+        mem_mb=config["total_mem_mb"],
+    threads: int(config["total_mem_mb"] / 8000)  #this is memory-limited -- seems to need ~8000mb for each thread, so threads=total_mem_mb / 8000 
     container:
         config["containers"]["spimprep"]
     script:

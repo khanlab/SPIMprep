@@ -1,18 +1,20 @@
 datasets: 'config/datasets.tsv'
 
-
 root: 'bids' # can use a s3:// or gcs:// prefix to write output to cloud storage
 work: 'work' 
 
 remote_creds: '~/.config/gcloud/application_default_credentials.json' #this is needed so we can pass creds to container
 
-write_ome_zarr_direct: True #use this to skip writing the final zarr output to work first and copying afterwards -- useful when work is not a fast local disk
+use_zipstore: False #if True, produce SPIM.ome.zarr.zip instead of SPIM.ome.zarr
 
-cores_per_rule: 32 
+#total resources available, used to set rule resources
+total_cores: 32 
+total_mem_mb: 128000 
 
 #import wildcards:  tilex, tiley, channel, zslice (and prefix - unused)
 import_blaze:
   raw_tif_pattern: "{prefix}_Blaze[{tilex} x {tiley}]_C{channel}_xyz-Table Z{zslice}.ome.tif"
+  raw_tif_pattern_zstack:  "{prefix}_Blaze[{tilex} x {tiley}]_C{channel}.ome.tif"
   intensity_rescaling: 0.5 #raw images seem to be at the upper end of uint16 (over-saturated) -- causes wrapping issues when adjusting with flatfield correction etc. this rescales the raw data as it imports it..
 
 import_prestitched:
@@ -36,16 +38,14 @@ bigstitcher:
     downsample_in_x: 4
     downsample_in_y: 4
     downsample_in_z: 1
-    method: "phase_corr" #unused
-    methods: #unused
+    methods: #unused, only for reference
       phase_corr: "Phase Correlation" 
       optical_flow: "Lucas-Kanade"  
   filter_pairwise_shifts:
-    enabled: 1 #unused
     min_r: 0.7
     max_shift_total: 50
   global_optimization:
-    enabled: 1 
+    enabled: 1
     method: TWO_ROUND_ITERATIVE
     methods: #unused, only for reference
       ONE_ROUND_SIMPLE: "One-Round"
@@ -64,7 +64,7 @@ bigstitcher:
     block_size_factor_z: 32
 
 ome_zarr:
-  desc: sparkstitchedflatcorr
+  desc: stitchedflatcorr
   max_downsampling_layers: 5 # e.g. 4 levels: { 0: orig, 1: ds2, 2: ds4, 3: ds8, 4: ds16}
   rechunk_size: #z, y, x 
     - 1 
@@ -100,7 +100,6 @@ ome_zarr:
       id: 0
       name: spim
       version: "0.4"  
-  use_zipstore: False #if True, produce SPIM.ome.zarr.zip instead of SPIM.ome.zarr
 
 nifti:
   levels: #cannot be higher than max_downsampling_layers in ome_zarr
@@ -155,5 +154,5 @@ report:
 
 
 containers:
-  spimprep: 'docker://khanlab/spimprep-deps:main'
+  spimprep: 'docker://khanlab/spimprep-deps:v0.1.0'
 

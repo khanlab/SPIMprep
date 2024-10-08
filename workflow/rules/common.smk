@@ -73,11 +73,11 @@ def get_extension_ome_zarr():
     (e.g. the touch file is used instead). Also appends a .zip if the
     zipstore option is enabled."""
 
-    if is_remote(config["root"]):
-        return "ome.zarr/.snakemake_touch"
+    if config["use_zipstore"]:
+        return "ome.zarr.zip"
     else:
-        if config["ome_zarr"]["use_zipstore"]:
-            return "ome.zarr.zip"
+        if is_remote(config["root"]):
+            return "ome.zarr/.snakemake_touch"
         else:
             return "ome.zarr"
 
@@ -128,7 +128,6 @@ def get_all_subj_html(wildcards):
     htmls = []
 
     for i in range(len(datasets)):
-
         html = "{root}/qc/sub-{subject}_sample-{sample}_acq-{acq}/subject.html".format(
             root=root,
             subject=datasets.loc[i, "subject"],
@@ -184,7 +183,6 @@ def get_input_dataset(wildcards):
 def get_metadata_json(wildcards):
     """returns path to metadata, extracted from local or gcs"""
     dataset_path = Path(get_dataset_path(wildcards))
-    suffix = dataset_path.suffix
 
     if is_remote_gcs(dataset_path):
         return rules.blaze_to_metadata_gcs.output.metadata_json.format(**wildcards)
@@ -257,92 +255,63 @@ def get_stains(wildcards):
     return df.iloc[0][stain_columns].dropna().tolist()
 
 
-# bigstitcher
-def get_fiji_launcher_cmd(wildcards, output, threads, resources):
-    launcher_opts_find = "-Xincgc"
-    launcher_opts_replace = f"-XX:+UseG1GC -verbose:gc -XX:+PrintGCDateStamps -XX:ActiveProcessorCount={threads}"
-    pipe_cmds = []
-    pipe_cmds.append("ImageJ-linux64 --dry-run --headless --console")
-    pipe_cmds.append(f"sed 's/{launcher_opts_find}/{launcher_opts_replace}'/")
-    pipe_cmds.append(
-        rf"sed 's/-Xmx[0-9a-z]\+/-Xmx{resources.mem_mb}m -Xms{resources.mem_mb}m/'"
-    )
-    pipe_cmds.append("tr --delete '\\n'")
-    return "|".join(pipe_cmds) + f" > {output.launcher} && chmod a+x {output.launcher} "
-
-
-def get_macro_args_bigstitcher(wildcards, input, output):
-    return "{dataset_xml} {pairwise_method} {ds_x} {ds_y} {ds_z} {do_filter} {min_r} {do_global} {global_strategy}".format(
-        dataset_xml=output.dataset_xml,
-        pairwise_method=config["bigstitcher"]["calc_pairwise_shifts"]["methods"][
-            config["bigstitcher"]["calc_pairwise_shifts"]["method"]
-        ],
-        ds_x=config["bigstitcher"]["calc_pairwise_shifts"]["downsample_in_x"],
-        ds_y=config["bigstitcher"]["calc_pairwise_shifts"]["downsample_in_y"],
-        ds_z=config["bigstitcher"]["calc_pairwise_shifts"]["downsample_in_z"],
-        do_filter=config["bigstitcher"]["filter_pairwise_shifts"]["enabled"],
-        min_r=config["bigstitcher"]["filter_pairwise_shifts"]["min_r"],
-        do_global=config["bigstitcher"]["global_optimization"]["enabled"],
-        global_strategy=config["bigstitcher"]["global_optimization"]["strategies"][
-            config["bigstitcher"]["global_optimization"]["strategy"]
-        ],
-    )
-
-
-def get_macro_args_zarr_fusion(wildcards, input, output):
-    return "{dataset_xml} {downsampling} {channel:02d} {output_zarr} {bsx} {bsy} {bsz} {bsfx} {bsfy} {bsfz}".format(
-        dataset_xml=input.dataset_xml,
-        downsampling=config["bigstitcher"]["fuse_dataset"]["downsampling"],
-        channel=get_stains(wildcards).index(wildcards.stain),
-        output_zarr=output.zarr,
-        bsx=config["bigstitcher"]["fuse_dataset"]["block_size_x"],
-        bsy=config["bigstitcher"]["fuse_dataset"]["block_size_y"],
-        bsz=config["bigstitcher"]["fuse_dataset"]["block_size_z"],
-        bsfx=config["bigstitcher"]["fuse_dataset"]["block_size_factor_x"],
-        bsfy=config["bigstitcher"]["fuse_dataset"]["block_size_factor_y"],
-        bsfz=config["bigstitcher"]["fuse_dataset"]["block_size_factor_z"],
-    )
-
-
 def get_output_ome_zarr_uri():
+    uri = _bids(
+        root=root,
+        subject="{subject}",
+        datatype="micr",
+        sample="{sample}",
+        acq="{acq}",
+        suffix="SPIM.{ext}".format(
+            ext="ome.zarr.zip" if config["use_zipstore"] else "ome.zarr"
+        ),
+    )
     if is_remote(config["root"]):
-        return _bids(
-            root=root,
-            subject="{subject}",
-            datatype="micr",
-            sample="{sample}",
-            acq="{acq}",
-            suffix="SPIM.{ext}".format(ext=get_extension_ome_zarr()),
-        )
+        return uri
     else:
-        return "local://" + _bids(
-            root=root,
-            subject="{subject}",
-            datatype="micr",
-            sample="{sample}",
-            acq="{acq}",
-            suffix="SPIM.{ext}".format(ext=get_extension_ome_zarr()),
-        )
+        return "local://" + uri
 
 
 def get_output_ome_zarr(acq_type):
     if is_remote(config["root"]):
-        return {
-            "zarr": touch(
-                bids(
-                    root=root,
+
+        if config["use_zipstore"]:
+            return {
+                "zarr": bids(
+                    root=work,
                     subject="{subject}",
                     datatype="micr",
                     sample="{sample}",
                     acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
-                    suffix="SPIM.{extension}".format(
-                        extension=get_extension_ome_zarr()
-                    ),
+                    suffix="SPIM.ome.zarr",
                 )
-            )
-        }
+            }
+        else:
+            return {
+                "zarr": touch(
+                    bids(
+                        root=root,
+                        subject="{subject}",
+                        datatype="micr",
+                        sample="{sample}",
+                        acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
+                        suffix="SPIM.ome.zarr/.snakemake_touch",
+                    )
+                )
+            }
     else:
-        if config["write_ome_zarr_direct"]:
+        if config["use_zipstore"]:
+            return {
+                "zarr": bids(
+                    root=work,
+                    subject="{subject}",
+                    datatype="micr",
+                    sample="{sample}",
+                    acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
+                    suffix="SPIM.ome.zarr",
+                )
+            }
+        else:
             return {
                 "zarr": directory_bids(
                     root=root,
@@ -353,19 +322,48 @@ def get_output_ome_zarr(acq_type):
                     suffix="SPIM.ome.zarr",
                 )
             }
+
+
+def get_input_ome_zarr_to_nii(wildcards):
+    """input function for ome_zarr_to_nii"""
+    if is_remote(root):
+        if config["use_zipstore"]:
+            return bids(
+                root=work,
+                subject="{subject}",
+                datatype="micr",
+                sample="{sample}",
+                acq="{acq}",
+                suffix="SPIM.ome.zarr",
+            ).format(**wildcards)
         else:
-            return {
-                "zarr": temp(
-                    directory_bids(
-                        root=work,
-                        subject="{subject}",
-                        datatype="micr",
-                        sample="{sample}",
-                        acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
-                        suffix="SPIM.ome.zarr",
-                    )
-                )
-            }
+            return bids(
+                root=root,
+                subject="{subject}",
+                datatype="micr",
+                sample="{sample}",
+                acq="{acq}",
+                suffix="SPIM.ome.zarr/.snakemake_touch",
+            ).format(**wildcards)
+    else:
+        if config["use_zipstore"]:
+            return bids(
+                root=root,
+                subject="{subject}",
+                datatype="micr",
+                sample="{sample}",
+                acq="{acq}",
+                suffix="SPIM.ome.zarr.zip",
+            ).format(**wildcards)
+        else:
+            return bids(
+                root=root,
+                subject="{subject}",
+                datatype="micr",
+                sample="{sample}",
+                acq="{acq}",
+                suffix="SPIM.ome.zarr",
+            ).format(**wildcards)
 
 
 def get_storage_creds():

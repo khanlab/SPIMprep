@@ -18,6 +18,7 @@ Takes TIF images (tiled or prestitched) and outputs a validated BIDS Microscopy 
  - Python >= 3.11
  - Lightsheet data:
     - Raw Ultramicroscope Blaze OME TIFF files (include `blaze` in the acquisition tag)
+        - can be 2D or 3D TIFF files
     - Prestitched TIFF files (include `prestitched` in the acquisition tag)
 
 
@@ -63,10 +64,8 @@ or for snakemake<8.0, use:
 snakemake -c all --use-singularity 
 ```
 
-Note: if you run the workflow on a system with large memory, you will need to set the heap size for the stitching and fusion rules. This can be done with e.g.: `--set-resources bigstitcher_spark_stitching:mem_mb=60000 bigstitcher_spark_fusion:mem_mb=100000`
+Note: if you run the workflow on a system with large memory, you will need to set the heap size for the stitching and fusion rules. This can be done with e.g.: `--set-resources bigstitcher_stitching:mem_mb=60000 bigstitcher_fusion:mem_mb=100000`
 
 7. If you want to run the workflow using a batch job submission server, please see the executor plugins here: https://snakemake.github.io/snakemake-plugin-catalog/
 
-
-Alternate usage of this workflow (making use of conda) is described in the [Snakemake Workflow Catalog](https://snakemake.github.io/snakemake-workflow-catalog?repo=khanlab/SPIMprep).
 <!--intro-end-->

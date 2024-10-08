@@ -115,7 +115,7 @@ rule apply_basic_flatfield_corr:
     resources:
         runtime=60,
         mem_mb=32000,
-    threads: config["cores_per_rule"]
+    threads: config["total_cores"]
     group:
         "preproc"
     script:
