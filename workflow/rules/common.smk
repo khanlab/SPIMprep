@@ -73,11 +73,11 @@ def get_extension_ome_zarr():
     (e.g. the touch file is used instead). Also appends a .zip if the
     zipstore option is enabled."""
 
-    if is_remote(config["root"]):
-        return "ome.zarr/.snakemake_touch"
+    if config["use_zipstore"]:
+        return "ome.zarr.zip"
     else:
-        if config["ome_zarr"]["use_zipstore"]:
-            return "ome.zarr.zip"
+        if is_remote(config["root"]):
+            return "ome.zarr/.snakemake_touch"
         else:
             return "ome.zarr"
 
@@ -257,44 +257,62 @@ def get_stains(wildcards):
 
 
 def get_output_ome_zarr_uri():
+    uri = _bids(
+        root=root,
+        subject="{subject}",
+        datatype="micr",
+        sample="{sample}",
+        acq="{acq}",
+        suffix="SPIM.{ext}".format(
+            ext="ome.zarr.zip" if config["use_zipstore"] else "ome.zarr"
+        ),
+    )
     if is_remote(config["root"]):
-        return _bids(
-            root=root,
-            subject="{subject}",
-            datatype="micr",
-            sample="{sample}",
-            acq="{acq}",
-            suffix="SPIM.{ext}".format(ext=get_extension_ome_zarr()),
-        )
+        return uri
     else:
-        return "local://" + _bids(
-            root=root,
-            subject="{subject}",
-            datatype="micr",
-            sample="{sample}",
-            acq="{acq}",
-            suffix="SPIM.{ext}".format(ext=get_extension_ome_zarr()),
-        )
+        return "local://" + uri
 
 
 def get_output_ome_zarr(acq_type):
     if is_remote(config["root"]):
-        return {
-            "zarr": touch(
-                bids(
-                    root=root,
+
+        if config["use_zipstore"]:
+            return {
+                "zarr": bids(
+                    root=work,
                     subject="{subject}",
                     datatype="micr",
                     sample="{sample}",
                     acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
-                    suffix="SPIM.{extension}".format(
-                        extension=get_extension_ome_zarr()
-                    ),
+                    suffix="SPIM.ome.zarr",
                 )
-            )
-        }
+            }
+        else:
+            return {
+                "zarr": touch(
+                    bids(
+                        root=root,
+                        subject="{subject}",
+                        datatype="micr",
+                        sample="{sample}",
+                        acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
+                        suffix="SPIM.ome.zarr/.snakemake_touch",
+                    )
+                )
+            }
     else:
-        if config["write_ome_zarr_direct"]:
+        if config["use_zipstore"]:
+            return {
+                "zarr": bids(
+                    root=work,
+                    subject="{subject}",
+                    datatype="micr",
+                    sample="{sample}",
+                    acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
+                    suffix="SPIM.ome.zarr",
+                )
+            }
+        else:
             return {
                 "zarr": directory_bids(
                     root=root,
@@ -305,19 +323,48 @@ def get_output_ome_zarr(acq_type):
                     suffix="SPIM.ome.zarr",
                 )
             }
+
+
+def get_input_ome_zarr_to_nii(wildcards):
+    """input function for ome_zarr_to_nii"""
+    if is_remote(root):
+        if config["use_zipstore"]:
+            return bids(
+                root=work,
+                subject="{subject}",
+                datatype="micr",
+                sample="{sample}",
+                acq="{acq}",
+                suffix="SPIM.ome.zarr",
+            ).format(**wildcards)
         else:
-            return {
-                "zarr": temp(
-                    directory_bids(
-                        root=work,
-                        subject="{subject}",
-                        datatype="micr",
-                        sample="{sample}",
-                        acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
-                        suffix="SPIM.ome.zarr",
-                    )
-                )
-            }
+            return bids(
+                root=root,
+                subject="{subject}",
+                datatype="micr",
+                sample="{sample}",
+                acq="{acq}",
+                suffix="SPIM.ome.zarr/.snakemake_touch",
+            ).format(**wildcards)
+    else:
+        if config["use_zipstore"]:
+            return bids(
+                root=root,
+                subject="{subject}",
+                datatype="micr",
+                sample="{sample}",
+                acq="{acq}",
+                suffix="SPIM.ome.zarr.zip",
+            ).format(**wildcards)
+        else:
+            return bids(
+                root=root,
+                subject="{subject}",
+                datatype="micr",
+                sample="{sample}",
+                acq="{acq}",
+                suffix="SPIM.ome.zarr",
+            ).format(**wildcards)
 
 
 def get_storage_creds():

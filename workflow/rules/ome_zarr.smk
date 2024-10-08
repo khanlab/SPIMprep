@@ -89,30 +89,35 @@ rule tif_stacks_to_ome_zarr:
         "../scripts/tif_stacks_to_ome_zarr.py"
 
 
-if config["write_ome_zarr_direct"] == False:
-
-    rule ome_zarr_from_work:
-        """ generic rule to copy any ome.zarr from work """
-        input:
-            zarr=f"{work}/{{prefix}}.ome.zarr",
-        output:
-            zarr=directory(f"{root}/{{prefix}}.ome.zarr"),
-        log:
-            "logs/ome_zarr_to_from_work/{prefix}.log",
-        group:
-            "preproc"
-        shell:
-            "cp -R {input.zarr} {output.zarr} &> {log}"
-
-
 rule ome_zarr_to_zipstore:
-    """ generic rule to process any ome.zarr from work """
+    """ use 7zip to create a zipstore """
     input:
-        zarr=f"{work}/{{prefix}}.ome.zarr",
+        zarr=bids(
+            root=work,
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="SPIM.ome.zarr",
+        ),
     output:
-        zarr_zip=f"{root}/{{prefix}}.ome.zarr.zip",
+        zarr_zip=bids(
+            root=root,
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="SPIM.ome.zarr.zip",
+        ),
     log:
-        "logs/ome_zarr_to_zipstore/{prefix}.log",
+        bids(
+            root="logs",
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="log.txt",
+        ),
     group:
         "preproc"
     shell:
@@ -122,14 +127,7 @@ rule ome_zarr_to_zipstore:
 rule ome_zarr_to_nii:
     input:
         **get_storage_creds(),
-        zarr=bids(
-            root=root,
-            subject="{subject}",
-            datatype="micr",
-            sample="{sample}",
-            acq="{acq}",
-            suffix="SPIM.{ext}".format(ext=get_extension_ome_zarr()),
-        ),
+        zarr=get_input_ome_zarr_to_nii,
     params:
         channel_index=lambda wildcards: get_stains(wildcards).index(wildcards.stain),
         uri=get_output_ome_zarr_uri(),
