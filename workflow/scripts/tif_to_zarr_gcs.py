@@ -11,6 +11,7 @@ from dask.diagnostics import ProgressBar
 from lib.dask_image import imread_pages
 import gcsfs
 import pyvips
+from snakemake.io import expand
 
 gcsfs_opts={'project': snakemake.params.storage_provider_settings['gcs'].get_settings().project,
                         'token': snakemake.input.creds}
@@ -60,17 +61,15 @@ def read_stack_as_numpy(tif_file_uri, fs, Nz,Ny,Nx):
 
 
 
-def build_zstack(gcs_uris,fs):
+def build_zstack(gcs_uris,fs,shape,dtype):
     """Build a z-stack from a list of GCS URIs."""
+    
     lazy_arrays = [
         dask.delayed(read_tiff_slice)(fs,uri) for uri in gcs_uris
     ]
-    sample_array = read_tiff_slice(fs,gcs_uris[0])  # Read a sample to get shape and dtype
-    shape = (len(gcs_uris),) + sample_array.shape
-    dtype = sample_array.dtype
 
     # Convert the list of delayed objects into a Dask array
-    return da.stack([da.from_delayed(lazy_array, shape=sample_array.shape, dtype=dtype) for lazy_array in lazy_arrays], axis=0)
+    return da.stack([da.from_delayed(lazy_array, shape=shape, dtype=dtype) for lazy_array in lazy_arrays], axis=0)
 
 def build_zstack_from_single(gcs_uri,zstack_metadata,fs):
     """Build a z-stack from a single GCS URI  """
@@ -139,7 +138,9 @@ if is_tiled:
                 zstacks.append(da.from_delayed(delayed(read_stack_as_numpy)('gcs://'+tif_file,fs,size_z,size_y,size_x),shape=(size_z,size_y,size_x),dtype='uint16').rechunk((1,size_y,size_x)))
 
             else:
-                zstacks.append(build_zstack(fs.glob('gcs://'+in_tif_glob.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel,zslice='*')),fs=fs))
+                uris = expand('gcs://'+in_tif_pattern,tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel,zslice=metadata['zslices'])
+
+                zstacks.append(build_zstack(uris,fs=fs,shape=(size_z,size_y,size_x),dtype='uint16'))
             
 
         #have list of zstack dask arrays for the tile, one for each channel
