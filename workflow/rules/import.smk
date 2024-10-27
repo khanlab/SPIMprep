@@ -193,18 +193,18 @@ rule tif_to_zarr:
         metadata_json=rules.copy_blaze_metadata.output.metadata_json,
     params:
         intensity_rescaling=config["import_blaze"]["intensity_rescaling"],
+        do_rechunking=True if config["ome_zarr"]["desc"][-3:] == "raw" else False,
+        out_chunks=config["basic_flatfield_corr"]["output_chunks"],
     output:
-        zarr=temp(
-            directory(
-                bids(
-                    root=work,
-                    subject="{subject}",
-                    datatype="micr",
-                    sample="{sample}",
-                    acq="{acq}",
-                    desc="raw",
-                    suffix="SPIM.zarr",
-                )
+        zarr=intermediate_zarr(
+            bids(
+                root=work,
+                subject="{subject}",
+                datatype="micr",
+                sample="{sample}",
+                acq="{acq}",
+                desc="raw",
+                suffix="SPIM",
             )
         ),
     benchmark:

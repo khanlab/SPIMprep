@@ -2,11 +2,13 @@ import tifffile
 import os
 import json
 import pyvips
+import zarr
 import dask.array as da
 from dask.delayed import delayed
 from dask.array.image import imread as imread_tifs
 from itertools import product
 from dask.diagnostics import ProgressBar
+from pathlib import Path
 
 def replace_square_brackets(pattern):
     """replace all [ and ] in the string (have to use 
@@ -115,9 +117,17 @@ print(darr.chunksize)
 #rescale intensities, and recast 
 darr = darr * snakemake.params.intensity_rescaling
 darr = darr.astype('uint16')
+
+darr = darr.rechunk([1,1] + snakemake.params.out_chunks)
+
 #now we can do the computation itself, storing to zarr
+if Path(snakemake.output.zarr).suffix == '.zip':
+    store = zarr.storage.ZipStore(snakemake.output.zarr,dimension_separator='/',mode='w')
+else:
+    store = zarr.storage.DirectoryStore(snakemake.output.zarr,dimension_separator='/')
+
 print('writing images to zarr with dask')
 with ProgressBar():
-    da.to_zarr(darr,snakemake.output.zarr,overwrite=True,dimension_separator='/')
+    da.to_zarr(darr,store,overwrite=True)
 
 

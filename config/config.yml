@@ -1,15 +1,16 @@
 samples: 'config/samples.tsv'
 
 root: 'bids' # can use a s3:// or gcs:// prefix to write output to cloud storage
-work: 'work' 
+work: 'work' #intermediate files, uses zipstores if enabled 
+workn5: 'workn5'  #where the bigstitcher temp files go (not using zipstores)
 
 remote_creds: '~/.config/gcloud/application_default_credentials.json' #this is needed so we can pass creds to container
 
-use_zipstore: False #if True, produce SPIM.ome.zarr.zip instead of SPIM.ome.zarr
+use_zipstore: True #if True, produce SPIM.ome.zarr.zip instead of SPIM.ome.zarr, and zarr.zip for intermediate files
 
 #total resources available, used to set rule resources
-total_cores: 32 
-total_mem_mb: 128000 
+total_cores: 32
+total_mem_mb: 128000
 
 #import wildcards:  tilex, tiley, channel, zslice (and prefix - unused)
 import_blaze:
@@ -31,10 +32,14 @@ basic_flatfield_corr:
     smoothness_flatfield: 1.0
     smoothness_darkfield: 1.0
     sparse_cost_darkfield: 0.01
+  output_chunks:
+    - 128
+    - 128
+    - 128
 
 
 bigstitcher:
-  use_interestpoints: False
+  use_interestpoints: True
   interest_points:
     downsample_xy: 4
     min_intensity: 0
@@ -72,7 +77,7 @@ bigstitcher:
     block_size_factor_z: 32
 
 ome_zarr:
-  desc: stitchedflatcorr
+  desc: stitchedraw
   max_downsampling_layers: 5 # e.g. 4 levels: { 0: orig, 1: ds2, 2: ds4, 3: ds8, 4: ds16}
   rechunk_size: #z, y, x 
     - 1 

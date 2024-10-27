@@ -2,6 +2,7 @@ import json
 from basicpy import BaSiC
 from pathlib import Path
 import numpy as np
+import zarr
 from skimage.transform import resize
 import dask.array as da
 from dask.diagnostics import ProgressBar
@@ -49,5 +50,12 @@ for i_channel,model in enumerate(snakemake.input.model_dirs):
 #stack along chans
 arr_stacked = da.stack(chan_arr_list,axis=1).rechunk([1,1] + snakemake.params.out_chunks)
 
+#now we can do the computation itself, storing to zarr
+if Path(snakemake.output.zarr).suffix == '.zip':
+    store = zarr.storage.ZipStore(snakemake.output.zarr,dimension_separator='/',mode='w')
+else:
+    store = zarr.storage.DirectoryStore(snakemake.output.zarr,dimension_separator='/')
+
+
 with ProgressBar():
-    da.to_zarr(arr_stacked,snakemake.output.zarr,overwrite=True,dimension_separator='/')
+    da.to_zarr(arr_stacked,store,overwrite=True)

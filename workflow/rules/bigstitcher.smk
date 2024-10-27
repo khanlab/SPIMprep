@@ -7,7 +7,9 @@ rule zarr_to_bdv:
             sample="{sample}",
             acq="{acq}",
             desc="{desc}",
-            suffix="SPIM.zarr",
+            suffix="SPIM.{ext}".format(
+                ext="zarr.zip" if config["use_zipstore"] else "zarr"
+            ),
         ),
         metadata_json=rules.copy_blaze_metadata.output.metadata_json,
     params:
@@ -15,7 +17,7 @@ rule zarr_to_bdv:
         temp_h5=str(
             Path(
                 bids(
-                    root=work,
+                    root=workn5,
                     subject="{subject}",
                     datatype="micr",
                     sample="{sample}",
@@ -29,7 +31,7 @@ rule zarr_to_bdv:
         temp_xml=str(
             Path(
                 bids(
-                    root=work,
+                    root=workn5,
                     subject="{subject}",
                     datatype="micr",
                     sample="{sample}",
@@ -44,7 +46,7 @@ rule zarr_to_bdv:
         bdv_n5=temp(
             directory(
                 bids(
-                    root=work,
+                    root=workn5,
                     subject="{subject}",
                     datatype="micr",
                     sample="{sample}",
@@ -56,7 +58,7 @@ rule zarr_to_bdv:
         ),
         bdv_xml=temp(
             bids(
-                root=work,
+                root=workn5,
                 subject="{subject}",
                 datatype="micr",
                 sample="{sample}",
@@ -119,7 +121,7 @@ rule bigstitcher_stitching:
     output:
         dataset_xml=temp(
             bids(
-                root=work,
+                root=workn5,
                 subject="{subject}",
                 datatype="micr",
                 sample="{sample}",
@@ -193,7 +195,7 @@ rule bigstitcher_detect_interestpoints:
     output:
         dataset_xml=temp(
             bids(
-                root=work,
+                root=workn5,
                 subject="{subject}",
                 datatype="micr",
                 sample="{sample}",
@@ -252,7 +254,7 @@ rule bigstitcher_match_interestpoints:
     output:
         dataset_xml=temp(
             bids(
-                root=work,
+                root=workn5,
                 subject="{subject}",
                 datatype="micr",
                 sample="{sample}",
@@ -320,7 +322,7 @@ rule bigstitcher_solver:
     output:
         dataset_xml=temp(
             bids(
-                root=work,
+                root=workn5,
                 subject="{subject}",
                 datatype="micr",
                 sample="{sample}",
@@ -368,7 +370,7 @@ rule bigstitcher_solver:
 rule bigstitcher_fusion:
     input:
         dataset_n5=bids(
-            root=work,
+            root=workn5,
             subject="{subject}",
             datatype="micr",
             sample="{sample}",
@@ -377,7 +379,7 @@ rule bigstitcher_fusion:
             suffix="bdv.n5",
         ),
         dataset_xml=bids(
-            root=work,
+            root=workn5,
             subject="{subject}",
             datatype="micr",
             sample="{sample}",
@@ -410,7 +412,7 @@ rule bigstitcher_fusion:
         zarr=temp(
             directory(
                 bids(
-                    root=work,
+                    root=workn5,
                     subject="{subject}",
                     datatype="micr",
                     sample="{sample}",

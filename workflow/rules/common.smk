@@ -82,6 +82,13 @@ def get_extension_ome_zarr():
             return "ome.zarr"
 
 
+def intermediate_zarr(path):
+    if config["use_zipstore"]:
+        return temp(path + ".zarr.zip")
+    else:
+        return temp(directory(path + ".zarr"))
+
+
 # targets
 def get_all_targets():
     targets = []
@@ -302,12 +309,12 @@ def get_output_ome_zarr(acq_type):
         if config["use_zipstore"]:
             return {
                 "zarr": bids(
-                    root=work,
+                    root=root,
                     subject="{subject}",
                     datatype="micr",
                     sample="{sample}",
                     acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
-                    suffix="SPIM.ome.zarr",
+                    suffix="SPIM.ome.zarr.zip",
                 )
             }
         else:

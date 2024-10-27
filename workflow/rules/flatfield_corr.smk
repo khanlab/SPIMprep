@@ -2,15 +2,17 @@
 rule fit_basic_flatfield_corr:
     """ BaSiC flatfield correction"""
     input:
-        zarr=lambda wildcards: bids(
-            root=work,
-            subject="{subject}",
-            datatype="micr",
-            sample="{sample}",
-            acq="{acq}",
-            desc="rawfromgcs" if sample_is_remote(wildcards) else "raw",
-            suffix="SPIM.zarr",
-        ).format(**wildcards),
+        zarr=lambda wildcards: intermediate_zarr(
+            bids(
+                root=work,
+                subject="{subject}",
+                datatype="micr",
+                sample="{sample}",
+                acq="{acq}",
+                desc="rawfromgcs" if sample_is_remote(wildcards) else "raw",
+                suffix="SPIM",
+            ).format(**wildcards)
+        ),
     params:
         channel=lambda wildcards: get_stains(wildcards).index(wildcards.stain),
         max_n_images=config["basic_flatfield_corr"]["max_n_images"],
@@ -64,34 +66,34 @@ rule fit_basic_flatfield_corr:
 rule apply_basic_flatfield_corr:
     """ apply BaSiC flatfield correction """
     input:
-        zarr=lambda wildcards: bids(
-            root=work,
-            subject="{subject}",
-            datatype="micr",
-            sample="{sample}",
-            acq="{acq}",
-            desc="rawfromgcs" if sample_is_remote(wildcards) else "raw",
-            suffix="SPIM.zarr",
-        ).format(**wildcards),
+        zarr=lambda wildcards: intermediate_zarr(
+            bids(
+                root=work,
+                subject="{subject}",
+                datatype="micr",
+                sample="{sample}",
+                acq="{acq}",
+                desc="rawfromgcs" if sample_is_remote(wildcards) else "raw",
+                suffix="SPIM",
+            ).format(**wildcards)
+        ),
         model_dirs=lambda wildcards: expand(
             rules.fit_basic_flatfield_corr.output.model_dir,
             stain=get_stains(wildcards),
             allow_missing=True,
         ),
     params:
-        out_chunks=[128, 128, 128],
+        out_chunks=config["basic_flatfield_corr"]["output_chunks"],
     output:
-        zarr=temp(
-            directory(
-                bids(
-                    root=work,
-                    subject="{subject}",
-                    datatype="micr",
-                    sample="{sample}",
-                    acq="{acq}",
-                    desc="flatcorr",
-                    suffix="SPIM.zarr",
-                )
+        zarr=intermediate_zarr(
+            bids(
+                root=work,
+                subject="{subject}",
+                datatype="micr",
+                sample="{sample}",
+                acq="{acq}",
+                desc="flatcorr",
+                suffix="SPIM",
             )
         ),
     benchmark:

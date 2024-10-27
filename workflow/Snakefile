@@ -15,6 +15,7 @@ container: config["containers"]["spimprep"]
 # use expandvars so we can use e.g. '$SLURM_TMPDIR'
 root = os.path.expandvars(config["root"])
 work = os.path.expandvars(config["work"])
+workn5 = os.path.expandvars(config["workn5"])
 resampled = Path(root) / "derivatives" / "resampled"
 
 
