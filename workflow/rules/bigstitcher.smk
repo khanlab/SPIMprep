@@ -163,15 +163,152 @@ rule bigstitcher_stitching:
         "{params.rm_old_xml}"
 
 
+rule bigstitcher_detect_interestpoints:
+    input:
+        dataset_n5=rules.zarr_to_bdv.output.bdv_n5,
+        dataset_xml=rules.zarr_to_bdv.output.bdv_xml,
+    params:
+        downsampling="--downsampleXY={dsxy}".format(
+            dsxy=config["bigstitcher"]["interest_points"]["downsample_xy"],
+        ),
+        min_intensity="--minIntensity={min_intensity}".format(
+            min_intensity=config["bigstitcher"]["interest_points"]["min_intensity"]
+        ),
+        max_intensity="--maxIntensity={max_intensity}".format(
+            max_intensity=config["bigstitcher"]["interest_points"]["max_intensity"]
+        ),
+        label="--label={label}".format(
+            label=config["bigstitcher"]["interest_points"]["label"]
+        ),
+        threshold="--threshold={threshold}".format(
+            threshold=config["bigstitcher"]["interest_points"]["threshold"]
+        ),
+        sigma="--sigma={sigma}".format(
+            sigma=config["bigstitcher"]["interest_points"]["sigma"]
+        ),
+        mem_gb=lambda wildcards, resources: "{mem_gb}".format(
+            mem_gb=int(resources.mem_mb / 1000)
+        ),
+        rm_old_xml=lambda wildcards, output: f"rm -f {output.dataset_xml}~?",
+    output:
+        dataset_xml=temp(
+            bids(
+                root=work,
+                subject="{subject}",
+                datatype="micr",
+                sample="{sample}",
+                acq="{acq}",
+                desc="{desc}",
+                suffix="bigstitcherdetectinterestpoints.xml",
+            )
+        ),
+    benchmark:
+        bids(
+            root="benchmarks",
+            datatype="bigstitcherdetectinterestpoints",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            desc="{desc}",
+            suffix="benchmark.tsv",
+        )
+    log:
+        bids(
+            root="logs",
+            datatype="bigstitcherdetectinterestpoints",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            desc="{desc}",
+            suffix="log.txt",
+        ),
+    container:
+        config["containers"]["spimprep"]
+    resources:
+        runtime=30,
+        mem_mb=int(config["total_mem_mb"] * 0.9),
+    threads: config["total_cores"]
+    group:
+        "preproc"
+    shell:
+        "cp {input.dataset_xml} {output.dataset_xml} && "
+        "detect-interestpoints {params.mem_gb} {threads} -x {output.dataset_xml} "
+        " {params.min_intensity} {params.max_intensity} {params.downsampling} "
+        " {params.sigma} {params.threshold} {params.label}  && "
+        "{params.rm_old_xml}"
+
+
+rule bigstitcher_match_interestpoints:
+    input:
+        dataset_n5=rules.zarr_to_bdv.output.bdv_n5,
+        dataset_xml=rules.bigstitcher_detect_interestpoints.output.dataset_xml,
+    params:
+        label="--label={label}".format(label="beads"),
+        method="--method={method}".format(method="ICP"),
+        mem_gb=lambda wildcards, resources: "{mem_gb}".format(
+            mem_gb=int(resources.mem_mb / 1000)
+        ),
+        rm_old_xml=lambda wildcards, output: f"rm -f {output.dataset_xml}~?",
+    output:
+        dataset_xml=temp(
+            bids(
+                root=work,
+                subject="{subject}",
+                datatype="micr",
+                sample="{sample}",
+                acq="{acq}",
+                desc="{desc}",
+                suffix="bigstitchermatchinterestpoints.xml",
+            )
+        ),
+    benchmark:
+        bids(
+            root="benchmarks",
+            datatype="bigstitchermatchinterestpoints",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            desc="{desc}",
+            suffix="benchmark.tsv",
+        )
+    log:
+        bids(
+            root="logs",
+            datatype="bigstitchermatchinterestpoints",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            desc="{desc}",
+            suffix="log.txt",
+        ),
+    container:
+        config["containers"]["spimprep"]
+    resources:
+        runtime=30,
+        mem_mb=int(config["total_mem_mb"] * 0.9),
+    threads: config["total_cores"]
+    group:
+        "preproc"
+    shell:
+        "cp {input.dataset_xml} {output.dataset_xml} && "
+        "match-interestpoints {params.mem_gb} {threads} -x {output.dataset_xml} "
+        " {params.method} {params.label}  && "
+        "{params.rm_old_xml}"
+
+
 rule bigstitcher_solver:
     input:
         dataset_n5=rules.zarr_to_bdv.output.bdv_n5,
-        dataset_xml=rules.bigstitcher_stitching.output.dataset_xml,
+        dataset_xml=(
+            rules.bigstitcher_match_interestpoints.output.dataset_xml
+            if config["bigstitcher"]["use_interestpoints"]
+            else rules.bigstitcher_stitching.output.dataset_xml
+        ),
     params:
-        downsampling="--downsampling={dsx},{dsy},{dsz}".format(
-            dsx=config["bigstitcher"]["calc_pairwise_shifts"]["downsample_in_x"],
-            dsy=config["bigstitcher"]["calc_pairwise_shifts"]["downsample_in_y"],
-            dsz=config["bigstitcher"]["calc_pairwise_shifts"]["downsample_in_z"],
+        label="--label={label}".format(label="beads"),
+        lambdareg="--lambda={lambdareg}".format(lambdareg=0.1),
+        source="-s {source}".format(
+            source="IP" if config["bigstitcher"]["use_interestpoints"] else "STITCHING"
         ),
         method="--method={method}".format(
             method=config["bigstitcher"]["global_optimization"]["method"]
@@ -223,7 +360,7 @@ rule bigstitcher_solver:
     shell:
         "cp {input.dataset_xml} {output.dataset_xml} && "
         "solver {params.mem_gb} {threads} -x {output.dataset_xml} "
-        " -s STITCHING --lambda 0.1 "
+        " {params.source} {params.label} {params.lambdareg}"
         " {params.method} && "
         "{params.rm_old_xml}"
 
