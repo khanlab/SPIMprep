@@ -1,14 +1,21 @@
+import tempfile
+import numpy as np
 import tifffile
 import os
 import json
 import pyvips
 import zarr
+import dask
 import dask.array as da
 from dask.delayed import delayed
 from dask.array.image import imread as imread_tifs
 from itertools import product
 from dask.diagnostics import ProgressBar
 from pathlib import Path
+
+#this limits workers to number of threads assigned by snakemake
+dask.config.set(scheduler='threads', num_workers=snakemake.threads)  
+
 
 def replace_square_brackets(pattern):
     """replace all [ and ] in the string (have to use 
@@ -24,6 +31,18 @@ def single_imread(*args):
     """create function handle to tifffile.imread 
     that sets key=0"""
     return tifffile.imread(*args,key=0)
+
+def read_stack_as_numpy(tif_file, Nz,Ny,Nx):
+    """Gets the full stack (i.e., 3D image) from a tif file z-stack stored in a cloud URI."""
+    
+    #init array
+    vol = np.zeros((Nz,Ny,Nx),dtype='uint16')
+
+    # Use pyvips to read from the file
+    for i in range(Nz):
+        vol[i,:,:] = pyvips.Image.new_from_file(tif_file,  page=i).numpy()
+
+    return vol
 
 
 def read_page_as_numpy(tif_file,page):    
@@ -78,13 +97,8 @@ if is_tiled:
             if is_zstack:
                 tif_file = in_tif_pattern.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel)
                 
-                pages=[]
-                #read each page
-                for i_z in range(size_z):
-                    pages.append(da.from_delayed(delayed(read_page_as_numpy)(tif_file,i_z),shape=(size_y,size_x),dtype='uint16'))
-                
-                zstacks.append(da.stack(pages))
-                print(zstacks[-1].shape)
+                zstacks.append(da.from_delayed(delayed(read_stack_as_numpy)(tif_file,size_z,size_y,size_x),shape=(size_z,size_y,size_x),dtype='uint16').rechunk((1,size_y,size_x)))
+
             else:
                 zstacks.append(imread_tifs(in_tif_glob.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel,zslice='*'), imread=single_imread))
 
@@ -118,11 +132,9 @@ print(darr.chunksize)
 darr = darr * snakemake.params.intensity_rescaling
 darr = darr.astype('uint16')
 
-darr = darr.rechunk([1,1] + snakemake.params.out_chunks)
-
 #now we can do the computation itself, storing to zarr
 if Path(snakemake.output.zarr).suffix == '.zip':
-    store = zarr.storage.ZipStore(snakemake.output.zarr,dimension_separator='/',mode='w')
+    store = zarr.storage.ZipStore(snakemake.output.zarr,dimension_separator='/',mode='x')
 else:
     store = zarr.storage.DirectoryStore(snakemake.output.zarr,dimension_separator='/')
 
