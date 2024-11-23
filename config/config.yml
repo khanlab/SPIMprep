@@ -25,7 +25,7 @@ import_prestitched:
 
 
 basic_flatfield_corr:
-  max_n_images: 500
+  max_n_images: 2000
   fitting_opts:
     get_darkfield: True
     smoothness_flatfield: 1.0
@@ -34,7 +34,7 @@ basic_flatfield_corr:
 
 
 bigstitcher:
-  use_interestpoints: False
+  use_interestpoints: True
   interest_points:
     downsample_xy: 4
     min_intensity: 0
