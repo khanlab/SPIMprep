@@ -1,15 +1,47 @@
+configfile: 'config.yml'
 
-rule create_test_dataset_ome_zarr:
+def get_tile_targets():
+    gridx=config['gridx']
+    gridy=config['gridy']
+    tile_path=f'test_grid-{gridx}by{gridy}/tile-{{tile}}_SPIM.ome.zarr'
+
+    return expand(tile_path, tile=range(gridx*gridy))
+
+rule all:
+    input: 
+        ome_zarr=get_tile_targets()
+
+rule create_test_dataset_single_ome_zarr:
+    params:
+        grid_shape=lambda wildcards: (int(wildcards.gridx),int(wildcards.gridy)),
+        tile_index=lambda wildcards: int(wildcards.tile)
     output: 
-        ome_zarr=directory('test_tiled.ome.zarr'),
-        translations_npy='test_translations.npy'
-    script: 'scripts/create_test_dataset.py'
+        ome_zarr=directory('test_grid-{gridx}by{gridy}/tile-{tile}_SPIM.ome.zarr'),
+        nifti='test_grid-{gridx}by{gridy}/tile-{tile}_SPIM.nii',
+    script: 'scripts/create_test_dataset_singletile.py'
+
+
+
+
+
+#-- unused below:
+
+rule create_test_dataset_combined_ome_zarr:
+    params:
+        grid_shape=lambda wildcards: (int(wildcards.gridx),int(wildcards.gridy))
+    output: 
+        ome_zarr=directory('testcombined_grid-{gridx}by{gridy}_SPIM.ome.zarr'),
+        translations_npy='testcombined_grid-{gridx}by{gridy}_translations.npy'
+    script: 'scripts/create_test_dataset_combined.py'
+
 
 rule get_tiles_as_nifti:
     input:
-        ome_zarr='test_tiled.ome.zarr',
+        ome_zarr='testcombined_grid-{gridx}by{gridy}_SPIM.ome.zarr'
+    params:
+        n_tiles = lambda wildcards: int(wildcards.gridx) * int(wildcards.gridy)
     output:
-        tiles_dir=directory('test_tiled_niftis')
+        tiles_dir=directory('testcombine_grid-{gridx}by{gridy}_SPIM.niftis')
     script:
         'scripts/get_tiles_as_nifti.py'
 
