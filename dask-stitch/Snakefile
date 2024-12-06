@@ -1,0 +1,16 @@
+
+rule create_test_dataset_ome_zarr:
+    output: 
+        ome_zarr=directory('test_tiled.ome.zarr'),
+        translations_npy='test_translations.npy'
+    script: 'scripts/create_test_dataset.py'
+
+rule get_tiles_as_nifti:
+    input:
+        ome_zarr='test_tiled.ome.zarr',
+    output:
+        tiles_dir=directory('test_tiled_niftis')
+    script:
+        'scripts/get_tiles_as_nifti.py'
+
+
