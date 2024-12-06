@@ -1,11 +1,17 @@
 configfile: 'config.yml'
 
+gridx=config['gridx']
+gridy=config['gridy']
+
+wildcard_constraints:
+    tile='[0-9]+'
+
+
 def get_tile_targets():
-    gridx=config['gridx']
-    gridy=config['gridy']
-    tile_path=f'test_grid-{gridx}by{gridy}/tile-{{tile}}_SPIM.ome.zarr'
+    tile_path='results/tile-{tile}_SPIM.ome.zarr'
 
     return expand(tile_path, tile=range(gridx*gridy))
+
 
 rule all:
     input: 
@@ -13,11 +19,11 @@ rule all:
 
 rule create_test_dataset_single_ome_zarr:
     params:
-        grid_shape=lambda wildcards: (int(wildcards.gridx),int(wildcards.gridy)),
+        grid_shape=(gridx,gridy),
         tile_index=lambda wildcards: int(wildcards.tile)
     output: 
-        ome_zarr=directory('test_grid-{gridx}by{gridy}/tile-{tile}_SPIM.ome.zarr'),
-        nifti='test_grid-{gridx}by{gridy}/tile-{tile}_SPIM.nii',
+        ome_zarr=directory('results/tile-{tile}_SPIM.ome.zarr'),
+        nifti='results/tile-{tile}_SPIM.nii',
     script: 'scripts/create_test_dataset_singletile.py'
 
 
@@ -25,47 +31,36 @@ rule find_overlapping_pairs:
     input:
         ome_zarr=get_tile_targets()
     output:
-        txt='test_grid-{gridx}by{gridy}/overlapping_pairs.txt'
+        txt='results/overlapping_pairs.txt'
     script: 'scripts/find_overlapping_pairs.py'
         
 rule compute_pairwise_correlation:
     input:
         ome_zarr=get_tile_targets(),
-        pairs='test_grid-{gridx}by{gridy}/overlapping_pairs.txt'
+        pairs='results/overlapping_pairs.txt'
     output:
-        offsets='test_grid-{gridx}by{gridy}/pairwise_offsets.txt'
+        offsets='results/pairwise_offsets.txt'
     script: 'scripts/compute_pairwise_correlation.py'
 
 rule global_optimization:
     input:
         ome_zarr=get_tile_targets(),
-        pairs='test_grid-{gridx}by{gridy}/overlapping_pairs.txt',
-        offsets='test_grid-{gridx}by{gridy}/pairwise_offsets.txt'
+        pairs='results/overlapping_pairs.txt',
+        offsets='results/pairwise_offsets.txt'
     output:
-        optimized_translations='test_grid-{gridx}by{gridy}/optimized_translations.txt'
+        optimized_translations='results/optimized_translations.txt'
     script: 
         'scripts/global_optimization.py'
  
 
-#-- unused below:
-
-rule create_test_dataset_combined_ome_zarr:
-    params:
-        grid_shape=lambda wildcards: (int(wildcards.gridx),int(wildcards.gridy))
-    output: 
-        ome_zarr=directory('testcombined_grid-{gridx}by{gridy}_SPIM.ome.zarr'),
-        translations_npy='testcombined_grid-{gridx}by{gridy}_translations.npy'
-    script: 'scripts/create_test_dataset_combined.py'
-
-
-rule get_tiles_as_nifti:
+rule assign_translations:
     input:
-        ome_zarr='testcombined_grid-{gridx}by{gridy}_SPIM.ome.zarr'
-    params:
-        n_tiles = lambda wildcards: int(wildcards.gridx) * int(wildcards.gridy)
+        ome_zarr=get_tile_targets(),
+        optimized_translations='results/optimized_translations.txt'
     output:
-        tiles_dir=directory('testcombine_grid-{gridx}by{gridy}_SPIM.niftis')
-    script:
-        'scripts/get_tiles_as_nifti.py'
-
+#        ome_zarr=get_tile_targets_optimized(),
+        nifti=expand('results/tile-{tile}_optimized_SPIM.nii.gz', tile=range(gridx*gridy))
+    script: 
+        "scripts/assign_translation.py"
+ 
 
