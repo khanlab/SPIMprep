@@ -1,5 +1,6 @@
 import nibabel as nib
 import numpy as np
+from scipy.ndimage import affine_transform
 from templateflow import api as tflow
 import nibabel as nib
 import dask.array as da
@@ -64,21 +65,27 @@ def create_test_dataset_single(tile_index, template="MNI152NLin2009cAsym", res=2
     x_start = x * (x_tile_size - overlap)
     y_start = y * (y_tile_size - overlap)
 
+
+    # TODO: Simulate error by applying a transformation to the image before 
+
+    # initially lets just do a random jitter:
+    offset = np.random.uniform(-10, 10, size=(grid_shape[0],grid_shape[1],3))  # Random 3D offsets for each tile
+
+    xfm_img_data = affine_transform(img_data,matrix=np.eye(3,3),offset=offset[x,y,:],order=1)
+
     # Extract tile
-    tile = img_data[x_start:x_start + x_tile_size, y_start:y_start + y_tile_size, :]
+    tile = xfm_img_data[x_start:x_start + x_tile_size, y_start:y_start + y_tile_size, :]
 
-    # Add random offset - ensure that the random offset generated for the same tile is the same
-    #  do this by gneerating 
-    offset = np.random.uniform(-5, 5, size=(grid_shape[0],grid_shape[1],3))  # Random 3D offsets 
-    translation = ((x_start, y_start, 0) + offset[x,y,:])
 
-    print((x_start, y_start, 0))
-    print(translation)
+
+    translation = ((x_start, y_start, 0))
+
+    
 
     tile_shape = (1,x_tile_size, y_tile_size, z_dim)
 
 
-    #save translation into vox2ras
+    #save tiling coordinate translation into vox2ras (not the random jitter)
     vox2ras = np.eye(4)
     vox2ras[:3,3] = np.array(translation)
 

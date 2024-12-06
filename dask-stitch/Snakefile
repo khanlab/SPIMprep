@@ -21,8 +21,31 @@ rule create_test_dataset_single_ome_zarr:
     script: 'scripts/create_test_dataset_singletile.py'
 
 
+rule find_overlapping_pairs:
+    input:
+        ome_zarr=get_tile_targets()
+    output:
+        txt='test_grid-{gridx}by{gridy}/overlapping_pairs.txt'
+    script: 'scripts/find_overlapping_pairs.py'
+        
+rule compute_pairwise_correlation:
+    input:
+        ome_zarr=get_tile_targets(),
+        pairs='test_grid-{gridx}by{gridy}/overlapping_pairs.txt'
+    output:
+        offsets='test_grid-{gridx}by{gridy}/pairwise_offsets.txt'
+    script: 'scripts/compute_pairwise_correlation.py'
 
-
+rule global_optimization:
+    input:
+        ome_zarr=get_tile_targets(),
+        pairs='test_grid-{gridx}by{gridy}/overlapping_pairs.txt',
+        offsets='test_grid-{gridx}by{gridy}/pairwise_offsets.txt'
+    output:
+        optimized_translations='test_grid-{gridx}by{gridy}/optimized_translations.txt'
+    script: 
+        'scripts/global_optimization.py'
+ 
 
 #-- unused below:
 
