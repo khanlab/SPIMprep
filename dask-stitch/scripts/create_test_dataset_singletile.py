@@ -69,7 +69,7 @@ def create_test_dataset_single(tile_index, template="MNI152NLin2009cAsym", res=2
     # TODO: Simulate error by applying a transformation to the image before 
 
     # initially lets just do a random jitter:
-    offset = np.random.uniform(-5, 5, size=(grid_shape[0],grid_shape[1],3))  # Random 3D offsets for each tile
+    offset = np.random.uniform(0, 0, size=(grid_shape[0],grid_shape[1],3))  # Random 3D offsets for each tile
 
     xfm_img_data = affine_transform(img_data,matrix=np.eye(3,3),offset=offset[x,y,:],order=1)
 

@@ -9,7 +9,7 @@ wildcard_constraints:
 
 rule all:
     input: 
-        nifti=expand('results/tile-{tile}_optimized_SPIM.nii', tile=range(gridx*gridy))
+        'results/fused_SPIM.nii'
 
 rule create_test_dataset_single_ome_zarr:
     params:
@@ -34,7 +34,8 @@ rule compute_pairwise_correlation:
         ome_zarr=expand('results/tile-{tile}_SPIM.ome.zarr', tile=range(gridx*gridy)),
         pairs='results/overlapping_pairs.txt'
     output:
-        offsets='results/pairwise_offsets.txt'
+        offsets='results/pairwise_offsets.txt',
+        diagnostics_dir=directory('results/pairwise_offsets_work')
     script: 'scripts/compute_pairwise_correlation.py'
 
 rule global_optimization:
@@ -56,5 +57,14 @@ rule assign_translations:
         nifti=expand('results/tile-{tile}_optimized_SPIM.nii', tile=range(gridx*gridy))
     script: 
         "scripts/assign_translation.py"
- 
+
+rule fuse_volume:
+    input:
+        ome_zarr=expand('results/tile-{tile}_SPIM.ome.zarr', tile=range(gridx*gridy)),
+        optimized_translations='results/optimized_translations.txt'
+    output:
+        ome_zarr = directory('results/fused_SPIM.ome.zarr'),
+        nifti = 'results/fused_SPIM.nii'
+    script: 
+        'scripts/fuse_volume.py'
 
