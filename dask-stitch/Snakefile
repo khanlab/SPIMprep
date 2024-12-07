@@ -7,15 +7,9 @@ wildcard_constraints:
     tile='[0-9]+'
 
 
-def get_tile_targets():
-    tile_path='results/tile-{tile}_SPIM.ome.zarr'
-
-    return expand(tile_path, tile=range(gridx*gridy))
-
-
 rule all:
     input: 
-        ome_zarr=get_tile_targets()
+        nifti=expand('results/tile-{tile}_optimized_SPIM.nii', tile=range(gridx*gridy))
 
 rule create_test_dataset_single_ome_zarr:
     params:
@@ -24,19 +18,20 @@ rule create_test_dataset_single_ome_zarr:
     output: 
         ome_zarr=directory('results/tile-{tile}_SPIM.ome.zarr'),
         nifti='results/tile-{tile}_SPIM.nii',
+        nifti_fromzarr='results/tile-{tile}_fromzarr_SPIM.nii',
     script: 'scripts/create_test_dataset_singletile.py'
 
 
 rule find_overlapping_pairs:
     input:
-        ome_zarr=get_tile_targets()
+        ome_zarr=expand('results/tile-{tile}_SPIM.ome.zarr', tile=range(gridx*gridy)),
     output:
         txt='results/overlapping_pairs.txt'
     script: 'scripts/find_overlapping_pairs.py'
         
 rule compute_pairwise_correlation:
     input:
-        ome_zarr=get_tile_targets(),
+        ome_zarr=expand('results/tile-{tile}_SPIM.ome.zarr', tile=range(gridx*gridy)),
         pairs='results/overlapping_pairs.txt'
     output:
         offsets='results/pairwise_offsets.txt'
@@ -44,7 +39,7 @@ rule compute_pairwise_correlation:
 
 rule global_optimization:
     input:
-        ome_zarr=get_tile_targets(),
+        ome_zarr=expand('results/tile-{tile}_SPIM.ome.zarr', tile=range(gridx*gridy)),
         pairs='results/overlapping_pairs.txt',
         offsets='results/pairwise_offsets.txt'
     output:
@@ -55,11 +50,10 @@ rule global_optimization:
 
 rule assign_translations:
     input:
-        ome_zarr=get_tile_targets(),
+        ome_zarr=expand('results/tile-{tile}_SPIM.ome.zarr', tile=range(gridx*gridy)),
         optimized_translations='results/optimized_translations.txt'
     output:
-#        ome_zarr=get_tile_targets_optimized(),
-        nifti=expand('results/tile-{tile}_optimized_SPIM.nii.gz', tile=range(gridx*gridy))
+        nifti=expand('results/tile-{tile}_optimized_SPIM.nii', tile=range(gridx*gridy))
     script: 
         "scripts/assign_translation.py"
  

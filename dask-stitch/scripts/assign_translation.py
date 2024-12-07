@@ -15,22 +15,31 @@ def assign_translations(ome_zarr_paths, optimized_translations, output_paths):
         raise ValueError("Number of OME-Zarr paths must match the number of optimized translations.")
 
     for i, (path, translation, output_path) in enumerate(zip(ome_zarr_paths, optimized_translations, output_paths)):
+        print(path)
+        print(output_path)
+        print(translation)
         # Load the OME-Zarr dataset
         znimg = ZarrNii.from_path(path)
-
         # Update the affine matrix
         updated_affine = znimg.vox2ras.affine.copy()
-        updated_affine[:3, 3] += translation  # Add the optimized translation
+        print(f'original affine: {updated_affine}')
+        
+        #HACK FIX:
+        #affine has translation negated and flipped, for whatever reason..  need to fix this in zarrnii
+        updated_affine[:3,3] = -1 * np.flip(updated_affine[:3,3])
 
-        # Create a new ZarrNii object with the updated affine
-        updated_znimg = ZarrNii.from_darr(
-            darr=znimg.darr,
-            vox2ras=updated_affine,
-            axes_nifti=znimg.axes_nifti  # Preserve existing NIFTI axis convention
-        )
+
+
+
+        updated_affine[:3, 3] += translation  # Add the optimized translation
+        print(f'updated affine: {updated_affine}')
+
+        znimg.vox2ras.affine = updated_affine
+        znimg.ras2vox.affine = np.linalg.inv(updated_affine)
 
         # Save the updated ZarrNii
-        updated_znimg.to_nifti(output_path)
+        znimg.to_nifti(output_path)
+
         print(f"Updated translations saved to: {output_path}")
 
 

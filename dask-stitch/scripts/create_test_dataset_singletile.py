@@ -7,7 +7,7 @@ import dask.array as da
 import math
 from zarrnii import ZarrNii
 
-def create_test_dataset_single(tile_index, template="MNI152NLin2009cAsym", res=2, grid_shape=(3, 4), overlap=8, random_seed=42, final_chunks=(1,32, 32, 1)):
+def create_test_dataset_single(tile_index, template="MNI152NLin2009cAsym", res=2, grid_shape=(3, 4), overlap=32, random_seed=42, final_chunks=(1,32, 32, 1)):
     """
     Create a low-resolution test dataset for tile-based stitching.
 
@@ -69,7 +69,7 @@ def create_test_dataset_single(tile_index, template="MNI152NLin2009cAsym", res=2
     # TODO: Simulate error by applying a transformation to the image before 
 
     # initially lets just do a random jitter:
-    offset = np.random.uniform(-10, 10, size=(grid_shape[0],grid_shape[1],3))  # Random 3D offsets for each tile
+    offset = np.random.uniform(-5, 5, size=(grid_shape[0],grid_shape[1],3))  # Random 3D offsets for each tile
 
     xfm_img_data = affine_transform(img_data,matrix=np.eye(3,3),offset=offset[x,y,:],order=1)
 
@@ -89,11 +89,22 @@ def create_test_dataset_single(tile_index, template="MNI152NLin2009cAsym", res=2
     vox2ras = np.eye(4)
     vox2ras[:3,3] = np.array(translation)
 
+    #this next bit is hacky and in future should be incorporated into ZarrNii.from_darr() 
+    reorder_xfm = np.eye(4)
+    reorder_xfm[:3, :3] = np.flip(
+        reorder_xfm[:3, :3], axis=0
+    )  # reorders z-y-x to x-y-z and vice versa
+
+    flip_xfm = np.diag((-1,-1,-1,1))
+    
+    vox2ras = flip_xfm @ reorder_xfm @ vox2ras
+        
 
     # Save back into ZarrNii object
     darr = da.from_array(tile.reshape(tile_shape),chunks=final_chunks)
+   
     
-    znimg = ZarrNii.from_darr(darr,vox2ras=vox2ras,axes_nifti=True)
+    znimg = ZarrNii.from_darr(darr,vox2ras=vox2ras)
 
     return znimg
 
@@ -106,3 +117,38 @@ test_znimg.to_ome_zarr(snakemake.output.ome_zarr)
 test_znimg.to_nifti(snakemake.output.nifti)
 
 
+
+print("LOOP0")
+print(test_znimg)
+
+test_znimg2 = ZarrNii.from_path(snakemake.output.ome_zarr)
+print("LOOP1")
+print(test_znimg2) #we want this to be identical to test_znimg
+
+#the zarr we read in has a different vox2ras - the translation is negated and flipped
+updated_affine = test_znimg2.vox2ras.affine.copy()
+print(f'original affine: {updated_affine}')
+
+#HACK FIX:
+#affine has translation negated and flipped, for whatever reason..  need to fix this in zarrnii
+updated_affine[:3,3] = -1 * np.flip(updated_affine[:3,3])
+
+test_znimg2.vox2ras.affine = updated_affine
+test_znimg2.ras2vox.affine = np.linalg.inv(updated_affine)
+
+
+test_znimg2.to_nifti(snakemake.output.nifti_fromzarr)
+
+"""
+
+test_znimg2.to_ome_zarr('mytest_writeafterread.ome.zarr')
+test_znimg3 = ZarrNii.from_path('mytest_writeafterread.ome.zarr')
+print("LOOP2")
+print(test_znimg3)
+
+
+test_znimg3.to_ome_zarr('mytest_writeafterread2.ome.zarr')
+test_znimg4 = ZarrNii.from_path('mytest_writeafterread2.ome.zarr')
+print("LOOP3")
+print(test_znimg4)
+"""
