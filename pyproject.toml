@@ -15,6 +15,9 @@ snakemake-storage-plugin-gcs = "^1.1.1"
 gcsfs = "^2024.3.1"
 s3fs = "^2024.3.1"
 universal-pathlib = "^0.2.2"
+templateflow = "^24.2.2"
+dask = "^2024.12.0"
+zarrnii = "^0.1.4a1"
 
 [tool.poetry.group.dev.dependencies]
 snakefmt = "^0.10.0"
