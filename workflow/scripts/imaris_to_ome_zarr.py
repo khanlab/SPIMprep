@@ -11,15 +11,15 @@ from upath import UPath as Path
 from lib.cloud_io import get_fsspec, is_remote
 
 
-def convert_hdf5_to_zarr(hdf5_path, zarr_path,chunks):
+def convert_hdf5_to_zarr(hdf5_path, zarr_path, chunks):
     """
-    Convert an HDF5 file to Zarr using h5py and zarr.
+    Convert an HDF5 file to Zarr using h5py and zarr, handling chunked copying.
 
     Parameters:
         hdf5_path (str): Path to the input HDF5 (.ims) file.
         zarr_path (str): Path to the output Zarr dataset.
+        chunks (tuple): Chunk size for the Zarr dataset.
     """
-
 
     # Open the HDF5 file and create a Zarr root group
     with h5py.File(hdf5_path, "r") as hdf5_file:
@@ -33,28 +33,52 @@ def convert_hdf5_to_zarr(hdf5_path, zarr_path,chunks):
             hdf5_group = hdf5_file[target_path]
 
             def copy_group(hdf5_group, zarr_group):
+                """
+                Copies channel groups and their 'Data' datasets chunk by chunk.
+
+                Args:
+                    hdf5_group: HDF5 group containing the dataset.
+                    zarr_group: Zarr group to write the dataset to.
+                """
                 for key, item in hdf5_group.items():
                     if isinstance(item, h5py.Group) and key.startswith("Channel"):  # Only copy Channel groups
                         channel_group = item
                         if "Data" in channel_group:  # Only copy the Data dataset in each Channel
                             data_item = channel_group["Data"]
-                            zarr_group.create_dataset(
-                                name=key + "/Data",  # Store Data in the Channel group
-                                data=data_item[()],
+
+                            # Create the Zarr dataset
+                            zarr_dataset = zarr_group.require_dataset(
+                                name=key + "/Data",
+                                shape=data_item.shape,
                                 chunks=chunks,
                                 dtype=data_item.dtype,
-                                compression="blosc"  # Optional compression
+                                compression="blosc",  # Optional compression
                             )
-                            print(f"Copied Data dataset for {key}")
-                    # No need to copy other groups or datasets, as we're only interested in 'Data'
+
+                            # Copy data chunk by chunk
+                            for i_start in range(0, data_item.shape[0], chunks[0]):
+                                for j_start in range(0, data_item.shape[1], chunks[1]):
+                                    for k_start in range(0, data_item.shape[2], chunks[2]):
+                                        i_end = min(i_start + chunks[0], data_item.shape[0])
+                                        j_end = min(j_start + chunks[1], data_item.shape[1])
+                                        k_end = min(k_start + chunks[2], data_item.shape[2])
+
+                                        slices = (
+                                            slice(i_start, i_end),
+                                            slice(j_start, j_end),
+                                            slice(k_start, k_end),
+                                        )
+#                                        print(f"Copying slice {slices} for {key}")
+                                        zarr_dataset[slices] = data_item[slices]
 
             # Start copying only the Channel groups
             copy_group(hdf5_group, zarr_store)
 
 
+
 rechunk_size=snakemake.params.rechunk_size
 
-#copy imaris (hdf5) to zarr -- TODO: don't need to copy everything 
+#copy imaris (hdf5) to zarr
 convert_hdf5_to_zarr(
     hdf5_path=snakemake.input.ims,
     zarr_path='copy_hdf5.zarr',
