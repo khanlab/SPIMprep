@@ -164,7 +164,6 @@ def sample_is_remote(wildcards):
 def get_input_sample(wildcards):
     """returns path to extracted sample or path to provided input folder"""
     sample_path = Path(get_sample_path(wildcards))
-
     if is_remote_gcs(sample_path):
         return rules.cp_from_gcs.output.ome_dir.format(**wildcards)
 
@@ -175,6 +174,8 @@ def get_input_sample(wildcards):
         # sample was a tar file, so point to the extracted folder
         return rules.extract_sample.output.ome_dir.format(**wildcards)
 
+    elif sample_path.suffixes[-1] == '.ims':
+        return get_sample_path_remote(wildcards)
     else:
         print(f"unsupported input: {sample_path}")
 
