@@ -1,4 +1,5 @@
 import h5py
+import hdf5plugin
 import zarr
 import json
 import zarr
@@ -21,6 +22,7 @@ def convert_hdf5_to_zarr(hdf5_path, zarr_path, chunks):
         chunks (tuple): Chunk size for the Zarr dataset.
     """
 
+    h5py._errors.unsilence_errors()
     # Open the HDF5 file and create a Zarr root group
     with h5py.File(hdf5_path, "r") as hdf5_file:
         zarr_store = zarr.open_group(zarr_path, mode="w")

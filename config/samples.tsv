@@ -1,2 +1,3 @@
 subject	sample	acq	stain_0	stain_1	stain_2	sample_path
-brown	brain	imaris	Iba1	GFAP	YOPRO	/cifs/trident/projects/Brown/241129_AMR_1wk_App_tau_E3_34-3_M2_1x1_09-57-23/09-57-23_AMR_1wk_App_tau_E3_34-3_M2_1x1_Blaze_C00_xyz-Table Z0000.ome.ims
+brown	brain	imaris1x	Iba1	GFAP	YOPRO	/cifs/trident/projects/Brown/241129_AMR_1wk_App_tau_E3_34-3_M2_1x1_09-57-23/09-57-23_AMR_1wk_App_tau_E3_34-3_M2_1x1_Blaze_C00_xyz-Table Z0000.ome.ims
+brown	brain	imaris4x	Iba1	GFAP	YOPRO	/cifs/trident/projects/Brown/241211_AMR_1wk_App_tau_E3_34-3_M2_4x1_488-yopro_561-gfap_647-iba1_11-22-59/11-22-59_AMR_1wk_App_tau_E3_34-3_M2_4x1_488-yopro_561-gfap_647-iba1_stitched.ims
