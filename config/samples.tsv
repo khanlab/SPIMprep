@@ -1,2 +1,2 @@
 subject	sample	acq	stain_0	stain_1	stain_2	sample_path
-brown	brain	imaris	Lectin	PI	Abeta	/cifs/trident/projects/Brown/241129_AMR_1wk_App_tau_E3_34-3_M2_1x1_09-57-23/09-57-23_AMR_1wk_App_tau_E3_34-3_M2_1x1_Blaze_C00_xyz-Table Z0000.ome.ims
+brown	brain	imaris	Iba1	GFAP	YOPRO	/cifs/trident/projects/Brown/241129_AMR_1wk_App_tau_E3_34-3_M2_1x1_09-57-23/09-57-23_AMR_1wk_App_tau_E3_34-3_M2_1x1_Blaze_C00_xyz-Table Z0000.ome.ims

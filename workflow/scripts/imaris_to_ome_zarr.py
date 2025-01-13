@@ -11,7 +11,7 @@ from upath import UPath as Path
 from lib.cloud_io import get_fsspec, is_remote
 
 
-def convert_hdf5_to_zarr(hdf5_path, zarr_path):
+def convert_hdf5_to_zarr(hdf5_path, zarr_path,chunks):
     """
     Convert an HDF5 file to Zarr using h5py and zarr.
 
@@ -19,35 +19,46 @@ def convert_hdf5_to_zarr(hdf5_path, zarr_path):
         hdf5_path (str): Path to the input HDF5 (.ims) file.
         zarr_path (str): Path to the output Zarr dataset.
     """
+
+
     # Open the HDF5 file and create a Zarr root group
     with h5py.File(hdf5_path, "r") as hdf5_file:
         zarr_store = zarr.open_group(zarr_path, mode="w")
 
-        def copy_group(hdf5_group, zarr_group):
-            for key, item in hdf5_group.items():
-                if isinstance(item, h5py.Group):  # Recursively copy groups
-                    new_group = zarr_group.create_group(key)
-                    copy_group(item, new_group)
-                elif isinstance(item, h5py.Dataset):  # Copy datasets
-                    zarr_group.create_dataset(
-                        name=key,
-                        data=item[()],
-                        chunks=item.chunks,
-                        dtype=item.dtype,
-                        compression="blosc"  # Optional compression
-                    )
-                    print(f"Copied dataset: {key}")
+        # Define the specific path to copy
+        target_path = "DataSet/ResolutionLevel 0/TimePoint 0"
 
-        # Start copying from the root group
-        copy_group(hdf5_file, zarr_store)
+        # Check if the target path exists in HDF5
+        if target_path in hdf5_file:
+            hdf5_group = hdf5_file[target_path]
 
-    print(f"Converted HDF5 file to Zarr at: {zarr_path}")
+            def copy_group(hdf5_group, zarr_group):
+                for key, item in hdf5_group.items():
+                    if isinstance(item, h5py.Group) and key.startswith("Channel"):  # Only copy Channel groups
+                        channel_group = item
+                        if "Data" in channel_group:  # Only copy the Data dataset in each Channel
+                            data_item = channel_group["Data"]
+                            zarr_group.create_dataset(
+                                name=key + "/Data",  # Store Data in the Channel group
+                                data=data_item[()],
+                                chunks=chunks,
+                                dtype=data_item.dtype,
+                                compression="blosc"  # Optional compression
+                            )
+                            print(f"Copied Data dataset for {key}")
+                    # No need to copy other groups or datasets, as we're only interested in 'Data'
 
+            # Start copying only the Channel groups
+            copy_group(hdf5_group, zarr_store)
+
+
+rechunk_size=snakemake.params.rechunk_size
 
 #copy imaris (hdf5) to zarr -- TODO: don't need to copy everything 
 convert_hdf5_to_zarr(
     hdf5_path=snakemake.input.ims,
     zarr_path='copy_hdf5.zarr',
+    chunks=rechunk_size
 )
 
 
@@ -56,7 +67,6 @@ in_zarr='copy_hdf5.zarr'
 metadata_json=snakemake.input.metadata_json
 downsampling=snakemake.params.downsampling
 max_layer=snakemake.params.max_downsampling_layers #number of downsamplings by 2 to include in zarr
-rechunk_size=snakemake.params.rechunk_size
 out_zarr=snakemake.output.zarr
 stains=snakemake.params.stains
 scaling_method=snakemake.params.scaling_method
@@ -105,8 +115,7 @@ darr_list=[]
 for zarr_i,stain in enumerate(stains):
     #open zarr to get group name
     zi = zarr.open(in_zarr)
-#    darr_list.append(da.from_zarr(in_zarr,component=f'DataSet/ResolutionLevel 0/TimePoint 0/Channel {zarr_i}/Data',chunks=rechunk_size))
-    darr_list.append(da.from_zarr(in_zarr,component=f'DataSet/ResolutionLevel 0/TimePoint 0/Channel {zarr_i}/Data'))
+    darr_list.append(da.from_zarr(in_zarr,component=f'Channel {zarr_i}/Data'))
 
 
     #append to omero metadata
