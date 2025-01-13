@@ -34,7 +34,7 @@ def convert_hdf5_to_zarr(hdf5_path, zarr_path):
                         data=item[()],
                         chunks=item.chunks,
                         dtype=item.dtype,
-                        compression="gzip"  # Optional compression
+                        compression="blosc"  # Optional compression
                     )
                     print(f"Copied dataset: {key}")
 

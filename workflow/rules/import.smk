@@ -155,7 +155,7 @@ rule prestitched_to_metadata:
             subject="{subject}",
             datatype="micr",
             sample="{sample}",
-            acq="{acq,[a-zA-Z0-9]*(prestitched|imaris)[a-zA-Z0-9]*}",
+            acq="{acq,[a-zA-Z0-9]*prestitched[a-zA-Z0-9]*}",
             suffix="SPIM.json",
         ),
     benchmark:

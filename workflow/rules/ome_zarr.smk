@@ -173,39 +173,3 @@ rule ome_zarr_to_nii:
     script:
         "../scripts/ome_zarr_to_nii.py"
 
-rule imaris_to_ome_zarr:
-    input:
-        ims=get_input_sample,
-        metadata_json=rules.prestitched_to_metadata.output.metadata_json,
-    params:
-        max_downsampling_layers=config["ome_zarr"]["max_downsampling_layers"],
-        rechunk_size=config["ome_zarr"]["rechunk_size"],
-        scaling_method=config["ome_zarr"]["scaling_method"],
-        downsampling=config["bigstitcher"]["fuse_dataset"]["downsampling"],
-        stains=get_stains,
-        uri=get_output_ome_zarr_uri(),
-        storage_provider_settings=workflow.storage_provider_settings,
-    output:
-        **get_output_ome_zarr("imaris"),
-    log:
-        bids(
-            root="logs",
-            subject="{subject}",
-            datatype="imaris_to_ome_zarr",
-            sample="{sample}",
-            acq="{acq}",
-            suffix="log.txt",
-        ),
-    container:
-        config["containers"]["spimprep"]
-    group:
-        "preproc"
-    threads: config["total_cores"]
-    resources:
-        runtime=360,
-        mem_mb=config["total_mem_mb"],
-    shadow: 'minimal'
-    script:
-        "../scripts/imaris_to_ome_zarr.py"
-
-
