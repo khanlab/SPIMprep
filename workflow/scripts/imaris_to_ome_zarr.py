@@ -68,7 +68,7 @@ def convert_hdf5_to_zarr(hdf5_path, zarr_path, chunks):
                                             slice(j_start, j_end),
                                             slice(k_start, k_end),
                                         )
-#                                        print(f"Copying slice {slices} for {key}")
+                                        print(f"Copying slice {slices} for {key}")
                                         zarr_dataset[slices] = data_item[slices]
 
             # Start copying only the Channel groups
