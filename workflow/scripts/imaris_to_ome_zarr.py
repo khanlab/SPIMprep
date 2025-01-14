@@ -76,8 +76,7 @@ darr_list=[]
 for zarr_i,stain in enumerate(stains):
     #open zarr to get group name
     zi = zarr.open(in_zarr)
-    #darr_list.append(da.from_zarr(in_zarr,component=f'Channel {zarr_i}/Data').rechunk(rechunk_size))
-    darr_list.append(da.from_zarr(in_zarr,component=f'channel_{zarr_i}'))
+    darr_list.append(da.from_zarr(in_zarr,component=f'channel_{zarr_i}').rechunk(rechunk_size))
 
 
     #append to omero metadata
