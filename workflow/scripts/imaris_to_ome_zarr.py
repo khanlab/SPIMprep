@@ -12,89 +12,24 @@ from upath import UPath as Path
 from lib.cloud_io import get_fsspec, is_remote
 
 
-def convert_hdf5_to_zarr(hdf5_path, zarr_path, chunks):
-    """
-    Convert an HDF5 file to Zarr using h5py and zarr, handling chunked copying.
 
-    Parameters:
-        hdf5_path (str): Path to the input HDF5 (.ims) file.
-        zarr_path (str): Path to the output Zarr dataset.
-        chunks (tuple): Chunk size for the Zarr dataset.
-    """
-
-    h5py._errors.unsilence_errors()
-    # Open the HDF5 file and create a Zarr root group
-    with h5py.File(hdf5_path, "r") as hdf5_file:
-        zarr_store = zarr.open_group(zarr_path, mode="w")
-
-        # Define the specific path to copy
-        target_path = "DataSet/ResolutionLevel 0/TimePoint 0"
-
-        # Check if the target path exists in HDF5
-        if target_path in hdf5_file:
-            hdf5_group = hdf5_file[target_path]
-
-            def copy_group(hdf5_group, zarr_group):
-                """
-                Copies channel groups and their 'Data' datasets chunk by chunk.
-
-                Args:
-                    hdf5_group: HDF5 group containing the dataset.
-                    zarr_group: Zarr group to write the dataset to.
-                """
-                for key, item in hdf5_group.items():
-                    if isinstance(item, h5py.Group) and key.startswith("Channel"):  # Only copy Channel groups
-                        channel_group = item
-                        if "Data" in channel_group:  # Only copy the Data dataset in each Channel
-                            data_item = channel_group["Data"]
-
-                            # Create the Zarr dataset
-                            zarr_dataset = zarr_group.require_dataset(
-                                name=key + "/Data",
-                                shape=data_item.shape,
-                                chunks=chunks,
-                                dtype=data_item.dtype,
-                                compression="blosc",  # Optional compression
-                            )
-
-                            # Copy data chunk by chunk
-                            for i_start in range(0, data_item.shape[0], chunks[0]):
-                                for j_start in range(0, data_item.shape[1], chunks[1]):
-                                    for k_start in range(0, data_item.shape[2], chunks[2]):
-                                        i_end = min(i_start + chunks[0], data_item.shape[0])
-                                        j_end = min(j_start + chunks[1], data_item.shape[1])
-                                        k_end = min(k_start + chunks[2], data_item.shape[2])
-
-                                        slices = (
-                                            slice(i_start, i_end),
-                                            slice(j_start, j_end),
-                                            slice(k_start, k_end),
-                                        )
-                                        print(f"Copying slice {slices} for {key}")
-                                        zarr_dataset[slices] = data_item[slices]
-
-            # Start copying only the Channel groups
-            copy_group(hdf5_group, zarr_store)
+stains=snakemake.params.stains
 
 
 
-rechunk_size=snakemake.params.rechunk_size
-
-#copy imaris (hdf5) to zarr
-convert_hdf5_to_zarr(
-    hdf5_path=snakemake.input.ims,
-    zarr_path='copy_hdf5.zarr',
-    chunks=rechunk_size
-)
-
-
+source = h5py.File(snakemake.input.ims, mode='r')
+dest = zarr.open_group('copy_hdf5.zarr', mode='w')
+from sys import stdout
+for chan in range(len(stains)):
+    zarr.copy(source[f'DataSet/ResolutionLevel 0/TimePoint 0/Channel {chan}/Data'], dest, name=f'channel_{chan}',log=stdout)
+source.close()
 
 in_zarr='copy_hdf5.zarr'
 metadata_json=snakemake.input.metadata_json
 downsampling=snakemake.params.downsampling
 max_layer=snakemake.params.max_downsampling_layers #number of downsamplings by 2 to include in zarr
+rechunk_size=snakemake.params.rechunk_size
 out_zarr=snakemake.output.zarr
-stains=snakemake.params.stains
 scaling_method=snakemake.params.scaling_method
 uri = snakemake.params.uri
 
@@ -141,7 +76,8 @@ darr_list=[]
 for zarr_i,stain in enumerate(stains):
     #open zarr to get group name
     zi = zarr.open(in_zarr)
-    darr_list.append(da.from_zarr(in_zarr,component=f'Channel {zarr_i}/Data'))
+    #darr_list.append(da.from_zarr(in_zarr,component=f'Channel {zarr_i}/Data').rechunk(rechunk_size))
+    darr_list.append(da.from_zarr(in_zarr,component=f'channel_{zarr_i}'))
 
 
     #append to omero metadata
