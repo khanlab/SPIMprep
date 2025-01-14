@@ -14,17 +14,6 @@ from lib.cloud_io import get_fsspec, is_remote
 
 
 stains=snakemake.params.stains
-
-
-
-source = h5py.File(snakemake.input.ims, mode='r')
-dest = zarr.open_group('copy_hdf5.zarr', mode='w')
-from sys import stdout
-for chan in range(len(stains)):
-    zarr.copy(source[f'DataSet/ResolutionLevel 0/TimePoint 0/Channel {chan}/Data'], dest, name=f'channel_{chan}',log=stdout)
-source.close()
-
-in_zarr='copy_hdf5.zarr'
 metadata_json=snakemake.input.metadata_json
 downsampling=snakemake.params.downsampling
 max_layer=snakemake.params.max_downsampling_layers #number of downsamplings by 2 to include in zarr
@@ -73,15 +62,15 @@ else:
 
 
 darr_list=[]
-for zarr_i,stain in enumerate(stains):
+for zarr_i,in_zarr in enumerate(snakemake.input.zarr):
     #open zarr to get group name
     zi = zarr.open(in_zarr)
-    darr_list.append(da.from_zarr(in_zarr,component=f'channel_{zarr_i}').rechunk(rechunk_size))
+    darr_list.append(da.from_zarr(in_zarr,component='Data').rechunk(rechunk_size))
 
 
     #append to omero metadata
     channel_metadata={key:val for key,val in snakemake.config['ome_zarr']['omero_metadata']['channels']['defaults'].items()}
-    channel_name=stain
+    channel_name=stains[zarr_i]
     channel_metadata['label'] = channel_name
     default_color=snakemake.config['ome_zarr']['omero_metadata']['channels']['default_color']
     color=snakemake.config['ome_zarr']['omero_metadata']['channels']['color_mapping'].get(channel_name,default_color)
