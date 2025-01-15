@@ -89,40 +89,6 @@ rule tif_stacks_to_ome_zarr:
         "../scripts/tif_stacks_to_ome_zarr.py"
 
 
-rule ome_zarr_to_zipstore:
-    """ use 7zip to create a zipstore """
-    input:
-        zarr=bids(
-            root=work,
-            subject="{subject}",
-            datatype="micr",
-            sample="{sample}",
-            acq="{acq}",
-            suffix="SPIM.ome.zarr",
-        ),
-    output:
-        zarr_zip=bids(
-            root=root,
-            subject="{subject}",
-            datatype="micr",
-            sample="{sample}",
-            acq="{acq}",
-            suffix="SPIM.ome.zarr.zip",
-        ),
-    log:
-        bids(
-            root="logs",
-            subject="{subject}",
-            datatype="micr",
-            sample="{sample}",
-            acq="{acq}",
-            suffix="log.txt",
-        ),
-    group:
-        "preproc"
-    shell:
-        "7z a -mx0 -tzip {output.zarr_zip} {input.zarr}/. &> {log}"
-
 
 rule ome_zarr_to_nii:
     input:
