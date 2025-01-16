@@ -54,46 +54,48 @@ omero['channels']=[]
 if is_remote(uri):
     fs_args={'storage_provider_settings':snakemake.params.storage_provider_settings,'creds':snakemake.input.creds}
     fs = get_fsspec(uri,**fs_args)
+    #TODO: use zipstore here too if enabled
     store = zarr.storage.FSStore(Path(uri).path,fs=fs,dimension_separator='/',mode='w')
 else:
-    #store = zarr.DirectoryStore(out_zarr,dimension_separator='/') 
-    store = zarr.ZipStore(out_zarr,dimension_separator='/',mode='x') 
+    if Path(out_zarr).suffixes[-1] == '.zip':
+        store = zarr.ZipStore(out_zarr,dimension_separator='/',mode='x') 
+    else:
+        store = zarr.DirectoryStore(out_zarr,dimension_separator='/') 
+
+
+darr_list=[]
+for zarr_i,in_zarr in enumerate(snakemake.input.zarr):
+    #open zarr to get group name
+    zi = zarr.open(in_zarr)
+    darr_list.append(da.from_zarr(in_zarr,component='Data').rechunk(rechunk_size))
 
 
 
-with h5py.File(snakemake.input.ims, 'r') as h5_file:
+    #append to omero metadata
+    channel_metadata={key:val for key,val in snakemake.config['ome_zarr']['omero_metadata']['channels']['defaults'].items()}
+    channel_name=stains[zarr_i]
+    channel_metadata['label'] = channel_name
+    default_color=snakemake.config['ome_zarr']['omero_metadata']['channels']['default_color']
+    color=snakemake.config['ome_zarr']['omero_metadata']['channels']['color_mapping'].get(channel_name,default_color)
+    channel_metadata['color'] = color
+    omero['channels'].append(channel_metadata)
+    
 
-    darr_list=[]
-    for zarr_i,stain in enumerate(stains):
-        h5_group=f'DataSet/ResolutionLevel 0/TimePoint 0/Channel {zarr_i}/Data'
-        darr_list.append(da.from_array(h5_file[h5_group]).rechunk(rechunk_size))
-
-
-        #append to omero metadata
-        channel_metadata={key:val for key,val in snakemake.config['ome_zarr']['omero_metadata']['channels']['defaults'].items()}
-        channel_name=stain
-        channel_metadata['label'] = channel_name
-        default_color=snakemake.config['ome_zarr']['omero_metadata']['channels']['default_color']
-        color=snakemake.config['ome_zarr']['omero_metadata']['channels']['color_mapping'].get(channel_name,default_color)
-        channel_metadata['color'] = color
-        omero['channels'].append(channel_metadata)
-        
-
-    darr_channels = da.stack(darr_list)
+darr_channels = da.stack(darr_list)
 
 
 
-    group = zarr.group(store,overwrite=True)
-    scaler = Scaler(max_layer=max_layer,method=scaling_method)
+group = zarr.group(store,overwrite=True)
+scaler = Scaler(max_layer=max_layer,method=scaling_method)
 
 
-    with ProgressBar():
-        write_image(image=darr_channels,
-                                group=group,
-                                scaler=scaler,
-                                coordinate_transformations=coordinate_transformations,
-                                axes=axes,
-                                metadata={'omero':omero}
-                                    )
+with ProgressBar():
+    write_image(image=darr_channels,
+                            group=group,
+                            scaler=scaler,
+                            coordinate_transformations=coordinate_transformations,
+                            axes=axes,
+                            metadata={'omero':omero}
+                                )
 
 

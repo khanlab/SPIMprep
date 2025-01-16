@@ -35,9 +35,55 @@ rule imaris_to_metadata:
     script:
         "../scripts/imaris_to_metadata.py"
 
-rule imaris_to_ome_zarr:
+rule imaris_channel_to_zarr:
     input:
         ims=get_input_sample,
+    params:
+        channel=lambda wildcards: get_stains(wildcards).index(wildcards.stain),
+    output:
+        zarr=temp(bids(
+            root=work,
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq}",
+            stain="{stain}",
+            suffix="imaris.zarr.zip",
+        )),
+    log:
+        bids(
+            root="logs",
+            subject="{subject}",
+            datatype="imaris_channel_to_zarr",
+            sample="{sample}",
+            acq="{acq}",
+            stain="{stain}",
+            suffix="log.txt",
+        ),
+    container:
+        config["containers"]["spimprep"]
+    group:
+        "preproc"
+    threads: 1
+    resources:
+        runtime=360,
+        mem_mb=1000,
+    shadow: 'minimal'
+    script:
+        "../scripts/imaris_channel_to_zarr.py"
+
+
+rule imaris_to_ome_zarr:
+    input:
+        zarr=lambda wildcards: expand(bids(
+            root=work,
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq}",
+            stain="{stain}",
+            suffix="imaris.zarr.zip",
+        ),stain=get_stains(wildcards),allow_missing=True),
         metadata_json=rules.prestitched_to_metadata.output.metadata_json,
     params:
         max_downsampling_layers=config["ome_zarr"]["max_downsampling_layers"],
