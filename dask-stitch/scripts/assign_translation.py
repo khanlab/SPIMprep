@@ -26,7 +26,7 @@ def assign_translations(ome_zarr_paths, optimized_translations, output_paths):
         
         #HACK FIX:
         #affine has translation negated and flipped, for whatever reason..  need to fix this in zarrnii
-        updated_affine[:3,3] = -1 * np.flip(updated_affine[:3,3])
+        #updated_affine[:3,3] = -1 * np.flip(updated_affine[:3,3])
 
 
 

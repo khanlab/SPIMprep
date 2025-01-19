@@ -61,7 +61,7 @@ rule assign_translations:
 rule fuse_volume:
     input:
         ome_zarr=expand('results/tile-{tile}_SPIM.ome.zarr', tile=range(gridx*gridy)),
-        optimized_translations='results/optimized_translations.txt'
+        #optimized_translations='results/optimized_translations.txt'
     output:
         ome_zarr = directory('results/fused_SPIM.ome.zarr'),
         nifti = 'results/fused_SPIM.nii'

@@ -138,8 +138,8 @@ def compute_pairwise_correlation(ome_zarr_paths, overlapping_pairs, output_shape
         affine1 = znimg1.vox2ras.affine
         affine2 = znimg2.vox2ras.affine
         #HACK FIX
-        affine1[:3,3] = -1 * np.flip(affine1[:3,3])
-        affine2[:3,3] = -1 * np.flip(affine2[:3,3])
+#        affine1[:3,3] = -1 * np.flip(affine1[:3,3])
+#        affine2[:3,3] = -1 * np.flip(affine2[:3,3])
 
 
 
