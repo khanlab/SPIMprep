@@ -1,3 +1,8 @@
+from zarrnii import ZarrNii
+import numpy as np
+from lib.utils import * 
+
+
 configfile: 'config.yml'
 
 gridx=config['gridx']
@@ -68,3 +73,83 @@ rule fuse_volume:
     script: 
         'scripts/fuse_volume.py'
 
+
+
+rule test_rtree_index:
+    output:
+        'results/tests/rtree_index.touch'
+    shadow: 'minimal'
+    run:
+
+        paths = ["tile1.ome.zarr", "tile2.ome.zarr"]
+        znimg1 = ZarrNii.from_darr(np.ones((1,8, 8, 8)), affine=-1*np.eye(4))
+        znimg2 = ZarrNii.from_darr(np.ones((1,8, 8, 8)), affine=np.eye(4) * 2)
+        
+        znimg1.to_ome_zarr(paths[0])
+        znimg2.to_ome_zarr(paths[1])
+
+        idx, znimgs = build_rtree_index(paths)
+        print("Index built successfully.")
+        for entry in idx.intersection((-16, -16, -16, 0, 0, 0), objects=True):
+            print("Intersecting object:", entry.object)
+        shell('touch {output}')
+
+
+rule test_process_block_single:
+    input:
+        niftis=expand('results/tile-{i}_SPIM.nii',i=range(4))
+    output:
+        flag='results/tests/process_block_single.touch',
+        fused='results/tests/fused_test.nii'
+    shadow: 'minimal'
+    run:
+        # Mock tile data
+        for i,nii in enumerate(input.niftis):
+            ZarrNii.from_nifti(nii).to_ome_zarr(f'test_tile_{i}.ome.zarr')
+            
+
+        # Create a mock R-tree index
+        idx, znimgs = build_rtree_index([f'test_tile_{i}.ome.zarr' for i in range(len(input.niftis))])
+        
+
+        # Mock block info
+        block_data = np.zeros((128, 128, 128), dtype=np.float32)
+        block_info = [{"chunk-location": (0, 0, 0)}]
+        
+        # Call process_block
+        result = process_block(
+            block_data,
+            block_info=block_info,
+            rtree_idx=idx,
+            znimgs=znimgs,
+            global_bbox_min=np.zeros(3),
+            target_voxel_spacing=np.ones(3)
+        )
+
+        print("Processed block result:", result)
+        print(result.shape)
+        ZarrNii.from_array(result.reshape(1,128,128,128),axes_order=znimgs[0].axes_order,orientation=znimgs[0].get_orientation()).to_nifti(output.fused)
+        shell('touch {output.flag}')
+
+rule test_resample_chunk_to_block:
+    output:
+        'results/tests/resample_chunk_to_block.touch'
+    shadow: 'minimal'
+    run:
+        # Mock chunk data
+        chunk_data = np.arange(27).reshape(3, 3, 3)
+        chunk_bbox_min = np.array([0, 0, 0])
+        chunk_bbox_max = np.array([4, 4, 4])
+        block_bbox_min = np.array([0, 0, 0])
+        block_bbox_max = np.array([4, 4, 8])
+        block_shape = (3, 3, 3)
+        print(f'chunk_data: {chunk_data}')
+        print(f'chunk_bbox_min: {chunk_bbox_min}')
+        print(f'chunk_bbox_max: {chunk_bbox_max}')
+        print(f'block_bbox_min: {block_bbox_min}')
+        print(f'block_bbox_max: {block_bbox_max}')
+
+        # Resample the chunk
+        resampled = resample_chunk_to_block_alt1(chunk_data, chunk_bbox_min, chunk_bbox_max, block_bbox_min, block_bbox_max, block_shape)
+        print("Resampled data:", resampled)
+        shell('touch {output}')
