@@ -131,6 +131,49 @@ rule test_process_block_single:
         ZarrNii.from_array(result.reshape(1,128,128,128),axes_order=znimgs[0].axes_order,orientation=znimgs[0].get_orientation()).to_nifti(output.fused)
         shell('touch {output.flag}')
 
+rule test_process_block_multi:
+    input:
+        niftis=expand('results/tile-{i}_SPIM.nii',i=range(4))
+    output:
+        flag='results/tests/process_block_multi.touch',
+        fused='results/tests/fused_test_multi.nii'
+    shadow: 'minimal'
+    run:
+        # Mock tile data
+        for i,nii in enumerate(input.niftis):
+            ZarrNii.from_nifti(nii).to_ome_zarr(f'test_tile_{i}.ome.zarr')
+            
+
+        # Create a mock R-tree index
+        idx, znimgs = build_rtree_index([f'test_tile_{i}.ome.zarr' for i in range(len(input.niftis))])
+        
+
+        output_shape=(200,200,200)
+        output_chunks=(100,100,100)
+        fused_dask_array = da.zeros(output_shape, chunks=output_chunks, dtype=np.float32)
+        znimg_fused = ZarrNii.from_darr(fused_dask_array,
+                                             axes_order=znimgs[0].axes_order,
+                                             orientation=znimgs[0].get_orientation(),
+                                             spacing=(0.5,0.5,0.5),
+                                             origin=(0,0,0))
+
+        # Apply map_blocks to process the fused array --- could consider putting this into zarrnii as a member function.. 
+        processed_dask_array = znimg_fused.darr.map_blocks(
+            process_block,
+            dtype=np.float32,
+            rtree_idx=idx,
+            znimgs=znimgs,
+            affine=znimg_fused.affine,
+        )
+
+        znimg_fused.darr = processed_dask_array.reshape(1,output_shape[0],output_shape[1],output_shape[2])
+        znimg_fused.to_nifti(output.fused)
+
+        #print(processed_dask_array.shape)
+        #ZarrNii.from_darr(processed_dask_array.reshape(1,output_shape[0],output_shape[1],output_shape[2]),axes_order=znimgs[0].axes_order,orientation=znimgs[0].get_orientation()).to_nifti(output.fused)
+        shell('touch {output.flag}')
+
+
 rule test_resample_chunk_to_block:
     output:
         'results/tests/resample_chunk_to_block.touch'
