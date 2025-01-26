@@ -4,6 +4,9 @@ from zarrnii import ZarrNii
 # Paths to input tiles
 ome_zarr_paths = snakemake.input.ome_zarr
 
+
+
+
 # Build R-tree index for all chunks in all tiles
 rtree_idx, znimgs = build_rtree_index(ome_zarr_paths)
 

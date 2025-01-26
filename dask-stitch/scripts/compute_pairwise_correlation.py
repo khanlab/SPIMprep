@@ -129,18 +129,20 @@ def compute_pairwise_correlation(ome_zarr_paths, overlapping_pairs, output_shape
 
     for pair_index, (i, j) in enumerate(overlapping_pairs):
         # Load the two images and their affines
-        znimg1 = ZarrNii.from_path(ome_zarr_paths[i])
-        znimg2 = ZarrNii.from_path(ome_zarr_paths[j])
+        znimg1 = ZarrNii.from_ome_zarr(ome_zarr_paths[i])
+        znimg2 = ZarrNii.from_ome_zarr(ome_zarr_paths[j])
 
         img1 = znimg1.darr.squeeze().compute()
         img2 = znimg2.darr.squeeze().compute()
 
-        affine1 = znimg1.vox2ras.affine
-        affine2 = znimg2.vox2ras.affine
-        #HACK FIX
-#        affine1[:3,3] = -1 * np.flip(affine1[:3,3])
-#        affine2[:3,3] = -1 * np.flip(affine2[:3,3])
+        #TODO: should make this a class member function, or just return the reordered affine
+        affine1 = np.eye(4,4)
+        affine1[:3, :3] = np.diag(znimg1.get_zooms(axes_order=znimg1.axes_order))  # Set the zooms (scaling factors) along the diagonal
+        affine1[:3, 3] = znimg1.get_origin(axes_order=znimg1.axes_order)  # Set the translation (origin)
 
+        affine2 = np.eye(4,4)
+        affine2[:3, :3] = np.diag(znimg2.get_zooms(axes_order=znimg2.axes_order))  # Set the zooms (scaling factors) along the diagonal
+        affine2[:3, 3] = znimg2.get_origin(axes_order=znimg2.axes_order)  # Set the translation (origin)
 
 
         # Compute the corrected bounding boxes

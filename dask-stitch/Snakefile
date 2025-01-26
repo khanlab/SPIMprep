@@ -15,7 +15,8 @@ wildcard_constraints:
 
 rule all:
     input: 
-        'results/fused_SPIM.nii'
+        'results/fused_SPIM.nii',
+        'results/fused_desc-groundtruth_SPIM.nii'
 
 rule create_test_dataset_single_ome_zarr:
     params:
@@ -25,8 +26,17 @@ rule create_test_dataset_single_ome_zarr:
         ome_zarr=directory('results/tile-{tile}_SPIM.ome.zarr'),
         nifti='results/tile-{tile}_SPIM.nii',
         nifti_fromzarr='results/tile-{tile}_fromzarr_SPIM.nii',
+        true_offset='results/tile-{tile}_desc-groundtruth_offset.txt'
     script: 'scripts/create_test_dataset_singletile.py'
 
+rule concat_ground_truth_translations:
+    input:
+        ome_zarr=expand('results/tile-{tile}_desc-groundtruth_offset.txt', tile=range(gridx*gridy)),
+    output:
+        true_translations='results/groundtruth_translations.txt'
+    shell: 
+        'cat {input} > {output}'
+ 
 
 rule find_overlapping_pairs:
     input:
@@ -55,22 +65,46 @@ rule global_optimization:
         'scripts/global_optimization.py'
  
 
+
 rule assign_translations:
     input:
         ome_zarr=expand('results/tile-{tile}_SPIM.ome.zarr', tile=range(gridx*gridy)),
-        optimized_translations='results/optimized_translations.txt'
+        translations='results/optimized_translations.txt'
     output:
-        nifti=expand('results/tile-{tile}_optimized_SPIM.nii', tile=range(gridx*gridy))
+        niftis=expand('results/tile-{tile}_optimized_SPIM.nii', tile=range(gridx*gridy)),
+        ome_zarrs=directory(expand('results/tile-{tile}_optimized_SPIM.ome.zarr', tile=range(gridx*gridy)))
     script: 
         "scripts/assign_translation.py"
 
-rule fuse_volume:
+ 
+rule assign_true_translations:
     input:
         ome_zarr=expand('results/tile-{tile}_SPIM.ome.zarr', tile=range(gridx*gridy)),
-        #optimized_translations='results/optimized_translations.txt'
+        translations='results/groundtruth_translations.txt'
+    output:
+        niftis=expand('results/tile-{tile}_groundtruth_SPIM.nii', tile=range(gridx*gridy)),
+        ome_zarrs=directory(expand('results/tile-{tile}_groundtruth_SPIM.ome.zarr', tile=range(gridx*gridy)))
+    script: 
+        "scripts/assign_translation.py"
+
+       
+rule fuse_volume:
+    input:
+        ome_zarr=expand('results/tile-{tile}_optimized_SPIM.ome.zarr', tile=range(gridx*gridy)),
+        nifti=expand('results/tile-{tile}_optimized_SPIM.nii', tile=range(gridx*gridy)),
     output:
         ome_zarr = directory('results/fused_SPIM.ome.zarr'),
         nifti = 'results/fused_SPIM.nii'
+    script: 
+        'scripts/fuse_volume.py'
+
+rule fuse_true_volume:
+    input:
+        ome_zarr=expand('results/tile-{tile}_groundtruth_SPIM.ome.zarr', tile=range(gridx*gridy)),
+        nifti=expand('results/tile-{tile}_groundtruth_SPIM.nii', tile=range(gridx*gridy)),
+    output:
+        ome_zarr = directory('results/fused_desc-groundtruth_SPIM.ome.zarr'),
+        nifti = 'results/fused_desc-groundtruth_SPIM.nii'
     script: 
         'scripts/fuse_volume.py'
 
