@@ -7,7 +7,7 @@ import dask.array as da
 import math
 from zarrnii import ZarrNii
 
-def create_test_dataset_single(tile_index, template="MNI152NLin2009cAsym", res=2, grid_shape=(3, 4), overlap=16, random_seed=42, final_chunks=(1,32, 32, 1)):
+def create_test_dataset_single(tile_index, template="MNI152NLin2009cAsym", res=2, grid_shape=(3, 4), overlap=16, random_seed=42, final_chunks=(1,32, 32, 32)):
     """
     Create a low-resolution test dataset for tile-based stitching.
 
