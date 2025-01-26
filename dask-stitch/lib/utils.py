@@ -1,6 +1,10 @@
 import numpy as np
 import dask.array as da
-from zarrnii import ZarrNii
+from zarrnii import ZarrNii, AffineTransform
+from scipy.ndimage import map_coordinates
+from scipy.interpolate import interpn
+
+
 from rtree import index
 import dask
 dask.config.set(scheduler='synchronous')  # overwrite default with single-threaded scheduler
@@ -119,13 +123,10 @@ def query_intersections(rtree_idx, chunk_bbox):
 
 
 
-import numpy as np
-from scipy.ndimage import map_coordinates
-
 
 
 # Define the process_block function
-def process_block(block_data, block_info=None, rtree_idx=None, znimgs=None, affine=None):
+def process_block(block_data, block_info=None, rtree_idx=None, znimgs=None, out_affine=None):
     """
     Process a block of the fused array by loading and resampling overlapping chunks.
 
@@ -134,7 +135,7 @@ def process_block(block_data, block_info=None, rtree_idx=None, znimgs=None, affi
     - block_info (dict): Information about the block being processed (from Dask).
     - rtree_idx (rtree.index.Index): R-tree index of the tile chunks.
     - znimgs (list): List of ZarrNii objects for the tiles.
-    - affine: Affine transform for output image.
+    - out_affine: Affine transform for output image.
 
     Returns:
     - np.ndarray: The processed block of the fused array.
@@ -157,12 +158,12 @@ def process_block(block_data, block_info=None, rtree_idx=None, znimgs=None, affi
                         array_location[2][1])
 
 
-    block_bbox_min = affine @ (np.array(block_bbox_min_vox))
-    block_bbox_max = affine @ (np.array(block_bbox_max_vox))
+    block_bbox_min = out_affine @ (np.array(block_bbox_min_vox))
+    block_bbox_max = out_affine @ (np.array(block_bbox_max_vox))
 
     print('min vox to world:')
     print(block_bbox_min_vox)
-    print(affine)
+    print(out_affine)
     print(block_bbox_min)
 
     # Convert voxel coordinates to world coordinates
@@ -170,13 +171,17 @@ def process_block(block_data, block_info=None, rtree_idx=None, znimgs=None, affi
 #    block_bbox_max = global_bbox_min + block_voxel_max * target_voxel_spacing
 
     #block_bbox = (*block_bbox_min, *block_bbox_max)
-    block_bbox = (*(block_bbox_min-5), *(block_bbox_max+5)) #this is for the rtree 
+    block_bbox = (*(block_bbox_min), *(block_bbox_max)) #this is for the rtree 
 
-
+    print('out_block')
     print(f'at block {block_location}')
     print(f'array_location {array_location}')
     print(f'bbox: {block_bbox}')
 
+    #get the coordinates for sampling the output chunk
+    out_xi = generate_xi(array_location,out_affine)
+
+    print(f'out_xi: {out_xi}')
 
     # Query the R-tree for overlapping chunks
     intersecting_chunks = list(rtree_idx.intersection(block_bbox, objects=True))
@@ -187,99 +192,45 @@ def process_block(block_data, block_info=None, rtree_idx=None, znimgs=None, affi
 
     # Process each overlapping chunk
     for entry in intersecting_chunks:
-        #print("have an intersecting chunk")
+        print("have an intersecting chunk")
         tile_idx, chunk_id = entry.object
+        print(tile_idx)
+        print(chunk_id)
         znimg = znimgs[tile_idx]
         tile_dask_array = znimg.darr.squeeze()
-        affine = znimg.affine.matrix
-        print(f'intersected with {tile_idx}')
-    
+        tile_affine = znimg.affine.matrix
 
         # Extract chunk data
         z_idx, y_idx, x_idx = chunk_id
         tile_chunk = tile_dask_array.blocks[z_idx, y_idx, x_idx].compute()
+        
+        
+        # Determine the array location for the given block
+        chunks_ = tile_dask_array.chunks
+        print(f'tile chunks_: {chunks_}')
 
-        # Compute the bounding box of the chunk in physical space
-        chunk_shape = tile_chunk.shape
-        voxel_min = np.array([z_idx, y_idx, x_idx]) * tile_dask_array.chunksize
-        voxel_max = voxel_min + chunk_shape   #TODO check this
-
-        # Map voxel bounding box to physical space
-#        chunk_corners = np.array([
-#            [voxel_min[2], voxel_min[1], voxel_min[0], 1],
-#            [voxel_max[2], voxel_min[1], voxel_min[0], 1],
-#            [voxel_min[2], voxel_max[1], voxel_min[0], 1],
-#            [voxel_min[2], voxel_min[1], voxel_max[0], 1],
-#            [voxel_max[2], voxel_max[1], voxel_min[0], 1],
-#            [voxel_min[2], voxel_max[1], voxel_max[0], 1],
-#            [voxel_max[2], voxel_min[1], voxel_max[0], 1],
-#            [voxel_max[2], voxel_max[1], voxel_max[0], 1],
-#        ])
-#        print('chunk_corners')
-#        print(chunk_corners)
-#        physical_corners = np.dot(affine, chunk_corners.T).T[:, :3]
-
-        physical_corners = np.array([
-            affine @ np.array([voxel_min[2], voxel_min[1], voxel_min[0], 1]),
-            affine @ np.array([voxel_max[2], voxel_min[1], voxel_min[0], 1]),
-            affine @ np.array([voxel_min[2], voxel_max[1], voxel_min[0], 1]),
-            affine @ np.array([voxel_min[2], voxel_min[1], voxel_max[0], 1]),
-            affine @ np.array([voxel_max[2], voxel_max[1], voxel_min[0], 1]),
-            affine @ np.array([voxel_min[2], voxel_max[1], voxel_max[0], 1]),
-            affine @ np.array([voxel_max[2], voxel_min[1], voxel_max[0], 1]),
-            affine @ np.array([voxel_max[2], voxel_max[1], voxel_max[0], 1]),
-        ])
-
-
-
-#        print('physical corners')
-#        print(physical_corners)
-        chunk_bbox_min = physical_corners.min(axis=0)[:3]
-        chunk_bbox_max = physical_corners.max(axis=0)[:3]
-   #     print("output chunk extents:")
-   #     print(block_bbox_min)
-   #     print(block_bbox_max)
-   #     print("intersecting input chunk extents:")
-   #     print(chunk_bbox_min)
-   #     print(chunk_bbox_max)
-
-        # Compute overlapping region in physical space
-        overlap_min = np.maximum(block_bbox_min, chunk_bbox_min)
-        overlap_max = np.minimum(block_bbox_max, chunk_bbox_max)
-
-   #     print("overlapping region")
-   #     print(overlap_min)
-   #     print(overlap_max)
-
-#        if np.any(overlap_min > overlap_max):
- #           print('NO OVERLAP')
-#            continue  # No overlap
-  #      else:
-  #          print('YES THERE IS OVERLAP')
-
-        resampled_chunk = resample_chunk_to_block_alt1(
-            tile_chunk, chunk_bbox_min, chunk_bbox_max, block_bbox_min, block_bbox_max, block_shape
-        )
-
-        #this is new for alt2:
-        """
-        block_coords = [
-            np.linspace(block_bbox_min[i], block_bbox_max[i], block_shape[i])
-            for i in range(3)
+        # Calculate the array location for the given block indices
+        tile_array_location = [
+            (int(np.sum(chunks_[dim][:index])), int(np.sum(chunks_[dim][:index + 1])))
+            for dim, index in enumerate((z_idx, y_idx, x_idx))
         ]
-        output_coords = np.meshgrid(block_coords[2], block_coords[1], block_coords[0], indexing="ij")
-        resampled_chunk = resample_chunk_to_block_alt2(tile_chunk, affine, output_coords)
-        """
-        #--
 
-        # Resample chunk data to the output block's coordinate space
-       # resampled_chunk = resample_chunk_to_block(
-       #     tile_chunk, affine, overlap_min, overlap_max, block_bbox_min, block_bbox_max, block_shape
-       # )
+        print(f'tile array_location: {tile_array_location}')
+           
+        print(f'intersected with tile {tile_idx}, at {chunk_id}')
+        print(f'block_indices: {(z_idx,y_idx,x_idx)}')
+        print(f'array_location: {array_location}')
 
-    #    print(resampled_chunk.shape)
+        tile_points = generate_points(tile_array_location,tile_affine)
+
+        print('tile_points')
+        print(tile_points)
+
+        # Perform interpolation
+        resampled_chunk = interpn(tile_points, tile_chunk, out_xi, method='linear', bounds_error=False, fill_value=-1).reshape(block_shape)
+
         # Fuse resampled chunk into the output block
-        mask = resampled_chunk > 0
+        mask = resampled_chunk > -1
         fused_block[mask] += resampled_chunk[mask]
         weight[mask] += 1
 
@@ -290,6 +241,104 @@ def process_block(block_data, block_info=None, rtree_idx=None, znimgs=None, affi
     fused_block = np.divide(fused_block, weight, out=np.zeros_like(fused_block), where=weight > 0)
 
     return fused_block
+
+
+def generate_points(array_location: list, affine: np.ndarray):
+    """
+    Generate the points tuple needed for scipy.interpolate.interpn.
+
+    Parameters:
+    - array_location (list of tuples): List defining the voxel ranges for each dimension (z, y, x). 
+      Example: `array_location = [(z_min, z_max), (y_min, y_max), (x_min, x_max)]`.
+    - affine (np.ndarray): 4x4 affine matrix mapping voxel coordinates to physical coordinates.
+
+    Returns:
+    - tuple of np.ndarray: 1D arrays of physical coordinates for each dimension (x, y, z).
+    """
+    # Create min and max voxel coordinates (3D vectors)
+    min_voxel_coord = np.array([dim_range[0] for dim_range in array_location])  
+    max_voxel_coord = np.array([dim_range[1] - 1 for dim_range in array_location]) 
+
+    # Transform min and max voxel coordinates into physical space
+    affine_transform = AffineTransform.from_array(affine)
+    min_phys_coord = affine_transform @ min_voxel_coord
+    max_phys_coord = affine_transform @ max_voxel_coord
+
+    # Generate a linspace for each dimension between the physical min and max
+    points = [
+        np.linspace(min_phys_coord[i], max_phys_coord[i], array_location[i][1] - array_location[i][0])
+        for i in range(3)
+    ]
+
+    return tuple(points)
+
+
+
+def generate_xi(array_location: list, affine: np.ndarray):
+    """
+    Generate the xi array needed for scipy.interpolate.interpn.
+
+    Parameters:
+    - array_location (list of tuples): List defining the voxel ranges for each dimension (z, y, x). 
+      Example: `array_location = [(z_min, z_max), (y_min, y_max), (x_min, x_max)]`.
+    - affine (np.ndarray): 4x4 affine matrix mapping voxel coordinates to physical coordinates.
+
+    Returns:
+    - np.ndarray: Flattened array of 3D physical coordinates (xi) for interpolation.
+    """
+    # Create voxel indices for the output grid
+    voxel_ranges = [
+        np.linspace(start, stop - 1, num=stop - start) for start, stop in array_location
+    ]
+
+    # Generate the 3D meshgrid
+    xv, yv, zv = np.meshgrid(voxel_ranges[2], voxel_ranges[1], voxel_ranges[0], indexing="ij")
+
+    # Apply affine transformation to all coordinates
+    affine_transform = AffineTransform.from_array(affine)
+    voxel_coords = np.stack([xv.ravel(), yv.ravel(), zv.ravel()])
+    physical_coords = affine_transform.apply_transform(voxel_coords)
+
+    # Combine the transformed coordinates into the required xi format
+    return np.stack(physical_coords, axis=-1)
+
+
+  
+
+def resample_chunk_to_block_interpn(tile_chunk, tile_coords, out_coords):
+    """
+    Resample tile_chunk (input chunk) data to the output block's coordinate space.
+
+    Parameters:
+    - tile_chunk (np.ndarray): Input chunk data (3D array).
+    - tile_coords (tuple): Physical coordinates of the input chunk, (xv, yv, zv)
+    - out_coords (tuple): Physical coordinates of the output chunk, (xv, yv, zv)
+
+    Returns:
+    - np.ndarray: Resampled data for the output block.
+    """
+
+
+    # tile_coords is a tuple of (xv, yv, zv) where xv, yv, zv are 1D arrays
+    # representing the physical coordinate grid for the input chunk.
+    points = (tile_coords[0], tile_coords[1], tile_coords[2])
+
+    # Flatten the output coordinates for interpolation
+    xi = np.stack([out_coords[0].ravel(), out_coords[1].ravel(), out_coords[2].ravel()], axis=-1)
+
+    print('points')
+    print(len(points))
+    print(points[0].shape)
+    print(points[1].shape)
+    print(points[2].shape)
+
+    # Perform interpolation
+    resampled_data = interpn(points, tile_chunk, xi, method='linear', bounds_error=False, fill_value=0)
+
+    # Reshape the result back to the shape of out_coords
+    return resampled_data.reshape(out_coords[0].shape)
+
+    
 
 
 def resample_chunk_to_block_alt2(tile_chunk, affine, output_coords):
