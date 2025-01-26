@@ -71,7 +71,7 @@ def create_test_dataset_single(tile_index, template="MNI152NLin2009cAsym", res=2
     # initially lets just do a random jitter:
     offset = np.random.uniform(0, 0, size=(grid_shape[0],grid_shape[1],3))  # Random 3D offsets for each tile
 
-    xfm_img_data = affine_transform(img_data,matrix=np.eye(3,3),offset=offset[x,y,:],order=1)
+    xfm_img_data = affine_transform(img_data,matrix=np.eye(3,3),offset=offset[x,y,:],order=3,mode='nearest')
 
     # Extract tile
     tile = xfm_img_data[x_start:x_start + x_tile_size, y_start:y_start + y_tile_size, :]
