@@ -16,7 +16,8 @@ wildcard_constraints:
 rule all:
     input: 
         'results/fused_SPIM.nii',
-        'results/fused_desc-groundtruth_SPIM.nii'
+        'results/fused_desc-groundtruth_SPIM.nii',
+        'results/pairwise_groundtruth_offsets.txt'
 
 rule create_test_dataset_single_ome_zarr:
     params:
@@ -44,6 +45,16 @@ rule find_overlapping_pairs:
         txt='results/overlapping_pairs.txt'
     script: 'scripts/find_overlapping_pairs.py'
         
+rule compute_pairwise_offsets_from_truth:
+    input:
+        true_translations='results/groundtruth_translations.txt',
+        pairs='results/overlapping_pairs.txt'
+    output:
+        pairwise_offsets='results/pairwise_groundtruth_offsets.txt'
+    script: 
+        'scripts/compute_pairwise_offsets_from_truth.py'
+
+
 rule compute_pairwise_correlation:
     input:
         ome_zarr=expand('results/tile-{tile}_SPIM.ome.zarr', tile=range(gridx*gridy)),
@@ -94,6 +105,7 @@ rule fuse_volume:
     output:
         ome_zarr = directory('results/fused_SPIM.ome.zarr'),
         nifti = 'results/fused_SPIM.nii'
+    threads: 32
     script: 
         'scripts/fuse_volume.py'
 
@@ -104,6 +116,7 @@ rule fuse_true_volume:
     output:
         ome_zarr = directory('results/fused_desc-groundtruth_SPIM.ome.zarr'),
         nifti = 'results/fused_desc-groundtruth_SPIM.nii'
+    threads: 32
     script: 
         'scripts/fuse_volume.py'
 

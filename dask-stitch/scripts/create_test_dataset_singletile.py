@@ -68,11 +68,18 @@ def create_test_dataset_single(tile_index, template="MNI152NLin2009cAsym", res=2
 
     # TODO: Simulate error by applying a transformation to the image before 
     
-    random_offset_low=-10
-    random_offset_high=10
-    # initially lets just do a random jitter 
-    offset = np.random.uniform(random_offset_low, random_offset_high, size=(grid_shape[0],grid_shape[1],3))  # Random 3D offsets for each tile
+    random_2d_offset_low=-5
+    random_2d_offset_high=5
+    random_z_offset_low=0
+    random_z_offset_high=0
 
+    # initially lets just do a random jitter 
+    offset_2d = np.random.uniform(random_2d_offset_low, random_2d_offset_high, size=(grid_shape[0],grid_shape[1],2))  # Random 2D in-plane offsets for each tile
+    offset_z = np.random.uniform(random_z_offset_low, random_z_offset_high, size=(grid_shape[0],grid_shape[1],1))  # Random 2D in-plane offsets for each tile
+
+
+    offset = np.concatenate([offset_2d,offset_z],axis=2)
+    
     #save this offset to a text file so we know the ground truth
     np.savetxt(snakemake.output.true_offset, offset[x,y,:].reshape((1,3)), fmt="%.6f")
 

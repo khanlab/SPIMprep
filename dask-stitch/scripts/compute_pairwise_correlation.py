@@ -1,9 +1,10 @@
+import nibabel as nib
 import numpy as np
-from zarrnii import ZarrNii
+from zarrnii import ZarrNii, AffineTransform
 from scipy.fft import fftn, ifftn
 from scipy.ndimage import map_coordinates
 import os
-
+from skimage.registration import phase_cross_correlation
 
 def phase_correlation(img1, img2, diagnostics_dir=None, pair_index=None):
     """
@@ -18,62 +19,83 @@ def phase_correlation(img1, img2, diagnostics_dir=None, pair_index=None):
     Returns:
     - np.ndarray: Offset vector [z_offset, y_offset, x_offset].
     """
-    # Compute the Fourier transforms
-    fft1 = fftn(img1)
-    fft2 = fftn(img2)
+    print(f'Performing phase_correlation on pair {pair_index}')
 
-    # Compute the cross-power spectrum
-    cross_power = fft1 * np.conj(fft2)
-    cross_power /= np.abs(cross_power)  # Normalize
+    # Compute shifts using skimage's phase_cross_correlation
+    shifts, error, diffphase = phase_cross_correlation(img1, img2, upsample_factor=10, space='real', disambiguate=True)
 
-    # Inverse Fourier transform to get correlation map
-    correlation = np.abs(ifftn(cross_power))
+    print(f"Shifts: {shifts}, Error: {error}, Phase Difference: {diffphase}")
 
-    # Save the correlation map for diagnostics
+    # Optionally save a diagnostic correlation map
     if diagnostics_dir and pair_index is not None:
-        np.save(os.path.join(diagnostics_dir, f"correlation_map_pair_{pair_index}.npy"), correlation)
-
-    # Find the peak in the correlation map
-    peak = np.unravel_index(np.argmax(correlation), correlation.shape)
-
-    # Convert peak index to an offset
-    shifts = np.array(peak, dtype=float)
-    for dim, size in enumerate(correlation.shape):
-        if shifts[dim] > size // 2:
-            shifts[dim] -= size
+        # Generate a mock correlation map as skimage does not provide it directly
+        correlation_map = np.roll(np.roll(np.roll(img1, int(shifts[0]), axis=0), int(shifts[1]), axis=1), int(shifts[2]), axis=2)
+        np.save(os.path.join(diagnostics_dir, f"correlation_map_pair_{pair_index}.npy"), correlation_map)
+        nib.Nifti1Image(correlation_map, affine=np.eye(4)).to_filename(
+            f'{diagnostics_dir}/correlation_map_pair_{pair_index}.nii'
+        )
 
     return shifts
 
 
-def resample_to_bounding_box(img, affine, bbox_min, bbox_max, output_shape):
+def crop_to_bounding_box_pair(img1, affine1, img2, affine2, bbox_min, bbox_max):
     """
-    Resample the image to the specified bounding box in physical space.
+    Crop two images to the specified bounding box in physical space, ensuring identical sizes.
 
     Parameters:
-    - img (np.ndarray): Input image.
-    - affine (np.ndarray): Affine transformation matrix (4x4).
+    - img1 (np.ndarray): First input image.
+    - affine1 (np.ndarray): 4x4 affine matrix mapping voxel to physical space for the first image.
+    - img2 (np.ndarray): Second input image.
+    - affine2 (np.ndarray): 4x4 affine matrix mapping voxel to physical space for the second image.
     - bbox_min (np.ndarray): Minimum physical coordinates of the bounding box.
     - bbox_max (np.ndarray): Maximum physical coordinates of the bounding box.
-    - output_shape (tuple): Desired shape of the output image.
+    - output_shape (tuple, optional): Desired shape of the output images.
 
     Returns:
-    - np.ndarray: Resampled image.
+    - tuple of np.ndarray: Cropped images (cropped_img1, cropped_img2).
     """
-    coords = np.meshgrid(
-        np.linspace(bbox_min[0], bbox_max[0], output_shape[0]),
-        np.linspace(bbox_min[1], bbox_max[1], output_shape[1]),
-        np.linspace(bbox_min[2], bbox_max[2], output_shape[2]),
-        indexing="ij",
-    )
-    coords = np.stack(coords, axis=-1)  # Shape: (Z, Y, X, 3)
+    def get_voxel_bounds(img, affine, bbox_min, bbox_max):
+        """Transform physical bounding box to voxel coordinates and clip to image bounds."""
+        affine_inverse = AffineTransform.from_array(affine,invert=True)
 
-    # Convert physical coordinates to voxel indices
-    inverse_affine = np.linalg.inv(affine)
-    voxel_coords = np.dot(coords.reshape(-1, 3), inverse_affine[:3, :3].T) + inverse_affine[:3, 3]
-    voxel_coords = voxel_coords.reshape(output_shape + (3,))
+        # Transform physical to voxel space
+        voxel_min = np.floor(affine_inverse @ bbox_min).astype(int)
+        voxel_max = np.ceil(affine_inverse @ bbox_max).astype(int)
 
-    # Interpolate image values at the transformed voxel coordinates
-    return map_coordinates(img, [voxel_coords[..., dim] for dim in range(3)], order=1, mode="constant")
+        # Clip to image bounds
+        voxel_min = np.clip(voxel_min, 0, np.array(img.shape) - 1)
+        voxel_max = np.clip(voxel_max, 0, np.array(img.shape) - 1)
+
+        return voxel_min, voxel_max
+
+    # Get voxel bounds for both images
+    voxel_min1, voxel_max1 = get_voxel_bounds(img1, affine1, bbox_min, bbox_max)
+    voxel_min2, voxel_max2 = get_voxel_bounds(img2, affine2, bbox_min, bbox_max)
+
+
+    # Ensure the cropped regions have the same physical size
+    size1 = voxel_max1 - voxel_min1
+    size2 = voxel_max2 - voxel_min2
+
+    # Adjust voxel_max2 to match the physical size of the region in img1
+    size = np.minimum(size1, size2)
+    voxel_max1 = voxel_min1 + size
+    voxel_max2 = voxel_min2 + size
+
+    # Crop the images
+    cropped_img1 = img1[
+        voxel_min1[0]:voxel_max1[0] + 1,
+        voxel_min1[1]:voxel_max1[1] + 1,
+        voxel_min1[2]:voxel_max1[2] + 1,
+    ]
+    cropped_img2 = img2[
+        voxel_min2[0]:voxel_max2[0] + 1,
+        voxel_min2[1]:voxel_max2[1] + 1,
+        voxel_min2[2]:voxel_max2[2] + 1,
+    ]
+
+    return cropped_img1, cropped_img2
+
 
 
 def compute_corrected_bounding_box(affine, img_shape):
@@ -90,13 +112,13 @@ def compute_corrected_bounding_box(affine, img_shape):
     """
     corners = [
         np.array([0, 0, 0, 1]),
-        np.array([img_shape[2], 0, 0, 1]),
+        np.array([img_shape[0], 0, 0, 1]),
         np.array([0, img_shape[1], 0, 1]),
-        np.array([img_shape[2], img_shape[1], 0, 1]),
-        np.array([0, 0, img_shape[0], 1]),
-        np.array([img_shape[2], 0, img_shape[0], 1]),
-        np.array([0, img_shape[1], img_shape[0], 1]),
-        np.array([img_shape[2], img_shape[1], img_shape[0], 1]),
+        np.array([img_shape[0], img_shape[1], 0, 1]),
+        np.array([0, 0, img_shape[2], 1]),
+        np.array([img_shape[0], 0, img_shape[2], 1]),
+        np.array([0, img_shape[1], img_shape[2], 1]),
+        np.array([img_shape[0], img_shape[1], img_shape[2], 1]),
     ]
 
     # Transform voxel corners to physical space
@@ -169,16 +191,19 @@ def compute_pairwise_correlation(ome_zarr_paths, overlapping_pairs, output_shape
             np.save(os.path.join(diagnostics_dir, f"bounding_box_pair_{pair_index}.npy"), np.array([bbox_min, bbox_max]))
 
         # Resample images to the overlapping bounding box
-        resampled_img1 = resample_to_bounding_box(img1, affine1, bbox_min, bbox_max, output_shape)
-        resampled_img2 = resample_to_bounding_box(img2, affine2, bbox_min, bbox_max, output_shape)
+        resampled_img1, resampled_img2 = crop_to_bounding_box_pair(img1, affine1, img2, affine2, bbox_min, bbox_max)
+      #  resampled_img1 = resample_to_bounding_box(img1, bbox_min, bbox_max, output_shape)
+      #  resampled_img2 = resample_to_bounding_box(img2, bbox_min, bbox_max, output_shape)
 
         # Save resampled images for diagnostics
         if diagnostics_dir:
-            np.save(os.path.join(diagnostics_dir, f"resampled_img1_pair_{pair_index}.npy"), resampled_img1)
-            np.save(os.path.join(diagnostics_dir, f"resampled_img2_pair_{pair_index}.npy"), resampled_img2)
+            nib.Nifti1Image(resampled_img1,affine=np.eye(4,4)).to_filename(f'{diagnostics_dir}/resampled_img1_pair_{pair_index}.nii')
+            nib.Nifti1Image(resampled_img2,affine=np.eye(4,4)).to_filename(f'{diagnostics_dir}/resampled_img2_pair_{pair_index}.nii')
 
         # Compute phase correlation on the resampled overlapping region
         offset = phase_correlation(resampled_img1, resampled_img2, diagnostics_dir=diagnostics_dir, pair_index=pair_index)
+        if znimg1.axes_order == 'ZYX':
+            offset = offset[::-1]
         offsets.append(offset)
 
     return np.array(offsets)
@@ -191,6 +216,8 @@ diagnostics_dir = snakemake.output.diagnostics_dir  # Directory for diagnostics
 
 # Compute pairwise offsets
 offsets = compute_pairwise_correlation(ome_zarr_paths, overlapping_pairs, diagnostics_dir=diagnostics_dir)
+
+
 
 # Save results
 np.savetxt(snakemake.output.offsets, offsets, fmt="%.6f")

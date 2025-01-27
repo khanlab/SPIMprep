@@ -66,7 +66,6 @@ def find_overlapping_pairs(ome_zarr_paths):
     return overlapping_pairs
 
 
-
 def compute_chunk_bounding_boxes(dask_array, zooms, origin, tile_index):
     """
     Compute the bounding boxes of each chunk in a Dask array in physical space.
