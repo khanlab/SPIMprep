@@ -68,13 +68,13 @@ def create_test_dataset_single(tile_index, template="MNI152NLin2009cAsym", res=2
 
     # TODO: Simulate error by applying a transformation to the image before 
     
-    random_offset_low=-0
-    random_offset_high=0
+    random_offset_low=-10
+    random_offset_high=10
     # initially lets just do a random jitter 
     offset = np.random.uniform(random_offset_low, random_offset_high, size=(grid_shape[0],grid_shape[1],3))  # Random 3D offsets for each tile
 
     #save this offset to a text file so we know the ground truth
-    np.savetxt(snakemake.output.true_offset, -offset[x,y,:].reshape((1,3)), fmt="%.6f")
+    np.savetxt(snakemake.output.true_offset, offset[x,y,:].reshape((1,3)), fmt="%.6f")
 
 
     xfm_img_data = affine_transform(img_data,matrix=np.eye(3,3),offset=offset[x,y,:],order=3,mode='nearest')
@@ -124,27 +124,3 @@ test_znimg.to_nifti(snakemake.output.nifti)
 
 
 
-print("LOOP0")
-print(test_znimg)
-
-test_znimg2 = ZarrNii.from_ome_zarr(snakemake.output.ome_zarr)
-print("LOOP1")
-print(test_znimg2) #we want this to be identical to test_znimg
-
-
-
-test_znimg2.to_nifti(snakemake.output.nifti_fromzarr)
-
-"""
-
-test_znimg2.to_ome_zarr('mytest_writeafterread.ome.zarr')
-test_znimg3 = ZarrNii.from_path('mytest_writeafterread.ome.zarr')
-print("LOOP2")
-print(test_znimg3)
-
-
-test_znimg3.to_ome_zarr('mytest_writeafterread2.ome.zarr')
-test_znimg4 = ZarrNii.from_path('mytest_writeafterread2.ome.zarr')
-print("LOOP3")
-print(test_znimg4)
-"""

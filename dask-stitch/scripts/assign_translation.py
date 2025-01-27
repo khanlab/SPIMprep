@@ -1,6 +1,6 @@
 
 import numpy as np
-from zarrnii import ZarrNii
+from zarrnii import ZarrNii, AffineTransform
 
 def assign_translations(ome_zarr_paths, translations, output_niftis, output_ome_zarrs):
     """
@@ -20,21 +20,15 @@ def assign_translations(ome_zarr_paths, translations, output_niftis, output_ome_
         print(translation)
         # Load the OME-Zarr dataset
         znimg = ZarrNii.from_ome_zarr(path)
-        # Update the affine matrix
-        updated_affine = znimg.affine
-        print(f'original affine: {updated_affine}')
-        
-        #HACK FIX:
-        #affine has translation negated and flipped, for whatever reason..  need to fix this in zarrnii
-        #updated_affine[:3,3] = -1 * np.flip(updated_affine[:3,3])
 
+        affine = znimg.affine
+   
+        if znimg.axes_order == 'ZYX':
+            affine[:3, 3] += translation[::-1]  # Add the optimized translation
+        else:
+            affine[:3, 3] += translation  # Add the optimized translation
 
-
-
-        updated_affine[:3, 3] += translation  # Add the optimized translation
-        print(f'updated affine: {updated_affine}')
-
-        znimg.affine = updated_affine
+        znimg.affine = affine
 
         # Save the updated ZarrNii
         znimg.to_nifti(out_nii)

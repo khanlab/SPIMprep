@@ -25,7 +25,6 @@ rule create_test_dataset_single_ome_zarr:
     output: 
         ome_zarr=directory('results/tile-{tile}_SPIM.ome.zarr'),
         nifti='results/tile-{tile}_SPIM.nii',
-        nifti_fromzarr='results/tile-{tile}_fromzarr_SPIM.nii',
         true_offset='results/tile-{tile}_desc-groundtruth_offset.txt'
     script: 'scripts/create_test_dataset_singletile.py'
 
