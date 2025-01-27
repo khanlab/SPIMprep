@@ -66,9 +66,10 @@ rule compute_pairwise_correlation:
 
 rule global_optimization:
     input:
-        ome_zarr=expand('results/tile-{tile}_SPIM.ome.zarr', tile=range(gridx*gridy)),
         pairs='results/overlapping_pairs.txt',
         offsets='results/pairwise_offsets.txt'
+    params:
+        n_tiles=gridx*gridy
     output:
         optimized_translations='results/optimized_translations.txt'
     script: 
