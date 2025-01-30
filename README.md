@@ -9,6 +9,13 @@ A Snakemake workflow for pre-processing single plane illumination microscopy (SP
 
 Takes TIF images (tiled or prestitched) and outputs a validated BIDS Microscopy dataset, with a multi-channel multi-scale OME-Zarr file for each scan, along with downsampled nifti images (in a derivatives folder). 
 
+## Supported inputs:
+
+SPIMprep supports a range of inputs, with the type of acquisition specified by including
+the short-hand name (in bold below) as a substring in the acquisition tag.
+  - **`blaze`**:  Raw Ultramicroscope Blaze OME TIFF files, either as 2D or 3D TIFF files
+  - **`prestitched`**: Prestitched images, as a stack of 2D TIF files (e.g. from LifeCanvas)
+  - **`imaris`**: Prestitched into a single Imaris (.ims) file.
 
 
 ## Requirements
@@ -17,10 +24,6 @@ Takes TIF images (tiled or prestitched) and outputs a validated BIDS Microscopy 
     - (Note: container will be automatically pulled when you run the workflow)
  - Python >= 3.11
  - Lightsheet data:
-    - Raw Ultramicroscope Blaze OME TIFF files (include `blaze` in the acquisition tag)
-        - can be 2D or 3D TIFF files
-    - Prestitched TIFF files (include `prestitched` in the acquisition tag)
-
 
 ## Usage
 
