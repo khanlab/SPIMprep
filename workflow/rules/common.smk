@@ -174,7 +174,7 @@ def get_input_sample(wildcards):
         # sample was a tar file, so point to the extracted folder
         return rules.extract_sample.output.ome_dir.format(**wildcards)
 
-    elif sample_path.suffixes[-1] == '.ims':
+    elif sample_path.suffixes[-1] == ".ims":
         return get_sample_path_remote(wildcards)
     else:
         print(f"unsupported input: {sample_path}")

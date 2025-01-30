@@ -162,5 +162,5 @@ report:
 
 
 containers:
-  spimprep: 'docker://khanlab/spimprep-deps:imaris-deps'
+  spimprep: 'docker://khanlab/spimprep-deps:v0.1.1'
 

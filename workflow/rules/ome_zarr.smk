@@ -89,7 +89,6 @@ rule tif_stacks_to_ome_zarr:
         "../scripts/tif_stacks_to_ome_zarr.py"
 
 
-
 rule ome_zarr_to_nii:
     input:
         **get_storage_creds(),
@@ -138,4 +137,3 @@ rule ome_zarr_to_nii:
         config["containers"]["spimprep"]
     script:
         "../scripts/ome_zarr_to_nii.py"
-
