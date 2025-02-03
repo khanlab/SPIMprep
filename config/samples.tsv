@@ -1,3 +1,4 @@
 subject	sample	acq	stain_0	stain_1	stain_2	sample_path
 mouse1	brain	blaze	Lectin	PI	Abeta	.test/dryrun/data
 lifecanvas1	brain	prestitched	PI	Abeta	n/a	.test/dryrun/data
+brown	brain	imaris1x	Iba1	GFAP	YOPRO	.test/dryrun/data

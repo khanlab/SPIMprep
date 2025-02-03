@@ -164,7 +164,6 @@ def sample_is_remote(wildcards):
 def get_input_sample(wildcards):
     """returns path to extracted sample or path to provided input folder"""
     sample_path = Path(get_sample_path(wildcards))
-
     if is_remote_gcs(sample_path):
         return rules.cp_from_gcs.output.ome_dir.format(**wildcards)
 
@@ -175,6 +174,8 @@ def get_input_sample(wildcards):
         # sample was a tar file, so point to the extracted folder
         return rules.extract_sample.output.ome_dir.format(**wildcards)
 
+    elif sample_path.suffixes[-1] == ".ims":
+        return get_sample_path_remote(wildcards)
     else:
         print(f"unsupported input: {sample_path}")
 
@@ -277,12 +278,12 @@ def get_output_ome_zarr(acq_type):
         if config["use_zipstore"]:
             return {
                 "zarr": bids(
-                    root=work,
+                    root=root,
                     subject="{subject}",
                     datatype="micr",
                     sample="{sample}",
                     acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
-                    suffix="SPIM.ome.zarr",
+                    suffix="SPIM.ome.zarr.zip",
                 )
             }
         else:
@@ -302,12 +303,12 @@ def get_output_ome_zarr(acq_type):
         if config["use_zipstore"]:
             return {
                 "zarr": bids(
-                    root=work,
+                    root=root,
                     subject="{subject}",
                     datatype="micr",
                     sample="{sample}",
                     acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
-                    suffix="SPIM.ome.zarr",
+                    suffix="SPIM.ome.zarr.zip",
                 )
             }
         else:
@@ -333,7 +334,7 @@ def get_input_ome_zarr_to_nii(wildcards):
                 datatype="micr",
                 sample="{sample}",
                 acq="{acq}",
-                suffix="SPIM.ome.zarr",
+                suffix="SPIM.ome.zarr.zip",
             ).format(**wildcards)
         else:
             return bids(
