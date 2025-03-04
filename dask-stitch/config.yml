@@ -1,3 +1,22 @@
-gridx: 2
-gridy: 2
+gridx: 3
+gridy: 4
+
+fuse:
+  output_shape: 
+    - 400
+    - 400
+    - 400
+  output_chunks: 
+    - 100
+    - 100
+    - 100
+  output_spacing:
+    - 1
+    - 1
+    - 1
+  output_origin: 
+    - 0
+    - 0
+    - 0
+
 

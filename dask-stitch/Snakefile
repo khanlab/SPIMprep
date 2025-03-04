@@ -103,6 +103,11 @@ rule fuse_volume:
     input:
         ome_zarr=expand('results/tile-{tile}_optimized_SPIM.ome.zarr', tile=range(gridx*gridy)),
         nifti=expand('results/tile-{tile}_optimized_SPIM.nii', tile=range(gridx*gridy)),
+    params:
+        output_shape=config['fuse']['output_shape'],
+        output_chunks=config['fuse']['output_chunks'],
+        output_spacing=config['fuse']['output_spacing'],
+        output_origin=config['fuse']['output_origin'],
     output:
         ome_zarr = directory('results/fused_SPIM.ome.zarr'),
         nifti = 'results/fused_SPIM.nii'
@@ -114,6 +119,12 @@ rule fuse_true_volume:
     input:
         ome_zarr=expand('results/tile-{tile}_groundtruth_SPIM.ome.zarr', tile=range(gridx*gridy)),
         nifti=expand('results/tile-{tile}_groundtruth_SPIM.nii', tile=range(gridx*gridy)),
+    params:
+        output_shape=config['fuse']['output_shape'],
+        output_chunks=config['fuse']['output_chunks'],
+        output_spacing=config['fuse']['output_spacing'],
+        output_origin=config['fuse']['output_origin']
+
     output:
         ome_zarr = directory('results/fused_desc-groundtruth_SPIM.ome.zarr'),
         nifti = 'results/fused_desc-groundtruth_SPIM.nii'
