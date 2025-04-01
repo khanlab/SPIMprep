@@ -75,7 +75,11 @@ if is_remote(uri):
     fs = get_fsspec(uri,**fs_args)
     store = zarr.storage.FSStore(Path(uri).path,fs=fs,dimension_separator='/',mode='w')
 else:
-    store = zarr.DirectoryStore(out_zarr,dimension_separator='/') 
+    if Path(out_zarr).suffixes[-1] == '.zip':
+        store = zarr.ZipStore(out_zarr,dimension_separator='/',mode='x') 
+    else:
+        store = zarr.DirectoryStore(out_zarr,dimension_separator='/') 
+
 
 
 
