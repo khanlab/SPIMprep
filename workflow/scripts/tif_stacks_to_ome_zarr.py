@@ -8,7 +8,7 @@ from ome_zarr.format import format_from_version
 from ome_zarr.scale import Scaler
 from upath import UPath as Path
 from lib.cloud_io import get_fsspec, is_remote
-from dask.distributed import Client, LocalCluster
+from dask.diagnostics import ProgressBar
 
 in_tif_glob = snakemake.params.in_tif_glob
 metadata_json=snakemake.input.metadata_json
@@ -20,9 +20,6 @@ stains=snakemake.params.stains
 scaling_method=snakemake.params.scaling_method
 uri = snakemake.params.uri
 
-cluster = LocalCluster(processes=False)
-client = Client(cluster)
-print(client.dashboard_link)
 
 # prepare metadata for ome-zarr
 with open(metadata_json) as fp:
@@ -86,12 +83,12 @@ else:
 group = zarr.group(store,overwrite=True)
 scaler = Scaler(max_layer=max_layer,method=scaling_method)
 
-delayed = write_image(image=darr_channels,
+with ProgressBar():
+    write_image(image=darr_channels,
                             group=group,
                             scaler=scaler,
                             coordinate_transformations=coordinate_transformations,
                             axes=axes,
                             metadata={'omero':omero},
-                            compute=True
                                 )
 
