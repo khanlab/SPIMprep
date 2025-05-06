@@ -32,6 +32,11 @@ basic_flatfield_corr:
     smoothness_darkfield: 1.0
     sparse_cost_darkfield: 0.01
 
+multiview_stitcher:
+  registration_binning:
+    z: 1
+    y: 1
+    x: 1
 
 bigstitcher:
   use_interestpoints: False
