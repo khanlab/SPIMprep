@@ -2436,7 +2436,7 @@ test = ["dask-image", "fsspec", "ipfsspec", "itk-filtering (>=5.3.0)", "jsonsche
 
 [[package]]
 name = "multiview-stitcher"
-version = "0.1.26.dev1+gbdcd6fe.d20250505"
+version = "0.1.26.dev1+gbdcd6fe"
 description = "Registration and fusion of large imaging datasets in 2D and 3D."
 optional = false
 python-versions = ">=3.10"
@@ -2472,7 +2472,7 @@ testing = ["antspyx (==0.4.2)", "czifile", "jupyter", "nbmake", "pytest (<8.0.0)
 
 [package.source]
 type = "directory"
-url = "../multiview-stitcher"
+url = "multiview-stitcher"
 
 [[package]]
 name = "mypy-extensions"
@@ -5362,4 +5362,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.13"
-content-hash = "962a50e320c39ca5b273b1dfac3bc76bbffa5aed0f639e12e993acb48e42ac3d"
+content-hash = "70a03283c564fe2e3dea82b7642ea500b2eadd97715e4ca326d3a00646b7eac9"

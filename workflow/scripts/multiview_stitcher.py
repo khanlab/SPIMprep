@@ -7,6 +7,10 @@ from multiview_stitcher import spatial_image_utils as si_utils
 from multiview_stitcher import io, ngff_utils, msi_utils, vis_utils, registration, fusion
 import matplotlib.pyplot as plt
 import matplotlib
+import zarr
+from zarrnii import ZarrNii
+from upath import UPath as Path
+from lib.cloud_io import get_fsspec, is_remote
 
 matplotlib.use('agg')
 
@@ -65,7 +69,7 @@ for i_tile in metadata['chunks']:
     msims.append(msim)
 
 
-
+"""
 print('saving tile visualization')
 fig, ax = vis_utils.plot_positions(
     msims,
@@ -75,6 +79,7 @@ fig, ax = vis_utils.plot_positions(
 
 
 plt.savefig(snakemake.output.tiling_qc_png)
+"""
 
 # interrupt snakemake to stop the viewer
 #vis_utils.view_neuroglancer(
@@ -95,6 +100,7 @@ with ProgressBar():
         transform_key=curr_transform_key,
         new_transform_key='affine_registered',
         pre_registration_pruning_method="keep_axis_aligned", # works well for tiles on a grid
+        scheduler="threads",
     )
 
 
@@ -110,9 +116,37 @@ fused = fusion.fuse(
     output_chunksize=256,
     )
 
+print(fused)
+print(type(fused))
+print(fused.shape)
+
+uri = snakemake.params.uri
+out_zarr=snakemake.output.zarr
+
+if is_remote(uri):
+    fs_args={'storage_provider_settings':snakemake.params.storage_provider_settings,'creds':snakemake.input.creds}
+    fs = get_fsspec(uri,**fs_args)
+    store = zarr.storage.FSStore(Path(uri).path,fs=fs,dimension_separator='/',mode='w')
+else:
+    if Path(out_zarr).suffixes[-1] == '.zip':
+        store = zarr.ZipStore(out_zarr,dimension_separator='/',mode='x') 
+    else:
+        store = zarr.DirectoryStore(out_zarr,dimension_separator='/') 
+
+
+
+
+znimg = ZarrNii.from_darr(fused.data[0])#, spacing=( metadata['physical_size_z'],
+#               metadata['physical_size_y'],
+ #              metadata['physical_size_x']))
+
+
+znimg.to_ome_zarr(store)
+
+"""
 print(f'Fusing views and saving output to ome zarr...')
 with ProgressBar():
     fused = ngff_utils.write_sim_to_ome_zarr(
         fused, snakemake.output.ome_zarr, overwrite=True
     )
-
+"""

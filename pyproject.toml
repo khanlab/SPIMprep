@@ -16,7 +16,9 @@ gcsfs = "^2024.3.1"
 s3fs = "^2024.3.1"
 universal-pathlib = "^0.2.2"
 dask = "^2024.2.0"
-multiview-stitcher = { path = "../multiview-stitcher/", develop = true }
+#multiview-stitcher = { git = "https://github.com/akhanf/multiview-stitcher/", branch="main" }
+multiview-stitcher = { path = "./multiview-stitcher/" , develop=true}
+zarrnii = { path = "./zarrnii" , develop=true}
 
 [tool.poetry.group.dev.dependencies]
 snakefmt = "^0.10.0"

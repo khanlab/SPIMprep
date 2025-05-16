@@ -15,6 +15,7 @@ total_mem_mb: 128000
 import_blaze:
   raw_tif_pattern: "{prefix}_Blaze[{tilex} x {tiley}]_C{channel}_xyz-Table Z{zslice}.ome.tif"
   raw_tif_pattern_zstack:  "{prefix}_Blaze[{tilex} x {tiley}]_C{channel}.ome.tif"
+  raw_tif_pattern_notile:  "{prefix}_Blaze_C{channel}_xyz-Table Z{zslice}.ome.tif"
   intensity_rescaling: 0.5 #raw images seem to be at the upper end of uint16 (over-saturated) -- causes wrapping issues when adjusting with flatfield correction etc. this rescales the raw data as it imports it..
 
 import_prestitched:
@@ -35,8 +36,8 @@ basic_flatfield_corr:
 multiview_stitcher:
   registration_binning:
     z: 1
-    y: 1
-    x: 1
+    y: 8
+    x: 8
 
 bigstitcher:
   use_interestpoints: False
@@ -77,7 +78,7 @@ bigstitcher:
     block_size_factor_z: 32
 
 ome_zarr:
-  desc: stitchedflatcorr
+  desc: raw #stitchedflatcorr
   max_downsampling_layers: 5 # e.g. 4 levels: { 0: orig, 1: ds2, 2: ds4, 3: ds8, 4: ds16}
   rechunk_size: #z, y, x 
     - 1 

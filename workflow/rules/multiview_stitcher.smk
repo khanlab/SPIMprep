@@ -1,12 +1,15 @@
+ruleorder: multiview_stitcher > zarr_to_ome_zarr
+
 rule multiview_stitcher:
     input:
+        **get_storage_creds(),
         zarr=bids(
             root=work,
             subject="{subject}",
             datatype="micr",
             sample="{sample}",
             acq="{acq}",
-            desc="{desc}",
+            desc=config["ome_zarr"]["desc"],
             suffix="SPIM.zarr",
         ),
         metadata_json=rules.copy_blaze_metadata.output.metadata_json,
@@ -14,27 +17,10 @@ rule multiview_stitcher:
         channels=get_stains,
         registration_binning=config['multiview_stitcher']['registration_binning'],
         reg_channel_index=1, #later can make this a parameter chosen based on stains
+        uri=get_output_ome_zarr_uri(),
+        storage_provider_settings=workflow.storage_provider_settings,
     output:
-        tiling_qc_png=bids(
-                    root=root,
-                    subject="{subject}",
-                    datatype="qc",
-                    sample="{sample}",
-                    acq="{acq}",
-                    desc="{desc}mvstitcher",
-                    suffix="affinemetadata.tiles.png",
-            ),
-        ome_zarr=directory(
-                bids(
-                    root=root,
-                    subject="{subject}",
-                    datatype="micr",
-                    sample="{sample}",
-                    acq="{acq}",
-                    desc="{desc}mvstitcher",
-                    suffix="SPIM.ome.zarr",
-                )
-            )
+        **get_output_ome_zarr("blaze"),
     shadow: 'minimal'  #don't make this shadow, as we then have to copy files after (less efficient)
     #instead just make a work temp() folder for the intermediate zarrs - better for cloud too..
     benchmark:
@@ -44,7 +30,6 @@ rule multiview_stitcher:
             subject="{subject}",
             sample="{sample}",
             acq="{acq}",
-            desc="{desc}",
             suffix="benchmark.tsv",
         )
     log:
@@ -54,7 +39,6 @@ rule multiview_stitcher:
             subject="{subject}",
             sample="{sample}",
             acq="{acq}",
-            desc="{desc}",
             suffix="log.txt",
         ),
     threads: config["total_cores"]
