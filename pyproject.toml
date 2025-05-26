@@ -15,10 +15,13 @@ snakemake-storage-plugin-gcs = "^1.1.1"
 gcsfs = "^2024.3.1"
 s3fs = "^2024.3.1"
 universal-pathlib = "^0.2.2"
-dask = "^2024.2.0"
 #multiview-stitcher = { git = "https://github.com/akhanf/multiview-stitcher/", branch="main" }
-multiview-stitcher = { path = "./multiview-stitcher/" , develop=true}
-zarrnii = { path = "./zarrnii" , develop=true}
+#multiview-stitcher = { path = "./multiview-stitcher/" , develop=true}
+#zarrnii = { path = "./zarrnii" , develop=true}
+zarrnii = { git = "https://github.com/khanlab/zarrnii/",  branch="ngffzarr3"}
+zarr = "^3.0.8"
+dask = "^2024.10.1"
+ngff-zarr = {extras = ["all"], version = ">=0.12.2"}
 
 [tool.poetry.group.dev.dependencies]
 snakefmt = "^0.10.0"

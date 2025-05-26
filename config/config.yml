@@ -34,10 +34,19 @@ basic_flatfield_corr:
     sparse_cost_darkfield: 0.01
 
 multiview_stitcher:
-  registration_binning:
-    z: 1
-    y: 8
-    x: 8
+  registration:
+    registration_binning:
+      z: 1
+      y: 8
+      x: 8
+  fusion:
+    output_chunksize: 
+      t: 1
+      c: 1
+      z: 10
+      y: 256
+      x: 256
+       
 
 bigstitcher:
   use_interestpoints: False

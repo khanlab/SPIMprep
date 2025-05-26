@@ -1,0 +1,9 @@
+name: multiview_stitcher
+channels:
+  - defaults
+dependencies:
+  - pip
+  - python=3.12
+  - pip:
+    - -e git+https://github.com/akhanf/multiview-stitcher.git@main
+

@@ -15,7 +15,8 @@ rule multiview_stitcher:
         metadata_json=rules.copy_blaze_metadata.output.metadata_json,
     params:
         channels=get_stains,
-        registration_binning=config['multiview_stitcher']['registration_binning'],
+        registration_opts=config['multiview_stitcher']['registration'],
+        fusion_opts=config['multiview_stitcher']['fusion'],
         reg_channel_index=1, #later can make this a parameter chosen based on stains
         uri=get_output_ome_zarr_uri(),
         storage_provider_settings=workflow.storage_provider_settings,
@@ -46,6 +47,10 @@ rule multiview_stitcher:
         mem_mb=config["total_mem_mb"],
     group:
         "preproc"
+    container: None
+
+    conda:
+        "../envs/multiview_stitcher.yml"
     script:
         "../scripts/multiview_stitcher.py"
 
