@@ -1,12 +1,19 @@
 import tifffile
 import os
 import json
-import pyvips
 import dask.array as da
 from dask.delayed import delayed
 from dask.array.image import imread as imread_tifs
 from itertools import product
 from dask.diagnostics import ProgressBar
+import dask
+
+os.environ['VIPS_CONCURRENCY'] = '1'
+
+import pyvips
+pyvips.cache_set_max(0)  # Disable vips cache
+
+dask.config.set(scheduler='threads', num_workers=snakemake.threads)  # Adjust to fit available cores
 
 def replace_square_brackets(pattern):
     """replace all [ and ] in the string (have to use 
