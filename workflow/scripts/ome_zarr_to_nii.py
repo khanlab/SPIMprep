@@ -1,16 +1,16 @@
-import zarr
-import json
-import numpy as np
-import nibabel as nib
-import dask.array as da
-from ome_zarr.io import parse_url
-from ome_zarr.reader import Reader
-from upath import UPath as Path
-from lib.cloud_io import get_fsspec, is_remote
+from zarrnii import ZarrNii
 
 uri = snakemake.params.uri
 in_zarr = snakemake.input.zarr
 channel_index = snakemake.params.channel_index
+
+
+znimg = ZarrNii.from_ome_zarr(uri, level=int(snakemake.wildcards.level), channels=[channel_index])
+znimg.to_nifti(snakemake.output.nii)
+
+
+
+"""
 
 if is_remote(uri):
     fs_args={'storage_provider_settings':snakemake.params.storage_provider_settings,'creds':snakemake.input.creds}
@@ -57,3 +57,4 @@ nii = nib.Nifti1Image(out_arr,
                     )
                     
 nii.to_filename(snakemake.output.nii)
+"""
