@@ -8,8 +8,8 @@ remote_creds: '~/.config/gcloud/application_default_credentials.json' #this is n
 use_zipstore: False #if True, produce SPIM.ome.zarr.zip instead of SPIM.ome.zarr
 
 #total resources available, used to set rule resources
-total_cores: 32 
-total_mem_mb: 128000 
+total_cores: 12 
+total_mem_mb: 20000 
 
 #import wildcards:  tilex, tiley, channel, zslice (and prefix - unused)
 import_blaze:

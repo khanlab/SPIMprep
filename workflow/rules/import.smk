@@ -231,7 +231,8 @@ rule tif_to_zarr:
         mem_mb=config["total_mem_mb"],
     threads: int(config["total_mem_mb"] / 8000)  #this is memory-limited -- seems to need ~8000mb for each thread, so threads=total_mem_mb / 8000 
     container:
-        config["containers"]["spimprep"]
+        None
+       # config["containers"]["spimprep"]
     script:
         "../scripts/tif_to_zarr.py"
 

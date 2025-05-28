@@ -22,7 +22,7 @@ rule multiview_stitcher:
         storage_provider_settings=workflow.storage_provider_settings,
     output:
         **get_output_ome_zarr("blaze"),
-    shadow: 'minimal'  #don't make this shadow, as we then have to copy files after (less efficient)
+#    shadow: 'minimal'  #don't make this shadow, as we then have to copy files after (less efficient)
     #instead just make a work temp() folder for the intermediate zarrs - better for cloud too..
     benchmark:
         bids(

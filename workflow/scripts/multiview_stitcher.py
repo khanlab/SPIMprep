@@ -33,8 +33,7 @@ for i_tile in metadata['chunks']:
  
     key = f'tile-{i_tile}_chan-{channel}_z-0000'
 
-    # where to save the zarr(s)
-    zarr_path =f'tile_{i_tile:02d}.zarr'
+#    zarr_path =f'tile_{i_tile:02d}.zarr'
 
     # read tile image
     im_data = da.squeeze(darr[i_tile,:,:,:,:]) 
@@ -54,15 +53,15 @@ for i_tile in metadata['chunks']:
         )
 
     # write to OME-Zarr
-    print(f'writing tile {i_tile} to ome_zarr') 
-    with ProgressBar():
-        ngff_utils.write_sim_to_ome_zarr(sim, zarr_path)
+ #   print(f'writing tile {i_tile} to ome_zarr') 
+ #   with ProgressBar():
+ #       ngff_utils.write_sim_to_ome_zarr(sim, zarr_path)
 
 
     #for next steps, we read things back as msim
-    sim = ngff_utils.read_sim_from_ome_zarr(zarr_path)
+#    sim = ngff_utils.read_sim_from_ome_zarr(zarr_path)
     msim = msi_utils.get_msim_from_sim(sim)
-    zarr_paths.append(zarr_path)
+#    zarr_paths.append(zarr_path)
 
     msims.append(msim)
 
