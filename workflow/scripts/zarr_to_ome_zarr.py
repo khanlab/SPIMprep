@@ -59,6 +59,7 @@ darr_channels = da.stack(darr_list)
 
 
 znimg = ZarrNii.from_darr(darr_channels,
+                          orientation='IPL',
                           axes_order='ZYX',
                           spacing=(float(metadata['physical_size_z']) * float(downsampling) / 1000.0,
                                 float(metadata['physical_size_y']) * float(downsampling) / 1000.0,
@@ -67,6 +68,6 @@ znimg = ZarrNii.from_darr(darr_channels,
                           omero=omero)
 
 with ProgressBar():
-    znimg.to_ome_zarr(snakemake.output[0])
+    znimg.to_ome_zarr(snakemake.output[0],version='0.4')
 
 
