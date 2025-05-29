@@ -8,7 +8,6 @@ from multiview_stitcher import io, ngff_utils, msi_utils, vis_utils, registratio
 import matplotlib.pyplot as plt
 import matplotlib
 import zarr
-#from zarrnii import ZarrNii
 
 matplotlib.use('agg')
 
@@ -27,7 +26,7 @@ msims = []
 zarr_paths = []
 
 
-channel=metadata['channels'][1]
+channel=metadata['channels'][snakemake.params.channel_index]
 
 for i_tile in metadata['chunks']:
  
@@ -117,7 +116,13 @@ print(fused)
 print(type(fused))
 print(fused.shape)
 
+print('shape of array to save')
+print(fused.data[0].shape)
 
+#save each channel separately (to be consistent with legacy bigstitcher workflow)
+with ProgressBar():
+    fused.data[0][snakemake.params.channel_index,:,:,:].to_zarr(snakemake.output.zarr,overwrite=True,
+                                                                    dimension_separator='/',component='fused/s0',zarr_format=2)
 
 """
 znimg = ZarrNii.from_darr(fused.data[0], axes_order='ZYX',spacing=( metadata['physical_size_z'],
@@ -125,8 +130,6 @@ znimg = ZarrNii.from_darr(fused.data[0], axes_order='ZYX',spacing=( metadata['ph
                metadata['physical_size_x']))
 
 
-znimg.to_ome_zarr(snakemake.output.zarr)
-"""
 
 
 print(f'Fusing views and saving output to ome zarr...')
@@ -134,3 +137,4 @@ with ProgressBar():
     fused = ngff_utils.write_sim_to_ome_zarr(
         fused, snakemake.output.zarr, overwrite=True
     )
+"""

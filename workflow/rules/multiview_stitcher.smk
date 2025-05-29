@@ -1,6 +1,7 @@
 ruleorder: multiview_stitcher > zarr_to_ome_zarr
 
 rule multiview_stitcher:
+    #note: this runs once for each channel (though the registration should be identical
     input:
         **get_storage_creds(),
         zarr=bids(
@@ -9,21 +10,29 @@ rule multiview_stitcher:
             datatype="micr",
             sample="{sample}",
             acq="{acq}",
-            desc=config["ome_zarr"]["desc"],
+            desc="{desc}",
             suffix="SPIM.zarr",
         ),
         metadata_json=rules.copy_blaze_metadata.output.metadata_json,
     params:
         channels=get_stains,
+        channel_index=lambda wildcards: get_stains(wildcards).index(wildcards.stain),
         registration_opts=config['multiview_stitcher']['registration'],
         fusion_opts=config['multiview_stitcher']['fusion'],
         reg_channel_index=1, #later can make this a parameter chosen based on stains
         uri=get_output_ome_zarr_uri(),
         storage_provider_settings=workflow.storage_provider_settings,
     output:
-        **get_output_ome_zarr("blaze"),
-#    shadow: 'minimal'  #don't make this shadow, as we then have to copy files after (less efficient)
-    #instead just make a work temp() folder for the intermediate zarrs - better for cloud too..
+        zarr=directory(bids(
+            root=work,
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq}",
+            desc="mvstitched{desc}",
+            stain="{stain}",
+            suffix="SPIM.zarr",
+        )),
     benchmark:
         bids(
             root="benchmarks",
@@ -31,6 +40,8 @@ rule multiview_stitcher:
             subject="{subject}",
             sample="{sample}",
             acq="{acq}",
+            desc="{desc}",
+            stain="{stain}",
             suffix="benchmark.tsv",
         )
     log:
@@ -40,6 +51,8 @@ rule multiview_stitcher:
             subject="{subject}",
             sample="{sample}",
             acq="{acq}",
+            desc="{desc}",
+            stain="{stain}",
             suffix="log.txt",
         ),
     threads: config["total_cores"]
@@ -48,7 +61,6 @@ rule multiview_stitcher:
     group:
         "preproc"
     container: None
-
     conda:
         "../envs/multiview_stitcher.yml"
     script:

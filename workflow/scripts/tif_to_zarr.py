@@ -95,7 +95,7 @@ print(darr.chunksize)
 #now we can do the computation itself, storing to zarr
 print('writing images to zarr with dask')
 with ProgressBar():
-    #da.to_zarr(darr,snakemake.output.zarr,overwrite=True,dimension_separator='/', zarr_format=2)
-    da.to_zarr(darr,snakemake.output.zarr,overwrite=True, zarr_format=3)
+    da.to_zarr(darr,snakemake.output.zarr,overwrite=True,dimension_separator='/', zarr_format=2) 
+    #da.to_zarr(darr,snakemake.output.zarr,overwrite=True, zarr_format=3)
 
 

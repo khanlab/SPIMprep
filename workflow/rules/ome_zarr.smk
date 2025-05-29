@@ -41,8 +41,8 @@ rule zarr_to_ome_zarr:
             acq="{acq}",
             suffix="log.txt",
         ),
-    container:
-        config["containers"]["spimprep"]
+    container: None
+#        config["containers"]["spimprep"]
     group:
         "preproc"
     script:

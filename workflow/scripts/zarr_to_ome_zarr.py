@@ -66,6 +66,7 @@ znimg = ZarrNii.from_darr(darr_channels,
                           unit='millimeter',
                           omero=omero)
 
-znimg.to_ome_zarr(snakemake.params.uri)
+with ProgressBar():
+    znimg.to_ome_zarr(snakemake.output[0])
 
 
