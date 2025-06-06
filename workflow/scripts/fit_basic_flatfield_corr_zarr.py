@@ -33,6 +33,8 @@ if arr.shape[0] > max_n_images:
 #now we want to apply resizing to all the images in the array
 #but do it in parallel
 
+print(arr.chunksize)
+
 def resize_parallel(x):
     return resize(x.squeeze(),(128,128),preserve_range=True).reshape((1,128,128))
 
@@ -42,6 +44,7 @@ arr_resized = da.map_blocks(resize_parallel,arr)
 print('concatenating and resizing with dask')
 with ProgressBar():
     concat_images = arr_resized.compute()
+
 
 basic = BaSiC(max_workers=snakemake.threads,
                 **snakemake.params.basic_opts

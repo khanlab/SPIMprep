@@ -57,6 +57,8 @@ rule fit_basic_flatfield_corr:
         "preproc"
     container:
         config["containers"]["spimprep"]
+    conda:
+        "../envs/basicpy.yml"
     script:
         "../scripts/fit_basic_flatfield_corr_zarr.py"
 
@@ -118,5 +120,7 @@ rule apply_basic_flatfield_corr:
     threads: config["total_cores"]
     group:
         "preproc"
+    conda:
+        "../envs/basicpy.yml"
     script:
         "../scripts/apply_basic_flatfield_corr_zarr.py"
