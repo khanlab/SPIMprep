@@ -1,6 +1,6 @@
 [workspace]
 authors = ["Ali Khan <alik@robarts.ca>"]
-channels = ["conda-forge", "bioconda"]
+channels = ["conda-forge", "bioconda", "ome"]
 name = "SPIMprep"
 platforms = ["linux-64"]
 version = "0.1.0"
@@ -20,6 +20,7 @@ dask = ">=2025.5.1,<2026"
 tifffile = ">=2025.6.1,<2026"
 conda = ">=25.5.0,<26"
 xmltodict = ">=0.14.2,<0.15"
+bioformats2raw = ">=0.9.4,<0.10"
 
 [pypi-dependencies]
 ngff-zarr = { version = ">=0.13.2, <0.14", extras = ["all"] }
