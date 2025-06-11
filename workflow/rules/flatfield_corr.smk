@@ -81,7 +81,7 @@ rule apply_basic_flatfield_corr:
             allow_missing=True,
         ),
     params:
-        out_chunks=[128, 128, 128],
+        out_chunks=[256, 256, 256],
     output:
         zarr=temp(
             directory(
@@ -117,7 +117,7 @@ rule apply_basic_flatfield_corr:
     resources:
         runtime=60,
         mem_mb=32000,
-    threads: config["total_cores"]
+    threads: 32
     group:
         "preproc"
     conda:

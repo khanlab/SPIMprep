@@ -26,7 +26,7 @@ import_prestitched:
 
 
 basic_flatfield_corr:
-  max_n_images: 500
+  max_n_images: 5000
   fitting_opts:
     get_darkfield: True
     smoothness_flatfield: 1.0
@@ -36,14 +36,14 @@ basic_flatfield_corr:
 multiview_stitcher:
   registration:
     registration_binning:
-      z: 1
-      y: 8
-      x: 8
+      z: 2
+      y: 4
+      x: 4
   fusion:
     output_chunksize: 
       t: 1
       c: 1
-      z: 10
+      z: 256
       y: 256
       x: 256
        
@@ -87,7 +87,8 @@ bigstitcher:
     block_size_factor_z: 32
 
 ome_zarr:
-  desc: mvstitchedraw #stitchedflatcorr
+  #desc: mvstitchedraw #stitchedflatcorr
+  desc: mvstitchedflatcorr
   max_downsampling_layers: 5 # e.g. 4 levels: { 0: orig, 1: ds2, 2: ds4, 3: ds8, 4: ds16}
   rechunk_size: #z, y, x 
     - 1 

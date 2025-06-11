@@ -26,13 +26,12 @@ msims = []
 zarr_paths = []
 
 
-channel=metadata['channels'][snakemake.params.channel_index]
+channel=metadata['channels'][snakemake.params.reg_channel_index]
 
 for i_tile in metadata['chunks']:
  
     key = f'tile-{i_tile}_chan-{channel}_z-0000'
 
-#    zarr_path =f'tile_{i_tile:02d}.zarr'
 
     # read tile image
     im_data = da.squeeze(darr[i_tile,:,:,:,:]) 
@@ -51,16 +50,8 @@ for i_tile in metadata['chunks']:
         transform_key=io.METADATA_TRANSFORM_KEY,
         )
 
-    # write to OME-Zarr
- #   print(f'writing tile {i_tile} to ome_zarr') 
- #   with ProgressBar():
- #       ngff_utils.write_sim_to_ome_zarr(sim, zarr_path)
-
-
     #for next steps, we read things back as msim
-#    sim = ngff_utils.read_sim_from_ome_zarr(zarr_path)
     msim = msi_utils.get_msim_from_sim(sim)
-#    zarr_paths.append(zarr_path)
 
     msims.append(msim)
 
@@ -86,6 +77,7 @@ plt.savefig(snakemake.output.tiling_qc_png)
 #)
 
 curr_transform_key = 'affine_metadata'
+new_transform_key = 'affine_registered'
 
 print('performing stitching registration')
 with ProgressBar():
@@ -93,48 +85,20 @@ with ProgressBar():
         msims,
         reg_channel_index=snakemake.params.reg_channel_index,
         transform_key=curr_transform_key,
-        new_transform_key='affine_registered',
+        new_transform_key=new_transform_key,
         pre_registration_pruning_method="keep_axis_aligned", # works well for tiles on a grid
         scheduler="threads",
         **snakemake.params.registration_opts,
     )
 
-
+# Extract each affine and save to disk as a single .npz file
+affines = {}
 for imsim, msim in enumerate(msims):
-    affine = np.array(msi_utils.get_transform_from_msim(msim, transform_key='affine_registered')[0])
+    affine = np.array(msi_utils.get_transform_from_msim(msim, transform_key=new_transform_key)[0])
+    affines[f"tile_{imsim}"] = affine
     print(f'tile index {imsim}\n', affine)
 
-
-fused = fusion.fuse(
-    [msi_utils.get_sim_from_msim(msim) for msim in msims],
-    transform_key='affine_registered',
-    fusion_func=fusion.max_fusion,
-    #    **snakemake.params.fusion_opts,
-    )
-
-print(fused)
-print(type(fused))
-print(fused.shape)
-
-print('shape of array to save')
-print(fused.data[0].shape)
-
-#save each channel separately (to be consistent with legacy bigstitcher workflow)
-with ProgressBar():
-    fused.data[0][snakemake.params.channel_index,:,:,:].to_zarr(snakemake.output.zarr,overwrite=True,
-                                                                    dimension_separator='/',component='fused/s0',zarr_format=2)
-
-"""
-znimg = ZarrNii.from_darr(fused.data[0], axes_order='ZYX',spacing=( metadata['physical_size_z'],
-               metadata['physical_size_y'],
-               metadata['physical_size_x']))
+np.savez(snakemake.output.affines, **affines)
+print("Saved affines to registered_affines.npz")
 
 
-
-
-print(f'Fusing views and saving output to ome zarr...')
-with ProgressBar():
-    fused = ngff_utils.write_sim_to_ome_zarr(
-        fused, snakemake.output.zarr, overwrite=True
-    )
-"""
