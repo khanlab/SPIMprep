@@ -3,7 +3,8 @@ import subprocess
 import shlex
 
 # Folder containing the .ome.tif files
-input_dir = Path(snakemake.input.ome_dir)
+#input_dir = Path(snakemake.input.ome_dir)
+input_dir = Path(snakemake.params.ome_dir)
 output_base = Path(snakemake.output.tiles_dir)
 output_base.mkdir(parents=True, exist_ok=True)
 

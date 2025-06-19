@@ -21,6 +21,8 @@ tifffile = ">=2025.6.1,<2026"
 conda = ">=25.5.0,<26"
 xmltodict = ">=0.14.2,<0.15"
 bioformats2raw = ">=0.9.4,<0.10"
+snakemake-executor-plugin-slurm = ">=1.4.0,<2"
+snakemake-storage-plugin-fs = ">=1.1.2,<2"
 
 [pypi-dependencies]
 ngff-zarr = { version = ">=0.13.2, <0.14", extras = ["all"] }

@@ -37,8 +37,8 @@ multiview_stitcher:
   registration:
     registration_binning:
       z: 2
-      y: 4
-      x: 4
+      y: 2
+      x: 2
   fusion:
     output_chunksize: 
       t: 1

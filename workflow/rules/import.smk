@@ -244,9 +244,10 @@ rule bioformats_to_zarr:
     single zarr dataset. 
         output shape is (tiles,channels,z,y,x), with the 2d 
         images as the chunks.  TODO: this could potentially be done in parallel, e.g. if we use wildcards over tile identifiers"""
-    input:
-        ome_dir=get_input_sample,
+#    input:
+        #ome_dir=get_input_sample,
     params:
+        ome_dir=get_input_sample,
         tile_height=4096,
         tile_width=4096,
     output:
@@ -285,7 +286,7 @@ rule bioformats_to_zarr:
         "preproc"
     resources:
         mem_mb=config["total_mem_mb"], #TODO update this, along with threads.. 
-    threads: 32
+    threads: 16
     script:
         "../scripts/bioformats_to_zarr.py"
 

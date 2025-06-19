@@ -29,6 +29,16 @@ rule mvstitcher_registration:
             desc="mvstitched{desc}",
             suffix="affines.npz",
         ),
+        reg_result_pkl=bids(
+            root=work,
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq}",
+            desc="mvstitched{desc}",
+            suffix="regresult.pkl",
+        ),
+
     benchmark:
         bids(
             root="benchmarks",
@@ -59,6 +69,46 @@ rule mvstitcher_registration:
         "../envs/multiview_stitcher.yml"
     script:
         "../scripts/mvstitcher_registration.py"
+
+
+rule mvstitcher_reg_plots:
+    input:
+         reg_result_pkl=bids(
+            root=work,
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq}",
+            desc="mvstitched{desc}",
+            suffix="regresult.pkl",
+        ),
+    output:
+        pairwise_plot=bids(
+            root=work,
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq}",
+            desc="mvstitched{desc}",
+            suffix="pairwiseqc.png",
+        ),      
+        groupwise_plot=bids(
+            root=work,
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq}",
+            desc="mvstitched{desc}",
+            suffix="groupwiseqc.png",
+        ),  
+    group:
+        "preproc"
+    container: None
+    conda:
+        "../envs/multiview_stitcher.yml"
+    script:
+        "../scripts/mvstitcher_reg_plots.py"
+
 
 ruleorder: mvstitcher_fusion > zarr_to_ome_zarr
 
