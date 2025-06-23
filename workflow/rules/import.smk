@@ -286,6 +286,7 @@ rule bioformats_to_zarr:
         "preproc"
     resources:
         mem_mb=config["total_mem_mb"], #TODO update this, along with threads.. 
+        disk_mb=1000000 #1TB
     threads: 16
     script:
         "../scripts/bioformats_to_zarr.py"
@@ -342,6 +343,7 @@ rule concat_tiles:
         "preproc"
     resources:
         mem_mb=config["total_mem_mb"],
+        disk_mb=1000000 #1TB
     threads: 32
     container:
         None

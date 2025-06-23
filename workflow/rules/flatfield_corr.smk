@@ -117,6 +117,7 @@ rule apply_basic_flatfield_corr:
     resources:
         runtime=60,
         mem_mb=32000,
+        disk_mb=1000000 #1TB
     threads: 32
     group:
         "preproc"
