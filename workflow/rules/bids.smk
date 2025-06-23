@@ -29,7 +29,7 @@ rule resampled_dataset_desc:
 
 rule bids_readme:
     input:
-        config["bids"]["readme_md"],
+        Path(workflow.basedir) / ".." / config["bids"]["readme_md"],
     output:
         bids_toplevel(root, "README.md"),
     log:
@@ -41,7 +41,7 @@ rule bids_readme:
 
 rule bids_samples_json:
     input:
-        config["bids"]["samples_json"],
+        Path(workflow.basedir) / ".." / config["bids"]["samples_json"],
     output:
         bids_toplevel(root, "samples.json"),
     log:
