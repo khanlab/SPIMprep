@@ -235,6 +235,10 @@ class SnakemakeBidsApp:
     def finalize_config(self, config: dict[str, Any]):
         """Perform final steps for snakemake workflows.
 
+
+        Makes use of ``work_dir`` if it is defined, as the folder where 
+        snakemake will run, and if so, sets the `root` variable to be ``output_dir``. 
+
         Expects to find ``output_dir`` in config as a fully resolved
         :class:`~pathlib.Path`
 
@@ -245,13 +249,28 @@ class SnakemakeBidsApp:
         """
 
 
-        try:
-            prepare_bidsapp_output(config["output_dir"], self.force_output)
-        except RunError as err:
-            print(err.msg, file=sys.stderr)
-            sys.exit(1)
-        self.cwd = config["output_dir"]
+        if "work_dir" in config:
 
+            try:
+                prepare_bidsapp_output(config["work_dir"], self.force_output)
+            except RunError as err:
+                print(err.msg, file=sys.stderr)
+                sys.exit(1)
+
+            self.cwd = config["work_dir"]
+            root = config["output_dir"] 
+
+
+        else:
+
+            try:
+                prepare_bidsapp_output(config["output_dir"], self.force_output)
+            except RunError as err:
+                print(err.msg, file=sys.stderr)
+                sys.exit(1)
+
+            self.cwd = config["output_dir"]
+            root = ""  # uses "" instead of Path() to drop the leading ./
 
         configfile_path = self.configfile_path or self.snakemake_dir / "snakebids.yaml"
         if self.configfile_outpath is None:
@@ -280,6 +299,7 @@ class SnakemakeBidsApp:
                 snakemake_version=impm.version("snakemake"),
                 snakebids_version=impm.version("snakebids"),
                 app_version=version or "unknown",
+                root=root,
                 snakemake_dir=self.snakemake_dir,
                 snakefile=self.snakefile_path,
             ),

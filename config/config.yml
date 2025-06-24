@@ -1,15 +1,15 @@
 samples: 'config/samples.tsv'
 
-root: 'bids' # can use a s3:// or gcs:// prefix to write output to cloud storage
-work: 'work' 
+root: '/cifs/khan_new/datasets/MIND/mouse_appmaptapoe' # can use a s3:// or gcs:// prefix to write output to cloud storage
+work: ""
 
 remote_creds: '~/.config/gcloud/application_default_credentials.json' #this is needed so we can pass creds to container
 
 use_zipstore: False #if True, produce SPIM.ome.zarr.zip instead of SPIM.ome.zarr
 
 #total resources available, used to set rule resources
-total_cores: 12 
-total_mem_mb: 20000 
+total_cores: 32 
+total_mem_mb: 500000 
 
 #import wildcards:  tilex, tiley, channel, zslice (and prefix - unused)
 import_blaze:

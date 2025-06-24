@@ -37,13 +37,13 @@ class SpimprepCLIConfig(PluginBase):
         )
         self.try_add_argument(
             group,
-            "--output-scratch-dir",
+            "--work-dir",
             action="store",
             type=str,
-            dest="output_scratch_dir",
+            dest="work_dir",
             default=None,
             help=(
-                "Set the scratch directory (effectively the snakebids output workflow directory)"
+                "Set the work directory (effectively the snakebids output workflow directory)"
             ),
         )
         self.try_add_argument(
@@ -118,13 +118,17 @@ class SpimprepCLIConfig(PluginBase):
     @bidsapp.hookimpl
     def update_cli_namespace(self, namespace: dict[str, Any], config: dict[str, Any]):
         """Add vars to config."""
-        output_scratch_dir = self.pop(namespace, "output_scratch_dir")
+        work_dir = self.pop(namespace, "work_dir")
 
-        if output_scratch_dir == None:
+        if work_dir == None:
+            work_dir=gettempdir()
 
-            output_scratch_dir=gettempdir()
+        config["work_dir"] = Path(mkdtemp(prefix='SPIMprep.',suffix='.workflow',dir=work_dir))
 
-        config["output_dir"] = Path(mkdtemp(prefix='SPIMprep.',suffix='.workflow',dir=output_scratch_dir))
+        output_bids_dir = self.pop(namespace, "output_bids_dir")
+
+        config["output_dir"] = Path(output_bids_dir)
+
 
 
     
@@ -145,7 +149,7 @@ class SpimprepCLIConfig(PluginBase):
         for i, stain_var in enumerate(config['stains'][1:], start=1):
             sample_info[f"stain_{i}"] = stain_var
 
-        samples_tsv_path = config['output_dir'] / 'samples_from_cli.tsv'
+        samples_tsv_path = config['work_dir'] / 'samples_from_cli.tsv'
         with open(samples_tsv_path, 'w') as f:
             headers = '\t'.join(sample_info.keys())
             f.write(headers + '\n')
@@ -153,6 +157,5 @@ class SpimprepCLIConfig(PluginBase):
             f.write(values + '\n')
 
         config['samples'] = 'samples_from_cli.tsv'
-        config["root"] = config['output_bids_dir']
 
 
