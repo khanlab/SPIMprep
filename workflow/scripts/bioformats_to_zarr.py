@@ -8,10 +8,13 @@ input_dir = Path(snakemake.params.ome_dir)
 output_base = Path(snakemake.output.tiles_dir)
 output_base.mkdir(parents=True, exist_ok=True)
 
+print(f'input_dir: {input_dir}')
+
 # Loop through all files
 for fname in sorted(input_dir.iterdir()):
-    if fname.name.endswith("C00.ome.tif"):
+    if fname.name.endswith("C00.ome.tif") or fname.name.endswith("C00_xyz-Table Z0000.ome.tif"):
         input_path = fname
+        print(f'input_path: {input_path}')
         
         # Strip extension for output subdir
         base_name = fname.name.rsplit(".ome.tif", 1)[0]
