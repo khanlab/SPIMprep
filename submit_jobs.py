@@ -35,6 +35,7 @@ def submit_job(row, sbatch_script, log_dir, slurm_config,
         "--time", slurm_config["time"],
         "--mem", slurm_config["mem"],
         "--cpus-per-task", slurm_config["cpus"],
+        "--tmp", slurm_config["tmp"],
         "--output", str(log_out),
         "--error", str(log_err),
         "--export", f"ALL,SUBJECT={subject},ACQ={acq},STAINS={stains},INPUT_PATH={input_path},OUTPUT_BIDS_DIR={output_bids_dir},WORK_DIR={work_dir},CONDA_PREFIX={conda_prefix},RUN_PY_PATH={RUN_PY_PATH}"
@@ -62,17 +63,18 @@ def submit_job(row, sbatch_script, log_dir, slurm_config,
 @click.option('--time', default="12:00:00", help="SLURM time allocation per job.")
 @click.option('--mem', default="64G", help="SLURM memory per job.")
 @click.option('--cpus', default="16", help="SLURM CPUs per job.")
+@click.option('--tmp', default="2T", help="Temporary disk space per job.")
 @click.option('--dry-run', is_flag=True, help="Only print the sbatch commands without running.")
 @click.option('--yes', '-y', is_flag=True, help="Skip confirmation before submitting jobs.")
 def main(samples_file, sbatch_script, log_dir,
          output_bids_dir, work_dir, conda_prefix,
-         time, mem, cpus, dry_run, yes):
+         time, mem, cpus, tmp, dry_run, yes):
     """Submit SPIMprep jobs for each sample in a TSV file via sbatch."""
 
     log_dir = Path(log_dir)
     log_dir.mkdir(exist_ok=True)
 
-    slurm_config = {"time": time, "mem": mem, "cpus": cpus}
+    slurm_config = {"time": time, "mem": mem, "cpus": cpus, "tmp": tmp}
 
     with open(samples_file, newline='') as f:
         reader = csv.DictReader(f, delimiter='\t')
