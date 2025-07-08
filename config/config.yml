@@ -26,6 +26,7 @@ import_prestitched:
 
 
 basic_flatfield_corr:
+  enabled: False
   max_n_images: 5000
   fitting_opts:
     get_darkfield: True

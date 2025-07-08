@@ -121,7 +121,7 @@ rule mvstitcher_fusion:
             datatype="micr",
             sample="{sample}",
             acq="{acq}",
-            desc="flatcorr",
+            desc="{desc}".format(desc="flatcorr" if config['basic_flatfield_corr']['enabled'] else "raw"),
             suffix="SPIM.zarr",
         ),
         metadata_json=rules.copy_blaze_metadata.output.metadata_json,
@@ -131,7 +131,7 @@ rule mvstitcher_fusion:
             datatype="micr",
             sample="{sample}",
             acq="{acq}",
-            desc="mvstitchedflatcorr",
+            desc="mvstitched{desc}".format(desc="flatcorr" if config['basic_flatfield_corr']['enabled'] else "raw"),
             suffix="affines.npz",
         ),
     params:
