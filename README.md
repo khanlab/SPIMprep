@@ -97,5 +97,16 @@ Snakemake CLI options passed to run.py are also passed along when running the wo
 
 The `config/config.yml` can be edited to customize any workflow parameters.   
 
+e.g. to disable flatfield correction, you can change:
 
+```
+basic_flatfield_corr:
+  enabled: True
+```
+to
+
+```
+basic_flatfield_corr:
+  enabled: False
+```
 
