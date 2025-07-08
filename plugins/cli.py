@@ -4,7 +4,7 @@ from pathlib import Path
 from snakebids import bidsapp
 from snakebids.bidsapp.args import ArgumentGroups
 from snakebids.plugins.base import PluginBase
-from tempfile import gettempdir, mkdtemp
+from tempfile import gettempdir
 
 
 @attrs.define
@@ -123,7 +123,7 @@ class SpimprepCLIConfig(PluginBase):
         if work_dir == None:
             work_dir=gettempdir()
 
-        config["work_dir"] = Path(mkdtemp(prefix='SPIMprep.',suffix='.workflow',dir=work_dir))
+        config["work_dir"] = Path(work_dir)
 
         output_bids_dir = self.pop(namespace, "output_bids_dir")
 
