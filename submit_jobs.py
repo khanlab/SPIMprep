@@ -28,7 +28,6 @@ def submit_job(row, sbatch_script, log_dir, slurm_config,
     job_name = f"{subject}_{acq}"
 
     log_out = log_dir / f"{job_name}.out"
-    log_err = log_dir / f"{job_name}.err"
 
     slurm_args = [
         "--job-name", job_name,
@@ -37,7 +36,6 @@ def submit_job(row, sbatch_script, log_dir, slurm_config,
         "--cpus-per-task", slurm_config["cpus"],
         "--tmp", slurm_config["tmp"],
         "--output", str(log_out),
-        "--error", str(log_err),
         "--export", f"ALL,SUBJECT={subject},ACQ={acq},STAINS={stains},INPUT_PATH={input_path},OUTPUT_BIDS_DIR={output_bids_dir},WORK_DIR={work_dir},CONDA_PREFIX={conda_prefix},RUN_PY_PATH={RUN_PY_PATH}"
     ]
 
@@ -56,14 +54,14 @@ def submit_job(row, sbatch_script, log_dir, slurm_config,
 @click.option('--sbatch-script', '-b', type=click.Path(exists=True,dir_okay=False, file_okay=True, readable=True), default="run_sample.sh",
               help="Path to the SBATCH script template.")
 @click.option('--log-dir', '-l', type=click.Path(), default="logs",
-              help="Directory where SLURM output/error logs are stored.")
+              help="Directory where SLURM output logs are stored.")
 @click.option('--output-bids-dir', required=True, type=click.Path(), help="Path to BIDS output directory.")
-@click.option('--work-dir', required=True, type=click.Path(exists=True,dir_okay=True, file_okay=False, readable=True), help="Path to scratch or work directory.", default="/localscratch")
+@click.option('--work-dir', required=True, type=click.Path(exists=True,dir_okay=True, file_okay=False, readable=True), help="Path to scratch or work directory.", default="/tmp")
 @click.option('--conda-prefix', required=True, type=click.Path(exists=True,dir_okay=True, file_okay=False, readable=True), help="Path to conda prefix for Snakemake.")
-@click.option('--time', default="12:00:00", help="SLURM time allocation per job.")
+@click.option('--time', default="2-00:00:00", help="SLURM time allocation per job.")
 @click.option('--mem', default="64G", help="SLURM memory per job.")
 @click.option('--cpus', default="16", help="SLURM CPUs per job.")
-@click.option('--tmp', default="2T", help="Temporary disk space per job.")
+@click.option('--tmp', default="4T", help="Temporary disk space per job.")
 @click.option('--dry-run', is_flag=True, help="Only print the sbatch commands without running.")
 @click.option('--yes', '-y', is_flag=True, help="Skip confirmation before submitting jobs.")
 def main(samples_file, sbatch_script, log_dir,

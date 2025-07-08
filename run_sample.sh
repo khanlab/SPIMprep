@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --nodes=1
 
-eval "$(pixi shell-hook bash)"
+#eval "$(pixi shell-hook)"
 
 # Optionally print some env info
 echo "Environment activated with pixi."
