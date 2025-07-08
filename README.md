@@ -72,3 +72,16 @@ Note: if you run the workflow on a system with large memory, you will need to se
 7. If you want to run the workflow using a batch job submission server, please see the executor plugins here: https://snakemake.github.io/snakemake-plugin-catalog/
 
 <!--intro-end-->
+
+
+
+## To incorporate later (new CLI):
+
+```
+git clone https://github.com/khanlab/spimprep
+git checkout multiview-stitcher
+pixi install
+pixi shell-hook > activate
+chmod a+x ./activate
+source ./activate
+./run.py  --input-path /cifs/khan_new/datasets/lightsheet_example/ --subject M4A1Te3 --stains Abeta PI Lectin --output-bids-dir /tmp/out_spimprep --work-dir /tmp   --cores all
