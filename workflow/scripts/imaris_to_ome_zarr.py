@@ -86,6 +86,10 @@ darr_channels = da.stack(darr_list)
 
 
 group = zarr.group(store,overwrite=True)
+
+# Add metadata for orientation
+group.attrs["orientation"] = "IAL" #this is the updated orientation for imaris files
+
 scaler = Scaler(max_layer=max_layer,method=scaling_method)
 
 

@@ -133,7 +133,7 @@ rule ome_zarr_to_nii:
     group:
         "preproc"
     threads: config["total_cores"]
-    container:
-        config["containers"]["spimprep"]
+    container: None
+#        config["containers"]["spimprep"]
     script:
         "../scripts/ome_zarr_to_nii.py"
