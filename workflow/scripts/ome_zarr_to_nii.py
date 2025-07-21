@@ -1,7 +1,7 @@
 import zarr 
 from zarrnii import ZarrNii
 from upath import UPath as Path
-
+from dask.diagnostics import ProgressBar
 
 
 uri = snakemake.params.uri
@@ -38,12 +38,14 @@ z_scale = scale[axis_index['z']]
 
 # Compute ratio and power
 ratio = x_scale / z_scale
-level = np.log2(round(ratio)) 
+level = int(np.log2(round(ratio)))
 
-if level == 0: 
-    znimg.to_nifti(snakemake.output.nii)
-else:
-    znimg.downsample(along_z=2**level).to_nifti(snakemake.output.nii)
+
+with ProgressBar():
+    if level == 0: 
+        znimg.to_nifti(snakemake.output.nii)
+    else:
+        znimg.downsample(along_z=2**level).to_nifti(snakemake.output.nii)
 
 
 

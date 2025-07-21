@@ -1,0 +1,14 @@
+name: imaris
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - pip
+  - python=3.12
+  - xmltodict >=0.14.2,<0.15
+  - zarr >=2.16.1,<3
+  - dask >=2025.5.1,<2026
+  - universal-pathlib >=0.2.6,<0.3
+  - hdf5plugin >=5.0.0,<6.0.0
+  - pip:
+    - ome-zarr>=0.9.0,<0.10

@@ -1,6 +1,3 @@
-import h5py
-import hdf5plugin
-import zarr
 import json
 import zarr
 import dask.array as da
