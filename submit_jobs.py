@@ -22,7 +22,9 @@ def submit_job(row, sbatch_script, log_dir, slurm_config,
 
     subject = row["subject"]
     acq = row["acq"]
-    stains = f"{row['stain_0']} {row['stain_1']} {row['stain_2']}"
+    stain_0 = row['stain_0']
+    stain_1 = row['stain_1']
+    stain_2 = row['stain_2']
     input_path = row["sample_path"]
 
     job_name = f"{subject}_{acq}"
@@ -33,16 +35,30 @@ def submit_job(row, sbatch_script, log_dir, slurm_config,
         "--job-name", job_name,
         "--time", slurm_config["time"],
         "--mem", slurm_config["mem"],
+        "--nodelist", "rri-cbs-h2.schulich.uwo.ca",
         "--cpus-per-task", slurm_config["cpus"],
         "--tmp", slurm_config["tmp"],
         "--output", str(log_out),
-        "--export", f"ALL,SUBJECT={subject},ACQ={acq},STAINS={stains},INPUT_PATH={input_path},OUTPUT_BIDS_DIR={output_bids_dir},WORK_DIR={work_dir},CONDA_PREFIX={conda_prefix},RUN_PY_PATH={RUN_PY_PATH}"
+        "--export", f"ALL,SUBJECT={subject},ACQ={acq},STAIN_0={stain_0},STAIN_1={stain_1},STAIN_2={stain_2},INPUT_PATH={input_path},OUTPUT_BIDS_DIR={output_bids_dir},WORK_DIR={work_dir},CONDA_PREFIX={conda_prefix},RUN_PY_PATH={RUN_PY_PATH}"
     ]
 
     cmd = ["sbatch"] + slurm_args + [str(sbatch_script)]
 
     if dry_run:
-        console.print(f"[bold yellow]Dry run:[/bold yellow] {' '.join(cmd)}")
+        console.rule(f"[bold yellow]Dry run: {job_name}[/bold yellow]")
+
+        console.print("[cyan]sbatch command:[/cyan]")
+        console.print(" ".join(cmd))
+
+        console.print("\n[magenta]Exported environment variables:[/magenta]")
+        for var in ["SUBJECT", "ACQ", "STAIN_0", "STAIN_1", "STAIN_2", "INPUT_PATH", "OUTPUT_BIDS_DIR", "WORK_DIR", "CONDA_PREFIX"]:
+            value = eval(var.lower())  # grab from local variables
+            console.print(f"{var} = \"{value}\"")
+
+        console.print("\n[green]Simulated input line in run_sample.sh:[/green]")
+        console.print(f'--input-path "{input_path}"')  # confirm proper quoting
+
+        console.rule()
     else:
         console.print(f"[green]Submitting:[/green] [bold]{job_name}[/bold]")
         subprocess.run(cmd)
