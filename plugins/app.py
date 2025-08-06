@@ -174,9 +174,7 @@ class SnakemakeBidsApp:
     """Allow specifying outputs in unrecognized, non-empty directories.
     """
 
-    DEPENDENCIES = (
-        CliConfig(),
-    )
+    DEPENDENCIES = (CliConfig(),)
 
     @classmethod
     def create_empty(cls):
@@ -236,8 +234,8 @@ class SnakemakeBidsApp:
         """Perform final steps for snakemake workflows.
 
 
-        Makes use of ``work_dir`` if it is defined, as the folder where 
-        snakemake will run, and if so, sets the `root` variable to be ``output_dir``. 
+        Makes use of ``work_dir`` if it is defined, as the folder where
+        snakemake will run, and if so, sets the `root` variable to be ``output_dir``.
 
         Expects to find ``output_dir`` in config as a fully resolved
         :class:`~pathlib.Path`
@@ -248,7 +246,6 @@ class SnakemakeBidsApp:
 
         """
 
-
         if "work_dir" in config:
 
             try:
@@ -258,8 +255,7 @@ class SnakemakeBidsApp:
                 sys.exit(1)
 
             self.cwd = config["work_dir"]
-            root = config["output_dir"] 
-
+            root = config["output_dir"]
 
         else:
 
@@ -326,4 +322,3 @@ class SnakemakeBidsApp:
                 )
             ]
         )
-
