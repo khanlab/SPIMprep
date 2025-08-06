@@ -16,7 +16,9 @@ from multiview_stitcher import (
     registration,
 )
 from multiview_stitcher import spatial_image_utils as si_utils
-from multiview_stitcher import vis_utils
+from multiview_stitcher import (
+    vis_utils,
+)
 
 matplotlib.use("agg")
 import dask
