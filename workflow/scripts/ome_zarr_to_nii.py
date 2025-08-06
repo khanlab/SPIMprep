@@ -11,9 +11,9 @@ channel_index = snakemake.params.channel_index
 
 
 if Path(uri).suffix == '.zip':
-    store = zarr.storage.ZipStore(Path(uri).path,mode='r')
+    store = zarr.storage.ZipStore(Path(uri).path)
 else:
-    store = zarr.storage.LocalStore(Path(uri).path,mode='r')
+    store = zarr.storage.LocalStore(Path(uri).path)
 
 
 znimg = ZarrNii.from_ome_zarr(store, level=int(snakemake.wildcards.level), channels=[channel_index])
@@ -38,7 +38,10 @@ z_scale = scale[axis_index['z']]
 
 # Compute ratio and power
 ratio = x_scale / z_scale
-level = int(np.log2(round(ratio)))
+if ratio <= 1:
+    level = 0
+else:
+    level = int(np.log2(round(ratio)))
 
 
 with ProgressBar():

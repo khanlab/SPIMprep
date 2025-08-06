@@ -1,9 +1,12 @@
 name: basicpy
 channels:
   - defaults
+  - conda-forge
 dependencies:
   - pip
   - python=3.12
+  - libstdcxx-ng>=12.2.0
+  - openssl>=3.2.0
   - pip:
     - basicpy==1.2.0
     - jax==0.4.23
