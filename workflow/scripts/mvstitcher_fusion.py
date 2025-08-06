@@ -7,14 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import zarr
 from dask.diagnostics import ProgressBar
-from multiview_stitcher import (
-    fusion,
-    io,
-    msi_utils,
-    ngff_utils,
-    param_utils,
-    registration,
-)
+from multiview_stitcher import (fusion, io, msi_utils, ngff_utils, param_utils,
+                                registration)
 from multiview_stitcher import spatial_image_utils as si_utils
 from multiview_stitcher import vis_utils
 
