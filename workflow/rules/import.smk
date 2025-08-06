@@ -65,12 +65,14 @@ rule copy_blaze_metadata:
 
 
 rule bioformats_to_zarr:
-    """ use bioformats2raw on each tile, then put all tiles into a 
-    single zarr dataset. 
-        output shape is (tiles,channels,z,y,x), with the 2d 
-        images as the chunks.  TODO: this could potentially be done in parallel, e.g. if we use wildcards over tile identifiers"""
-#    input:
-        #ome_dir=get_input_sample,
+    """
+    Use bioformats2raw on each tile, then put all tiles into a single zarr dataset.
+    Output shape is (tiles,channels,z,y,x), with the 2D images as the chunks.
+    TODO: this could potentially be done in parallel, e.g. using wildcards over tile identifiers.
+    """
+    input:
+        "ome_dir=get_input_sample",
+    #        ome_dir=get_input_sample
     params:
         ome_dir=get_input_sample,
         tile_height=4096,
@@ -110,26 +112,25 @@ rule bioformats_to_zarr:
     group:
         "preproc"
     resources:
-        mem_mb=config["total_mem_mb"], #TODO update this, along with threads.. 
-        disk_mb=1000000 #1TB
+        mem_mb=config["total_mem_mb"],  #TODO update this, along with threads.. 
+        disk_mb=1000000,  #1TB
     threads: 16
     script:
         "../scripts/bioformats_to_zarr.py"
-
 
 
 rule concat_tiles:
     """ read in zarrs created for each tile, and write out as a single zarr"""
     input:
         tiles_dir=bids(
-                    root=work,
-                    subject="{subject}",
-                    datatype="micr",
-                    sample="{sample}",
-                    acq="{acq}",
-                    desc="raw",
-                    suffix="SPIM.tiles",
-                ),
+            root=work,
+            subject="{subject}",
+            datatype="micr",
+            sample="{sample}",
+            acq="{acq}",
+            desc="raw",
+            suffix="SPIM.tiles",
+        ),
     params:
         intensity_rescaling=config["import_blaze"]["intensity_rescaling"],
     output:
@@ -168,11 +169,9 @@ rule concat_tiles:
         "preproc"
     resources:
         mem_mb=config["total_mem_mb"],
-        disk_mb=1000000 #1TB
+        disk_mb=1000000,  #1TB
     threads: 32
     container:
         None
     script:
         "../scripts/concat_tiles.py"
-
-

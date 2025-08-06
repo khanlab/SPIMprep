@@ -2,34 +2,31 @@
 name: Lint and test workflow
 on:
   push:
-    branches: ['*', '!push-action/*']
-  pull_request:
-    branches: ['*', '!push-action/*']
+  workflow_dispatch:
+
 jobs:
-  quality:
-    name: Lint code
-    if: github.event.pull_request.merged == false
+  CI:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Setup Python environment
-        uses: khanlab/actions/.github/actions/action-setup_task-installPyProject@v0.3.6
-        with:
-          python-version: '3.11'
-      - name: snakemake lint
-        run: poetry run snakemake --lint --storage-gcs-project placeholder
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Miniforge env with snakebids
+        uses: khanlab/actions/.github/actions/action-setup_task-setupSnakebidsEnv@djay/add-wetRunTestLogic
+
+      - name: Install linting tools
+        run: mamba install isort black snakefmt -y -c bioconda -c conda-forge
+
+      - name: isort
+        run: isort workflow/scripts/*.py -c
+
+      - name: Black
+        run: black . --check
+
       - name: snakefmt
-        run: poetry run snakefmt --check workflow
-  test:
-    runs-on: ubuntu-latest
-    needs: [quality]
-    strategy:
-      matrix:
-        python-version: ['3.11']
-    steps:
-      - name: Setup Python environments
-        uses: khanlab/actions/.github/actions/action-setup_task-installPyProject@v0.3.6
-        with:
-          python-version: ${{ matrix.python-version }}
-          install-library: true
-      - name: Integration dry-run test
-        run: poetry run snakemake -np --storage-gcs-project placeholder
+        run: snakefmt . --check
+
+      - name: Test lighsheet-example
+        run: |
+          ./run.py --input-path /testing/dryrun_tests/lightsheet-example/ --subject M4A1Te3 --stains Abeta PI Lectin --output-bids-dir test_out/mouse_appmaptapoe --cores all --use-conda -np

@@ -14,9 +14,9 @@ rule mvstitcher_registration:
         metadata_json=rules.copy_blaze_metadata.output.metadata_json,
     params:
         channels=get_stains,
-        registration_opts=config['multiview_stitcher']['registration'],
-        fusion_opts=config['multiview_stitcher']['fusion'],
-        reg_channel_index=1, #later can make this a parameter chosen based on stains
+        registration_opts=config["multiview_stitcher"]["registration"],
+        fusion_opts=config["multiview_stitcher"]["fusion"],
+        reg_channel_index=1,  #later can make this a parameter chosen based on stains
         uri=get_output_ome_zarr_uri(),
         storage_provider_settings=workflow.storage_provider_settings,
     output:
@@ -38,7 +38,6 @@ rule mvstitcher_registration:
             desc="mvstitched{desc}",
             suffix="regresult.pkl",
         ),
-
     benchmark:
         bids(
             root="benchmarks",
@@ -64,7 +63,8 @@ rule mvstitcher_registration:
         mem_mb=config["total_mem_mb"],
     group:
         "preproc"
-    container: None
+    container:
+        None
     conda:
         "../envs/multiview_stitcher.yml"
     script:
@@ -73,7 +73,7 @@ rule mvstitcher_registration:
 
 rule mvstitcher_reg_plots:
     input:
-         reg_result_pkl=bids(
+        reg_result_pkl=bids(
             root=work,
             subject="{subject}",
             datatype="micr",
@@ -91,7 +91,7 @@ rule mvstitcher_reg_plots:
             acq="{acq}",
             desc="mvstitched{desc}",
             suffix="pairwiseqc.png",
-        ),      
+        ),
         groupwise_plot=bids(
             root=work,
             subject="{subject}",
@@ -100,10 +100,11 @@ rule mvstitcher_reg_plots:
             acq="{acq}",
             desc="mvstitched{desc}",
             suffix="groupwiseqc.png",
-        ),  
+        ),
     group:
         "preproc"
-    container: None
+    container:
+        None
     conda:
         "../envs/multiview_stitcher.yml"
     script:
@@ -111,6 +112,7 @@ rule mvstitcher_reg_plots:
 
 
 ruleorder: mvstitcher_fusion > zarr_to_ome_zarr
+
 
 rule mvstitcher_fusion:
     input:
@@ -121,7 +123,9 @@ rule mvstitcher_fusion:
             datatype="micr",
             sample="{sample}",
             acq="{acq}",
-            desc="{desc}".format(desc="flatcorr" if config['basic_flatfield_corr']['enabled'] else "raw"),
+            desc="{desc}".format(
+                desc="flatcorr" if config["basic_flatfield_corr"]["enabled"] else "raw"
+            ),
             suffix="SPIM.zarr",
         ),
         metadata_json=rules.copy_blaze_metadata.output.metadata_json,
@@ -131,14 +135,16 @@ rule mvstitcher_fusion:
             datatype="micr",
             sample="{sample}",
             acq="{acq}",
-            desc="mvstitched{desc}".format(desc="flatcorr" if config['basic_flatfield_corr']['enabled'] else "raw"),
+            desc="mvstitched{desc}".format(
+                desc="flatcorr" if config["basic_flatfield_corr"]["enabled"] else "raw"
+            ),
             suffix="affines.npz",
         ),
     params:
         channels=get_stains,
-        registration_opts=config['multiview_stitcher']['registration'],
-        fusion_opts=config['multiview_stitcher']['fusion'],
-        reg_channel_index=1, #later can make this a parameter chosen based on stains
+        registration_opts=config["multiview_stitcher"]["registration"],
+        fusion_opts=config["multiview_stitcher"]["fusion"],
+        reg_channel_index=1,  #later can make this a parameter chosen based on stains
         uri=get_output_ome_zarr_uri(),
         storage_provider_settings=workflow.storage_provider_settings,
     output:
@@ -166,10 +172,9 @@ rule mvstitcher_fusion:
         mem_mb=config["total_mem_mb"],
     group:
         "preproc"
-    container: None
+    container:
+        None
     conda:
         "../envs/multiview_stitcher.yml"
     script:
         "../scripts/mvstitcher_fusion.py"
-
-

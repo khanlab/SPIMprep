@@ -1,5 +1,6 @@
-from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
+
+from jinja2 import Environment, FileSystemLoader
 
 samples = snakemake.params.samples
 total_html = snakemake.output.total_html
@@ -12,16 +13,16 @@ template = env.get_template(snakemake.input.report_html)
 
 output = template.render()
 
-for i,subj_html in enumerate(subj_htmls):
-    subject=samples.loc[i,'subject']
-    sample=samples.loc[i,'sample']
-    acq=samples.loc[i,'acq']
+for i, subj_html in enumerate(subj_htmls):
+    subject = samples.loc[i, "subject"]
+    sample = samples.loc[i, "sample"]
+    acq = samples.loc[i, "acq"]
 
     relative_path = Path(subj_html).relative_to(Path(total_html).parent)
     # Create line to add link to subject into final qc report combining all subjects
     subj_link = f'\n\t\t<a href="{relative_path}">sub-{subject}_sample-{sample}_acq-{acq}</a><br>\n'
 
-    output+=subj_link
+    output += subj_link
 
-with open(total_html, 'w') as f:
+with open(total_html, "w") as f:
     f.write(output)

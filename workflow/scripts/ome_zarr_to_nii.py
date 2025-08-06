@@ -1,25 +1,25 @@
-import zarr 
-from zarrnii import ZarrNii
-from upath import UPath as Path
+import zarr
 from dask.diagnostics import ProgressBar
-
+from upath import UPath as Path
+from zarrnii import ZarrNii
 
 uri = snakemake.params.uri
 in_zarr = snakemake.input.zarr
 channel_index = snakemake.params.channel_index
 
 
-
-if Path(uri).suffix == '.zip':
+if Path(uri).suffix == ".zip":
     store = zarr.storage.ZipStore(Path(uri).path)
 else:
     store = zarr.storage.LocalStore(Path(uri).path)
 
 
-znimg = ZarrNii.from_ome_zarr(store, level=int(snakemake.wildcards.level), channels=[channel_index])
+znimg = ZarrNii.from_ome_zarr(
+    store, level=int(snakemake.wildcards.level), channels=[channel_index]
+)
 
 
-#before updating zarrnii ngffzarr3 branch to accommodate anisotropically downsampled data, instead
+# before updating zarrnii ngffzarr3 branch to accommodate anisotropically downsampled data, instead
 # we will calculate the z downsampling factor and downsample accordingly - TODO: move this to zarrnii
 
 import numpy as np
@@ -33,8 +33,8 @@ axes = znimg.axes  # list of Axis objects
 axis_index = {axis.name.lower(): i for i, axis in enumerate(axes)}
 
 # Extract x and z scales
-x_scale = scale[axis_index['x']]
-z_scale = scale[axis_index['z']]
+x_scale = scale[axis_index["x"]]
+z_scale = scale[axis_index["z"]]
 
 # Compute ratio and power
 ratio = x_scale / z_scale
@@ -45,11 +45,10 @@ else:
 
 
 with ProgressBar():
-    if level == 0: 
+    if level == 0:
         znimg.to_nifti(snakemake.output.nii)
     else:
         znimg.downsample(along_z=2**level).to_nifti(snakemake.output.nii)
-
 
 
 """
