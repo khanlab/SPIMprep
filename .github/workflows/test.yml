@@ -21,7 +21,7 @@ jobs:
         run: mamba install isort black snakefmt -y -c bioconda -c conda-forge
 
       - name: isort
-        run: isort workflow/scripts/*.py -c
+        run: isort workflow/scripts/*.py -c --profile black
 
       - name: Black
         run: black . --check
