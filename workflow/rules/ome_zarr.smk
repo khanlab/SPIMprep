@@ -39,8 +39,9 @@ rule zarr_to_ome_zarr:
             acq="{acq}",
             suffix="log.txt",
         ),
-    container: None
-#        config["containers"]["spimprep"]
+    container:
+        None
+    #        config["containers"]["spimprep"]
     group:
         "preproc"
     script:
@@ -85,6 +86,7 @@ rule tif_stacks_to_ome_zarr:
         mem_mb=config["total_mem_mb"],
     script:
         "../scripts/tif_stacks_to_ome_zarr.py"
+
 
 rule ome_zarr_to_nii:
     input:
