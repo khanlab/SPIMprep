@@ -5,30 +5,36 @@ on:
   workflow_dispatch:
 
 jobs:
-  CI:
+  quality:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash -l {0}
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Miniforge env with snakebids
-        uses: khanlab/actions/.github/actions/action-setup_task-setupSnakebidsEnv@djay/add-wetRunTestLogic
-
-      - name: Install linting tools
-        run: mamba install isort black snakefmt -y -c bioconda -c conda-forge
+      - name: Setup Python environment
+        uses: khanlab/actions/.github/actions/action-setup_task-installPyProject@v0.3.2
+        with:
+          python-version: "3.11"
 
       - name: isort
-        run: isort workflow/scripts/*.py -c --profile black
+        run: poetry run isort workflow/scripts/*.py -c --profile black
 
       - name: Black
-        run: black . --check
+        run: poetry run black . --check
 
       - name: snakefmt
-        run: snakefmt . --check
+        run: poetry run snakefmt . --check
+
+  test:
+    runs-on: ubuntu-latest
+    needs: ["quality"]
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Pixi environment
+        uses: prefix-dev/setup-pixi@v0.8.14
+        with:
+          activate-environment: true
 
       - name: Test lighsheet-example
         run: |
-          ./run.py --input-path /testing/dryrun_tests/lightsheet-example/ --subject M4A1Te3 --stains Abeta PI Lectin --output-bids-dir test_out/mouse_appmaptapoe --cores all --use-conda -np
+          pixi run ./run.py --input-path /testing/dryrun_tests/lightsheet-example/ --subject M4A1Te3 --stains Abeta PI Lectin --output-bids-dir test_out/mouse_appmaptapoe --cores all --use-conda -np
