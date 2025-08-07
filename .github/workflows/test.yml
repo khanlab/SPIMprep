@@ -44,4 +44,4 @@ jobs:
 
       - name: Test lighsheet-example
         run: |
-          ./run.py --input-path /testing/dryrun_tests/lightsheet-example/ --subject M4A1Te3 --stains Abeta PI Lectin --output-bids-dir test_out/mouse_appmaptapoe --cores all --use-conda -np
+          ./run.py --input-path testing/dryrun_tests/lightsheet-example/ --subject M4A1Te3 --stains Abeta PI Lectin --output-bids-dir test_out/mouse_appmaptapoe --cores all --use-conda -np
