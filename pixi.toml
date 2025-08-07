@@ -7,6 +7,19 @@ version = "0.1.0"
 
 [tasks]
 
+# A single “umbrella” task that chains three of the above:
+test_localout = """
+  snakemake --dry-run --config samples=testing/dryrun_tests/samples_local.tsv root=bids && \
+  snakemake --dry-run --config samples=testing/dryrun_tests/samples_gcs.tsv    root=bids && \
+  snakemake --dry-run --config samples=testing/dryrun_tests/samples_local.tsv root=bids use_zipstore=True
+"""
+
+test_gcsout = """
+  snakemake --dry-run --config samples=testing/dryrun_tests/samples_local.tsv root='gcs://khanlab-lightsheet/data/test_bids' && \
+  snakemake --dry-run --config samples=testing/dryrun_tests/samples_gcs.tsv    root='gcs://khanlab-lightsheet/data/test_bids' && \
+  snakemake --dry-run --config samples=testing/dryrun_tests/samples_local.tsv root='gcs://khanlab-lightsheet/data/test_bids' use_zipstore=True
+"""
+
 [dependencies]
 snakemake = ">=9.5.1,<10"
 snakebids = ">=0.14.0,<0.15"
