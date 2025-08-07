@@ -246,8 +246,8 @@ rule bioformats_to_zarr:
     TODO: this could potentially be done in parallel, e.g. using wildcards over tile identifiers.
     """
     input:
-        "ome_dir=get_input_sample",
-    #        ome_dir=get_input_sample
+        [],
+    #       ome_dir=get_input_sample
     params:
         ome_dir=get_input_sample,
         tile_height=4096,
