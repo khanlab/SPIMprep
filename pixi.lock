@@ -414,7 +414,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/zlib-ng-2.2.4-h7955e40_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/zstandard-0.23.0-py312h66e93f0_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/zstd-1.5.7-hb8e6e7a_2.conda
-      - pypi: git+https://github.com/khanlab/zarrnii/?branch=ngffzarr3#fd623986382a08053bc7c0251651dcf3f1cc258c
       - pypi: https://files.pythonhosted.org/packages/32/34/d4e1c02d3bee589efb5dfa17f88ea08bdb3e3eac12bc475462aec52ed223/alabaster-0.7.16-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a1/ee/48ca1a7c89ffec8b6a0c5d02b89c305671d5ffd8d3c94acf8b8c408575bb/anyio-4.9.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/15/58/5260205b9968c20b6457ed82f48f9e3d6edf2f1f95103161798b73aeccf0/astroid-3.3.10-py3-none-any.whl
@@ -466,6 +465,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/f4/53/c0cfef5560859ac2775ed124c38feab5af6d32ed495129724f693845dae9/wasmtime-33.0.0-py3-none-manylinux1_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/8e/0f/a257766998e26aca4b3acf2ae97dff04b57071e991a510857d3799247c67/watchfiles-1.0.5-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/14/8f/aa61f528fba38578ec553c145857a181384c72b98156f858ca5c8e82d9d3/websockets-15.0.1-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+      - pypi: https://files.pythonhosted.org/packages/8a/98/6806760baf20ab206f56a7af25ef4e76a333dabca8473de6641a4afe4b60/zarrnii-0.3.0a1-py3-none-any.whl
 packages:
 - conda: https://conda.anaconda.org/conda-forge/linux-64/_libgcc_mutex-0.1-conda_forge.tar.bz2
   sha256: fe51de6107f9edc7aa4f786a70f4a883943bc9d39b3bb7307c04c41410990726
@@ -4928,7 +4928,8 @@ packages:
   - python
   license: BSD-3-Clause
   license_family: BSD
-  purls: []
+  purls:
+  - pkg:pypi/pycparser?source=hash-mapping
   size: 110100
   timestamp: 1733195786147
 - conda: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.11.4-pyh3cfb1c2_0.conda
@@ -6711,9 +6712,10 @@ packages:
   - pkg:pypi/zarr?source=hash-mapping
   size: 214470
   timestamp: 1747730730866
-- pypi: git+https://github.com/khanlab/zarrnii/?branch=ngffzarr3#fd623986382a08053bc7c0251651dcf3f1cc258c
+- pypi: https://files.pythonhosted.org/packages/8a/98/6806760baf20ab206f56a7af25ef4e76a333dabca8473de6641a4afe4b60/zarrnii-0.3.0a1-py3-none-any.whl
   name: zarrnii
-  version: 0.2.3a1
+  version: 0.3.0a1
+  sha256: d8647cfc62b7cccf0d323cf2f9e6b1ca37a58e1708e1d130b21259fd4f7fc673
   requires_dist:
   - dask>=2025.5.1
   - ngff-zarr[all]>=0.13.1

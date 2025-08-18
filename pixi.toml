@@ -26,4 +26,4 @@ snakemake-storage-plugin-fs = ">=1.1.2,<2"
 
 [pypi-dependencies]
 ngff-zarr = { version = ">=0.13.2, <0.14", extras = ["all"] }
-zarrnii = { git = "https://github.com/khanlab/zarrnii/", branch = "ngffzarr3" }
+zarrnii = "==0.3.0-a1"
