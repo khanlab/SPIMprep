@@ -8,10 +8,10 @@ in_zarr = snakemake.input.zarr
 channel_index = snakemake.params.channel_index
 
 
-if Path(uri).suffix == '.zip':
-    store = zarr.storage.ZipStore(Path(uri).path,mode='r')
+if Path(uri).suffix == ".zip":
+    store = zarr.storage.ZipStore(Path(uri).path, mode="r")
 else:
-    store = zarr.storage.LocalStore(Path(uri).path,read_only=True)
+    store = zarr.storage.LocalStore(Path(uri).path, read_only=True)
 
 
 znimg = ZarrNii.from_ome_zarr(
