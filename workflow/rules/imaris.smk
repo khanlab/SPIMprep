@@ -30,8 +30,8 @@ rule imaris_to_metadata:
         ),
     group:
         "preproc"
-    container:
-        config["containers"]["spimprep"]
+    conda:
+        "../envs/imaris.yml"
     script:
         "../scripts/imaris_to_metadata.py"
 
@@ -63,8 +63,8 @@ rule imaris_channel_to_zarr:
             stain="{stain}",
             suffix="log.txt",
         ),
-    container:
-        config["containers"]["spimprep"]
+    conda:
+        "../envs/imaris.yml"
     group:
         "preproc"
     threads: 1
@@ -112,8 +112,8 @@ rule imaris_to_ome_zarr:
             acq="{acq}",
             suffix="log.txt",
         ),
-    container:
-        config["containers"]["spimprep"]
+    conda:
+        "../envs/imaris.yml"
     group:
         "preproc"
     threads: config["total_cores"]

@@ -1,0 +1,17 @@
+name: basicpy
+channels:
+  - defaults
+dependencies:
+  - pip
+  - python=3.12
+  - pip:
+    - basicpy==1.2.0
+    - jax==0.4.23
+    - jaxlib==0.4.23
+    - zarr
+    - dask
+    - scikit-image
+
+
+
+

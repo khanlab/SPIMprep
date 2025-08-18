@@ -1,12 +1,11 @@
 import json
 import zarr
 import dask.array as da
-from ome_zarr.writer import write_image
-from ome_zarr.format import format_from_version
-from ome_zarr.scale import Scaler
 from dask.diagnostics import ProgressBar
 from upath import UPath as Path
 from lib.cloud_io import get_fsspec, is_remote
+from zarrnii import ZarrNii
+
 
 in_zarr=snakemake.input.zarr
 
@@ -25,39 +24,12 @@ uri = snakemake.params.uri
 with open(metadata_json) as fp:
     metadata = json.load(fp)
 
-voxdim = [float(metadata['physical_size_z']) * float(downsampling) / 1000.0,
-            float(metadata['physical_size_y']) * float(downsampling) / 1000.0,
-            float(metadata['physical_size_x']) * float(downsampling) / 1000.0]
 
-
-coordinate_transformations = []
-#for each resolution (dataset), we have a list of dicts, transformations to apply.. 
-#in this case just a single one (scaling by voxel size)
-
-for l in range(max_layer+1):
-    
-    coordinate_transformations.append( [{'scale': [1,voxdim[0],(2**l)*voxdim[1],(2**l)*voxdim[2]], #image-pyramids in XY only
-                                            'type': 'scale'}]) 
-
-
-axes =  [{'name': 'c', 'type': 'channel'}] + [{'name': ax, 'type': 'space', 'unit': 'millimeter'} for ax in ['z','y','x'] ] 
 
 
 #init omero metadata
 omero={key:val for key,val in snakemake.config['ome_zarr']['omero_metadata']['defaults'].items()}
 omero['channels']=[]
-
-
-if is_remote(uri):
-    fs_args={'storage_provider_settings':snakemake.params.storage_provider_settings,'creds':snakemake.input.creds}
-    fs = get_fsspec(uri,**fs_args)
-    store = zarr.storage.FSStore(Path(uri).path,fs=fs,dimension_separator='/',mode='w')
-else:
-    if Path(out_zarr).suffixes[-1] == '.zip':
-        store = zarr.ZipStore(out_zarr,dimension_separator='/',mode='x') 
-    else:
-        store = zarr.DirectoryStore(out_zarr,dimension_separator='/') 
-
 
 
 
@@ -86,18 +58,16 @@ for zarr_i in range(len(snakemake.input.zarr)):
 darr_channels = da.stack(darr_list)
 
 
-
-group = zarr.group(store,overwrite=True)
-scaler = Scaler(max_layer=max_layer,method=scaling_method)
-
+znimg = ZarrNii.from_darr(darr_channels,
+                          orientation='IPL',
+                          axes_order='ZYX',
+                          spacing=(float(metadata['physical_size_z']) * float(downsampling) / 1000.0,
+                                float(metadata['physical_size_y']) * float(downsampling) / 1000.0,
+                                float(metadata['physical_size_x']) * float(downsampling) / 1000.0),
+                          unit='millimeter',
+                          omero=omero)
 
 with ProgressBar():
-    write_image(image=darr_channels,
-                            group=group,
-                            scaler=scaler,
-                            coordinate_transformations=coordinate_transformations,
-                            axes=axes,
-                            metadata={'omero':omero}
-                                )
+    znimg.to_ome_zarr(snakemake.output[0],version='0.4')
 
 

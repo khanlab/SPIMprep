@@ -1,12 +1,11 @@
 import tifffile
 import os
 import json
-import pyvips
 import dask.array as da
-from dask.delayed import delayed
-from dask.array.image import imread as imread_tifs
 from itertools import product
 from dask.diagnostics import ProgressBar
+import dask
+from glob import glob
 
 def replace_square_brackets(pattern):
     """replace all [ and ] in the string (have to use 
@@ -16,17 +15,6 @@ def replace_square_brackets(pattern):
     pattern = pattern.replace('##LEFTBRACKET##','[[]')
     pattern = pattern.replace('##RIGHTBRACKET##','[]]')
     return pattern
-
-
-def single_imread(*args):
-    """create function handle to tifffile.imread 
-    that sets key=0"""
-    return tifffile.imread(*args,key=0)
-
-
-def read_page_as_numpy(tif_file,page):    
-    """gets a single page (i.e. 2d image) from a tif file zstack"""
-    return pyvips.Image.new_from_file(tif_file, page=page).numpy()
 
 
 #read metadata json
@@ -51,14 +39,6 @@ else:
 in_tif_glob = replace_square_brackets(str(in_tif_pattern))
 
 
-#TODO: put these in top-level metadata for easier access..
-size_x=int(metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeX'])
-size_y=int(metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeY'])
-size_z=int(metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeZ'])
-size_c=int(metadata['ome_full_metadata']['OME']['Image']['Pixels']['@SizeC'])
-
-
-
 
 if is_tiled:
 
@@ -68,28 +48,24 @@ if is_tiled:
     tiles=[]
     for i_tile,(tilex,tiley) in enumerate(product(metadata['tiles_x'],metadata['tiles_y'])):
         print(f'tile {tilex}x{tiley}, {i_tile}') 
-        zstacks=[]
-        for i_chan,channel in enumerate(metadata['channels']):
+        channel=metadata['channels'][0]
 
-            print(f'channel {i_chan}')
+        if is_zstack:
+            tif_file = in_tif_pattern.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel)
+            
+            in_store = tifffile.imread(tif_file, aszarr=True)  # this is a group
 
-            if is_zstack:
-                tif_file = in_tif_pattern.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel)
-                
-                pages=[]
-                #read each page
-                for i_z in range(size_z):
-                    pages.append(da.from_delayed(delayed(read_page_as_numpy)(tif_file,i_z),shape=(size_y,size_x),dtype='uint16'))
-                
-                zstacks.append(da.stack(pages))
-                print(zstacks[-1].shape)
-            else:
-                zstacks.append(imread_tifs(in_tif_glob.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel,zslice='*'), imread=single_imread))
+            tiles.append(da.from_zarr(in_store))
 
-        #have list of zstack dask arrays for the tile, one for each channel
-        #stack them up and append to list of tiles
-        tiles.append(da.stack(zstacks))
+            print(tiles[-1].shape)
+        else:
+            tif_file = sorted(glob(in_tif_glob.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel,zslice='*')))[0]
+            in_store = tifffile.imread(tif_file, aszarr=True)  # this is a group
 
+            tiles.append(da.from_zarr(in_store))
+
+
+    print(tiles)
 
 
     #now we have list of tiles, each a dask array
@@ -98,14 +74,12 @@ if is_tiled:
 
 else:
     #single tile, zslices:
-    zstacks=[]
-    for i_chan,channel in enumerate(metadata['channels']):
 
-        print(f'channel {i_chan}')
-        zstacks.append(imread_tifs(in_tif_glob.format(prefix=metadata['prefixes'][0],channel=channel,zslice='*'), imread=single_imread))
+    tif_file = sorted(glob(in_tif_glob.format(tilex=tilex,tiley=tiley,prefix=metadata['prefixes'][0],channel=channel,zslice='*')))[0]
+    in_store = tifffile.imread(tif_file, aszarr=True)  # this is a group
 
-    #stack the channels up
-    darr = da.stack(zstacks)
+    darr = da.from_zarr(in_store)
+
 
 
 
@@ -115,9 +89,13 @@ print(darr.chunksize)
 #rescale intensities, and recast 
 darr = darr * snakemake.params.intensity_rescaling
 darr = darr.astype('uint16')
+darr = darr.rechunk((1,1,1,darr.shape[-2],darr.shape[-1]))
+
+print(darr.chunksize)
 #now we can do the computation itself, storing to zarr
 print('writing images to zarr with dask')
 with ProgressBar():
-    da.to_zarr(darr,snakemake.output.zarr,overwrite=True,dimension_separator='/')
+    da.to_zarr(darr,snakemake.output.zarr,overwrite=True,dimension_separator='/', zarr_format=2) 
+    #da.to_zarr(darr,snakemake.output.zarr,overwrite=True, zarr_format=3)
 
 

@@ -1,11 +1,8 @@
-# Snakemake workflow: `SPIMprep`
-
-[![Snakemake](https://img.shields.io/badge/snakemake-≥6.3.0-brightgreen.svg)](https://snakemake.github.io)
-[![GitHub actions status](https://github.com/khanlab/SPIMprep/workflows/Tests/badge.svg?branch=main)](https://github.com/khanlab/SPIMprep/actions?query=branch%3Amain+workflow%3ATests)
+# `SPIMprep`
 
 <!--intro-start-->
 
-A Snakemake workflow for pre-processing single plane illumination microscopy (SPIM, aka lightsheet microscopy).
+A Snakemake+SnakeBIDS workflow for pre-processing single plane illumination microscopy (SPIM, aka lightsheet microscopy).
 
 Takes TIF images (tiled or prestitched) and outputs a validated BIDS Microscopy dataset, with a multi-channel multi-scale OME-Zarr file for each scan, along with downsampled nifti images (in a derivatives folder). 
 
@@ -20,55 +17,96 @@ the short-hand name (in bold below) as a substring in the acquisition tag.
 
 ## Requirements
 
- - Linux system with Singularity/Apptainer installed 
-    - (Note: container will be automatically pulled when you run the workflow)
- - Python >= 3.11
- - Lightsheet data:
+ - Pixi package manager (https://pixi.sh/latest/)
+
+## Installation
+
+
+
+0. If pixi is not installed, install it as described here: https://pixi.sh/latest/installation/
+
+1. Clone this repository and cd to it:
+```
+git clone https://github.com/khanlab/spimprep SPIMprep
+cd SPIMprep
+```
+
+2. Install any dependencies using pixi:
+```
+pixi install
+```
+
+3. Activate the created environment using pixi, or create an activate script (if `pixi shell` does not work):
+```
+pixi shell
+```
+or
+```
+pixi shell-hook > activate
+source ./activate
+```
 
 ## Usage
 
-
-1. Clone this repository to the folder you want to run the workflow in
+Run the workflow, using the `run.py` script:
 ```
-git clone https://github.com/khanlab/spimprep
-```
+usage: run.py [-h] [--work-dir WORK_DIR] --output-bids-dir OUTPUT_BIDS_DIR --stains STAINS [STAINS ...] --subject SUBJECT [--acq ACQ] [--sample SAMPLE] --input-path INPUT_PATH [--help-snakemake]
 
-2. Create and activate a virtual environment, then install dependencies with:
-```
-pip install .
-```
-Note: to make a venv on the CBS server use:
-```
-python3.11 -m venv venv
-source venv/bin/activate
-```
+options:
+  -h, --help            show this help message and exit
+  --work-dir WORK_DIR   Set the work directory (effectively the snakebids output workflow directory)
+  --output-bids-dir OUTPUT_BIDS_DIR
+                        Set the output bids directory
+  --stains STAINS [STAINS ...]
+                        Set the stains for each channels
+  --subject SUBJECT     Set the subject identifier (participant-label)
+  --acq ACQ             Set the acquisition entity
+  --sample SAMPLE       Set the sample entity
+  --input-path INPUT_PATH
+                        Set the input path
+  --help-snakemake, --help_snakemake
+                        Options to Snakemake can also be passed directly at the command-line, use this to print Snakemake usage
 
-3. Update the `config/samples.tsv` spreadsheet to point to your sample(s). Each sample's tif files should be in it's own folder or tar file, with no other tif files. Enter the path to each sample in the `sample_path` column. The first three columns identify the subject, sample, acquisition, which become part of the resulting filenames (BIDS naming). The `stain_0` and `stain_1` identify what stains were used for each channel. Use `autof` to indicate the autofluorescence channel. If you have a different number of stains you can add or remove these columns. If your samples have different numbers of stains, you can leave values blank or use `n/a` to indicate that a sample does not have a particular stain. 
 
-Note: The acquisition value must contain either `blaze` or `prestitched`, and defines which workflow will be used. E.g. for LifeCanvas data that is already stitched, you need to include `prestitched` in the acquisition flag. 
 
-**New:** Writing output directly to cloud storage is now supported; enable this by using `s3://` or `gcs://` in the `root` variable, to point to a bucket you have write access to. 
-
-5. The `config/config.yml` can be edited to customize any workflow parameters. The most important ones are the `root` and `work` variables. The `root` path is where the results will end up, by default this is a subfolder called `bids`. The `work` path is where any intermediate scratch files are produced. By default the files in `work` are deleted after they are no longer needed in the workflow, unless you use the `--notemp` command-line option. The workflow writes a large number of small files in parallel to the `work` folder, so for optimum performance this should be a fast local disk, and not a networked file system (i.e. shared disk).  
-
-Note: you can use environment variables when specifying `root` or `work`, e.g. so `work: '$SLURM_TMPDIR` can be used on HPC servers. 
-
-5. Go to the SPIMprep folder and perform a dry-run to make sure the workflow is configured properly. This will only print what the workflow will run, and will not run anything.
-```
-snakemake -np 
+usage: run.py [-h] [--work-dir WORK_DIR] --output-bids-dir OUTPUT_BIDS_DIR --stains STAINS [STAINS ...] --subject SUBJECT [--acq ACQ] [--sample SAMPLE] --input-path INPUT_PATH [--help-snakemake]
+Note:  the following arguments are required: --output-bids-dir, --stains, --subject, --input-path
 ```
 
-6.  To run the workflow, parallelizing on all cores, using Singularity (aka Apptainer) for dependencies, use:
+e.g.: 
+
 ```
-snakemake -c all --sdm apptainer 
-```
-or for snakemake<8.0, use:
-```
-snakemake -c all --use-singularity 
+./run.py  --input-path /cifs/khan_new/datasets/lightsheet_example/ --subject M4A1Te3 --stains Abeta PI Lectin --output-bids-dir /cifs/khan_new/datasets/MIND/mouse_appmaptapoe --work-dir /tmp   --cores all --use-conda 
 ```
 
-Note: if you run the workflow on a system with large memory, you will need to set the heap size for the stitching and fusion rules. This can be done with e.g.: `--set-resources bigstitcher_stitching:mem_mb=60000 bigstitcher_fusion:mem_mb=100000`
 
-7. If you want to run the workflow using a batch job submission server, please see the executor plugins here: https://snakemake.github.io/snakemake-plugin-catalog/
+The `--input-path` should be a folder with a sample's tif files, and no other tif files, or it can point to a tar file containing the tif files.
 
-<!--intro-end-->
+The `--subject`, `--sample`, and `--acq` arguments identify the subject, sample, acquisition, which become part of the resulting filenames (BIDS naming).
+
+ Note: The acquisition value must contain the strings of `blaze`, `imaris` or `prestitched`, and defines which workflow will be used. E.g. for LifeCanvas data that is already stitched, you need to include `prestitched` in the acquisition flag. 
+
+The `--stains` argument identifies what stains are used for each channel. Standardized naming is shown in the table below (TODO: create this). 
+
+By default the files in `--work-dir` are deleted after they are no longer needed in the workflow, unless you use the `--notemp` command-line option. The workflow writes a large number of small files in parallel to the `work` folder, so for optimum performance this should be a fast local disk, and not a networked file system (i.e. shared disk)
+.
+
+Snakemake CLI options passed to run.py are also passed along when running the workflow, to see a full list of these, use `--help-snakemake`. The required parameters from these are `--cores` and `--use-conda`, but other useful options are `--dry-run` or `-n`, and `--conda-prefix`.  
+
+## Configuration
+
+The `config/config.yml` can be edited to customize any workflow parameters.   
+
+e.g. to disable flatfield correction, you can change:
+
+```
+basic_flatfield_corr:
+  enabled: True
+```
+to
+
+```
+basic_flatfield_corr:
+  enabled: False
+```
+

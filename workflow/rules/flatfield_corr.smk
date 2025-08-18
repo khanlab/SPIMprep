@@ -57,6 +57,8 @@ rule fit_basic_flatfield_corr:
         "preproc"
     container:
         config["containers"]["spimprep"]
+    conda:
+        "../envs/basicpy.yml"
     script:
         "../scripts/fit_basic_flatfield_corr_zarr.py"
 
@@ -79,7 +81,7 @@ rule apply_basic_flatfield_corr:
             allow_missing=True,
         ),
     params:
-        out_chunks=[128, 128, 128],
+        out_chunks=[256, 256, 256],
     output:
         zarr=temp(
             directory(
@@ -115,8 +117,11 @@ rule apply_basic_flatfield_corr:
     resources:
         runtime=60,
         mem_mb=32000,
-    threads: config["total_cores"]
+        disk_mb=1000000 #1TB
+    threads: 32
     group:
         "preproc"
+    conda:
+        "../envs/basicpy.yml"
     script:
         "../scripts/apply_basic_flatfield_corr_zarr.py"

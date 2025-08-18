@@ -41,8 +41,8 @@ rule zarr_to_ome_zarr:
             acq="{acq}",
             suffix="log.txt",
         ),
-    container:
-        config["containers"]["spimprep"]
+    container: None
+#        config["containers"]["spimprep"]
     group:
         "preproc"
     script:
@@ -133,7 +133,7 @@ rule ome_zarr_to_nii:
     group:
         "preproc"
     threads: config["total_cores"]
-    container:
-        config["containers"]["spimprep"]
+    container: None
+#        config["containers"]["spimprep"]
     script:
         "../scripts/ome_zarr_to_nii.py"

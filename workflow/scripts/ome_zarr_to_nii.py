@@ -1,16 +1,55 @@
-import zarr
-import json
-import numpy as np
-import nibabel as nib
-import dask.array as da
-from ome_zarr.io import parse_url
-from ome_zarr.reader import Reader
+import zarr 
+from zarrnii import ZarrNii
 from upath import UPath as Path
-from lib.cloud_io import get_fsspec, is_remote
+from dask.diagnostics import ProgressBar
+
 
 uri = snakemake.params.uri
 in_zarr = snakemake.input.zarr
 channel_index = snakemake.params.channel_index
+
+
+
+if Path(uri).suffix == '.zip':
+    store = zarr.storage.ZipStore(Path(uri).path,mode='r')
+else:
+    store = zarr.storage.LocalStore(Path(uri).path,read_only=True)
+
+
+znimg = ZarrNii.from_ome_zarr(store, level=int(snakemake.wildcards.level), channels=[channel_index])
+
+
+#before updating zarrnii ngffzarr3 branch to accommodate anisotropically downsampled data, instead
+# we will calculate the z downsampling factor and downsample accordingly - TODO: move this to zarrnii
+
+import numpy as np
+
+# Get scale and axes order
+scale = znimg.coordinate_transformations[0].scale
+
+axes = znimg.axes  # list of Axis objects
+
+# Build a mapping from axis name to index
+axis_index = {axis.name.lower(): i for i, axis in enumerate(axes)}
+
+# Extract x and z scales
+x_scale = scale[axis_index['x']]
+z_scale = scale[axis_index['z']]
+
+# Compute ratio and power
+ratio = x_scale / z_scale
+level = int(np.log2(round(ratio)))
+
+
+with ProgressBar():
+    if level == 0: 
+        znimg.to_nifti(snakemake.output.nii)
+    else:
+        znimg.downsample(along_z=2**level).to_nifti(snakemake.output.nii)
+
+
+
+"""
 
 if is_remote(uri):
     fs_args={'storage_provider_settings':snakemake.params.storage_provider_settings,'creds':snakemake.input.creds}
@@ -57,3 +96,4 @@ nii = nib.Nifti1Image(out_arr,
                     )
                     
 nii.to_filename(snakemake.output.nii)
+"""

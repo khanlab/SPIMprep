@@ -184,58 +184,6 @@ rule prestitched_to_metadata:
         "../scripts/prestitched_to_metadata.py"
 
 
-rule tif_to_zarr:
-    """ use dask to load tifs in parallel and write to zarr 
-        output shape is (tiles,channels,z,y,x), with the 2d 
-        images as the chunks"""
-    input:
-        ome_dir=get_input_sample,
-        metadata_json=rules.copy_blaze_metadata.output.metadata_json,
-    params:
-        intensity_rescaling=config["import_blaze"]["intensity_rescaling"],
-    output:
-        zarr=temp(
-            directory(
-                bids(
-                    root=work,
-                    subject="{subject}",
-                    datatype="micr",
-                    sample="{sample}",
-                    acq="{acq}",
-                    desc="raw",
-                    suffix="SPIM.zarr",
-                )
-            )
-        ),
-    benchmark:
-        bids(
-            root="benchmarks",
-            datatype="tif_to_zarr",
-            subject="{subject}",
-            sample="{sample}",
-            acq="{acq}",
-            suffix="benchmark.tsv",
-        )
-    log:
-        bids(
-            root="logs",
-            datatype="tif_to_zarr",
-            subject="{subject}",
-            sample="{sample}",
-            acq="{acq}",
-            suffix="log.txt",
-        ),
-    group:
-        "preproc"
-    resources:
-        mem_mb=config["total_mem_mb"],
-    threads: int(config["total_mem_mb"] / 8000)  #this is memory-limited -- seems to need ~8000mb for each thread, so threads=total_mem_mb / 8000 
-    container:
-        config["containers"]["spimprep"]
-    script:
-        "../scripts/tif_to_zarr.py"
-
-
 rule tif_to_zarr_gcs:
     """ use dask to load tifs in parallel and write to zarr 
         output shape is (tiles,channels,z,y,x), with the 2d 
@@ -289,3 +237,117 @@ rule tif_to_zarr_gcs:
         config["containers"]["spimprep"]
     script:
         "../scripts/tif_to_zarr_gcs.py"
+
+
+rule bioformats_to_zarr:
+    """ use bioformats2raw on each tile, then put all tiles into a 
+    single zarr dataset. 
+        output shape is (tiles,channels,z,y,x), with the 2d 
+        images as the chunks.  TODO: this could potentially be done in parallel, e.g. if we use wildcards over tile identifiers"""
+#    input:
+        #ome_dir=get_input_sample,
+    params:
+        ome_dir=get_input_sample,
+        tile_height=4096,
+        tile_width=4096,
+    output:
+        tiles_dir=temp(
+            directory(
+                bids(
+                    root=work,
+                    subject="{subject}",
+                    datatype="micr",
+                    sample="{sample}",
+                    acq="{acq}",
+                    desc="raw",
+                    suffix="SPIM.tiles",
+                )
+            )
+        ),
+    benchmark:
+        bids(
+            root="benchmarks",
+            datatype="bioformats_to_zarr",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="benchmark.tsv",
+        )
+    log:
+        bids(
+            root="logs",
+            datatype="bioformats_to_zarr",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="log.txt",
+        ),
+    group:
+        "preproc"
+    resources:
+        mem_mb=config["total_mem_mb"], #TODO update this, along with threads.. 
+        disk_mb=1000000 #1TB
+    threads: 16
+    script:
+        "../scripts/bioformats_to_zarr.py"
+
+
+
+rule concat_tiles:
+    """ read in zarrs created for each tile, and write out as a single zarr"""
+    input:
+        tiles_dir=bids(
+                    root=work,
+                    subject="{subject}",
+                    datatype="micr",
+                    sample="{sample}",
+                    acq="{acq}",
+                    desc="raw",
+                    suffix="SPIM.tiles",
+                ),
+    params:
+        intensity_rescaling=config["import_blaze"]["intensity_rescaling"],
+    output:
+        zarr=temp(
+            directory(
+                bids(
+                    root=work,
+                    subject="{subject}",
+                    datatype="micr",
+                    sample="{sample}",
+                    acq="{acq}",
+                    desc="raw",
+                    suffix="SPIM.zarr",
+                )
+            )
+        ),
+    benchmark:
+        bids(
+            root="benchmarks",
+            datatype="concat_tiles",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="benchmark.tsv",
+        )
+    log:
+        bids(
+            root="logs",
+            datatype="concat_tiles",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="log.txt",
+        ),
+    group:
+        "preproc"
+    resources:
+        mem_mb=config["total_mem_mb"],
+        disk_mb=1000000 #1TB
+    threads: 32
+    container:
+        None
+    script:
+        "../scripts/concat_tiles.py"
+
+

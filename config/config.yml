@@ -1,7 +1,7 @@
 samples: 'config/samples.tsv'
 
-root: 'bids' # can use a s3:// or gcs:// prefix to write output to cloud storage
-work: 'work' 
+root: '/cifs/khan_new/datasets/MIND/mouse_appmaptapoe' # can use a s3:// or gcs:// prefix to write output to cloud storage
+work: ""
 
 remote_creds: '~/.config/gcloud/application_default_credentials.json' #this is needed so we can pass creds to container
 
@@ -9,12 +9,13 @@ use_zipstore: False #if True, produce SPIM.ome.zarr.zip instead of SPIM.ome.zarr
 
 #total resources available, used to set rule resources
 total_cores: 32 
-total_mem_mb: 128000 
+total_mem_mb: 500000 
 
 #import wildcards:  tilex, tiley, channel, zslice (and prefix - unused)
 import_blaze:
   raw_tif_pattern: "{prefix}_Blaze[{tilex} x {tiley}]_C{channel}_xyz-Table Z{zslice}.ome.tif"
   raw_tif_pattern_zstack:  "{prefix}_Blaze[{tilex} x {tiley}]_C{channel}.ome.tif"
+  raw_tif_pattern_notile:  "{prefix}_Blaze_C{channel}_xyz-Table Z{zslice}.ome.tif"
   intensity_rescaling: 0.5 #raw images seem to be at the upper end of uint16 (over-saturated) -- causes wrapping issues when adjusting with flatfield correction etc. this rescales the raw data as it imports it..
 
 import_prestitched:
@@ -25,13 +26,28 @@ import_prestitched:
 
 
 basic_flatfield_corr:
-  max_n_images: 500
+  enabled: True
+  max_n_images: 5000
   fitting_opts:
     get_darkfield: True
     smoothness_flatfield: 1.0
     smoothness_darkfield: 1.0
     sparse_cost_darkfield: 0.01
 
+multiview_stitcher:
+  registration:
+    registration_binning:
+      z: 2
+      y: 2
+      x: 2
+  fusion:
+    output_chunksize: 
+      t: 1
+      c: 1
+      z: 256
+      y: 256
+      x: 256
+       
 
 bigstitcher:
   use_interestpoints: False
@@ -72,7 +88,8 @@ bigstitcher:
     block_size_factor_z: 32
 
 ome_zarr:
-  desc: stitchedflatcorr
+  #desc: mvstitchedraw #stitchedflatcorr
+  desc: mvstitchedflatcorr
   max_downsampling_layers: 5 # e.g. 4 levels: { 0: orig, 1: ds2, 2: ds4, 3: ds8, 4: ds16}
   rechunk_size: #z, y, x 
     - 1 
