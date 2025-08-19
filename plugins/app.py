@@ -9,8 +9,6 @@ from typing import Any, Callable, Sequence, TypeVar
 
 import attrs
 import more_itertools as itx
-from typing_extensions import overload, override
-
 from snakebids import bidsapp
 from snakebids.exceptions import ConfigError, RunError
 from snakebids.io.config import write_config
@@ -20,11 +18,9 @@ from snakebids.plugins.component_edit import ComponentEdit
 from snakebids.plugins.pybidsdb import Pybidsdb
 from snakebids.snakemake_compat import load_configfile
 from snakebids.snakemake_compat import main as snakemake_main
-from snakebids.utils.output import (
-    prepare_bidsapp_output,
-    write_output_mode,
-)
+from snakebids.utils.output import prepare_bidsapp_output, write_output_mode
 from snakebids.utils.utils import to_resolved_path
+from typing_extensions import overload, override
 
 __all__ = ["SnakemakeBidsApp"]
 

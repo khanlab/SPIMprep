@@ -1,10 +1,12 @@
 from __future__ import annotations
-import attrs
+
 from pathlib import Path
+from tempfile import gettempdir
+
+import attrs
 from snakebids import bidsapp
 from snakebids.bidsapp.args import ArgumentGroups
 from snakebids.plugins.base import PluginBase
-from tempfile import gettempdir
 
 
 @attrs.define

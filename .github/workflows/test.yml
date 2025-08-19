@@ -18,8 +18,8 @@ jobs:
         uses: prefix-dev/setup-pixi@v0.8.14
         with:
           environments: >-
-            lint
-          activate-environment: lint
+            dev-only
+          activate-environment: dev-only
 
       - name: isort
         run: isort workflow/scripts/*.py -c --profile black

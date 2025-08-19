@@ -20,7 +20,10 @@ test_gcsout = """
   snakemake --dry-run --config samples=testing/dryrun_tests/samples_local.tsv root='gcs://khanlab-lightsheet/data/test_bids' use_zipstore=True
 """
 
-[dependencies]
+quality_check = "isort workflow plugins/*.py -c && black workflow --check && snakefmt workflow --check"
+quality_fix = "isort workflow plugins/*.py && black workflow  && snakefmt workflow"
+
+[feature.runtime.dependencies]
 snakemake = ">=9.5.1,<10"
 snakebids = ">=0.14.0,<0.15"
 snakemake-storage-plugin-s3 = ">=0.3.3,<0.4"
@@ -36,15 +39,23 @@ xmltodict = ">=0.14.2,<0.15"
 bioformats2raw = ">=0.9.4,<0.10"
 snakemake-executor-plugin-slurm = ">=1.4.0,<2"
 snakemake-storage-plugin-fs = ">=1.1.2,<2"
+markdown-it-py = "<4"
+docutils = "<0.22"
 
-[feature.lint.dependencies]
+[feature.dev.dependencies]
 black   = "*"
 isort   = "*"
 snakefmt = "*"
 pytest  = "*"
 
-[environments]
-lint = {features = ["lint"], no-default-feature = true}
+[environments.default]
+features = ["runtime"]
+
+[environments.dev]
+features = ["runtime", "dev"]
+
+[environments.dev-only]
+features = ["dev"]
 
 [pypi-dependencies]
 ngff-zarr = { version = ">=0.13.2, <0.14", extras = ["all"] }
