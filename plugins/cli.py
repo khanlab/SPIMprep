@@ -1,10 +1,12 @@
 from __future__ import annotations
-import attrs
+
 from pathlib import Path
+from tempfile import gettempdir
+
+import attrs
 from snakebids import bidsapp
 from snakebids.bidsapp.args import ArgumentGroups
 from snakebids.plugins.base import PluginBase
-from tempfile import gettempdir
 
 
 @attrs.define
@@ -53,9 +55,7 @@ class SpimprepCLIConfig(PluginBase):
             type=str,
             dest="output_bids_dir",
             required=True,
-            help=(
-                "Set the output bids directory"
-            ),
+            help=("Set the output bids directory"),
         )
 
         self.try_add_argument(
@@ -66,9 +66,7 @@ class SpimprepCLIConfig(PluginBase):
             nargs="+",
             dest="stains",
             required=True,
-            help=(
-                "Set the stains for each channels"
-            ),
+            help=("Set the stains for each channels"),
         )
         self.try_add_argument(
             group,
@@ -77,9 +75,7 @@ class SpimprepCLIConfig(PluginBase):
             type=str,
             dest="subject",
             required=True,
-            help=(
-                "Set the subject identifier (participant-label)"
-            ),
+            help=("Set the subject identifier (participant-label)"),
         )
         self.try_add_argument(
             group,
@@ -88,9 +84,7 @@ class SpimprepCLIConfig(PluginBase):
             type=str,
             default="blaze",
             dest="acq",
-            help=(
-                "Set the acquisition entity"
-            ),
+            help=("Set the acquisition entity"),
         )
         self.try_add_argument(
             group,
@@ -99,9 +93,7 @@ class SpimprepCLIConfig(PluginBase):
             type=str,
             default="brain",
             dest="sample",
-            help=(
-                "Set the sample entity"
-            ),
+            help=("Set the sample entity"),
         )
         self.try_add_argument(
             group,
@@ -110,9 +102,7 @@ class SpimprepCLIConfig(PluginBase):
             type=str,
             dest="input_path",
             required=True,
-            help=(
-                "Set the input path"
-            ),
+            help=("Set the input path"),
         )
 
     @bidsapp.hookimpl
@@ -121,7 +111,7 @@ class SpimprepCLIConfig(PluginBase):
         work_dir = self.pop(namespace, "work_dir")
 
         if work_dir == None:
-            work_dir=gettempdir()
+            work_dir = gettempdir()
 
         config["work_dir"] = Path(work_dir)
 
@@ -129,33 +119,26 @@ class SpimprepCLIConfig(PluginBase):
 
         config["output_dir"] = Path(output_bids_dir)
 
-
-
-    
-
     @bidsapp.hookimpl
     def finalize_config(self, config: dict[str, Any]) -> None:
-        """ create the samples.tsv required for the workflow """
-
+        """create the samples.tsv required for the workflow"""
 
         # Prepare samples.tsv
         sample_info = {
-            "subject": config['subject'],
-            "sample": config['sample'],
-            "acq": config['acq'],
-            "stain_0": config['stains'][0],
-            "sample_path": config['input_path'],
+            "subject": config["subject"],
+            "sample": config["sample"],
+            "acq": config["acq"],
+            "stain_0": config["stains"][0],
+            "sample_path": config["input_path"],
         }
-        for i, stain_var in enumerate(config['stains'][1:], start=1):
+        for i, stain_var in enumerate(config["stains"][1:], start=1):
             sample_info[f"stain_{i}"] = stain_var
 
-        samples_tsv_path = config['work_dir'] / 'samples_from_cli.tsv'
-        with open(samples_tsv_path, 'w') as f:
-            headers = '\t'.join(sample_info.keys())
-            f.write(headers + '\n')
-            values = '\t'.join(sample_info.values())
-            f.write(values + '\n')
+        samples_tsv_path = config["work_dir"] / "samples_from_cli.tsv"
+        with open(samples_tsv_path, "w") as f:
+            headers = "\t".join(sample_info.keys())
+            f.write(headers + "\n")
+            values = "\t".join(sample_info.values())
+            f.write(values + "\n")
 
-        config['samples'] = 'samples_from_cli.tsv'
-
-
+        config["samples"] = "samples_from_cli.tsv"

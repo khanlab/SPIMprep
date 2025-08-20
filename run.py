@@ -8,7 +8,7 @@ from plugins import cli as cli_plugin
 app = bidsapp.app(
     [
         app_plugin.SnakemakeBidsApp(Path(__file__).resolve().parent),
-        cli_plugin.SpimprepCLIConfig()
+        cli_plugin.SpimprepCLIConfig(),
     ]
 )
 

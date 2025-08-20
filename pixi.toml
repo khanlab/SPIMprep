@@ -7,7 +7,23 @@ version = "0.1.0"
 
 [tasks]
 
-[dependencies]
+# A single “umbrella” task that chains three of the above:
+test_localout = """
+  snakemake --dry-run --config samples=testing/dryrun_tests/samples_local.tsv root=bids && \
+  snakemake --dry-run --config samples=testing/dryrun_tests/samples_gcs.tsv    root=bids && \
+  snakemake --dry-run --config samples=testing/dryrun_tests/samples_local.tsv root=bids use_zipstore=True
+"""
+
+test_gcsout = """
+  snakemake --dry-run --config samples=testing/dryrun_tests/samples_local.tsv root='gcs://khanlab-lightsheet/data/test_bids' && \
+  snakemake --dry-run --config samples=testing/dryrun_tests/samples_gcs.tsv    root='gcs://khanlab-lightsheet/data/test_bids' && \
+  snakemake --dry-run --config samples=testing/dryrun_tests/samples_local.tsv root='gcs://khanlab-lightsheet/data/test_bids' use_zipstore=True
+"""
+
+quality_check = "isort --profile black workflow plugins/*.py -c && black workflow --check && snakefmt workflow --check"
+quality_fix = "isort --profile black workflow plugins/*.py && black workflow  && snakefmt workflow"
+
+[feature.runtime.dependencies]
 snakemake = ">=9.5.1,<10"
 snakebids = ">=0.14.0,<0.15"
 snakemake-storage-plugin-s3 = ">=0.3.3,<0.4"
@@ -23,6 +39,23 @@ xmltodict = ">=0.14.2,<0.15"
 bioformats2raw = ">=0.9.4,<0.10"
 snakemake-executor-plugin-slurm = ">=1.4.0,<2"
 snakemake-storage-plugin-fs = ">=1.1.2,<2"
+markdown-it-py = "<4"
+docutils = "<0.22"
+
+[feature.dev.dependencies]
+black   = "*"
+isort   = "*"
+snakefmt = "*"
+pytest  = "*"
+
+[environments.default]
+features = ["runtime"]
+
+[environments.dev]
+features = ["runtime", "dev"]
+
+[environments.dev-only]
+features = ["dev"]
 
 [pypi-dependencies]
 ngff-zarr = { version = ">=0.13.2, <0.14", extras = ["all"] }

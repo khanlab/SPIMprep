@@ -47,39 +47,8 @@ multiview_stitcher:
       z: 256
       y: 256
       x: 256
-       
-
-bigstitcher:
-  use_interestpoints: False
-  interest_points:
-    downsample_xy: 4
-    min_intensity: 0
-    max_intensity: 2000
-    label: beads
-    threshold: 0.008
-    sigma: 1.8
-  calc_pairwise_shifts:
-    downsample_in_x: 4
-    downsample_in_y: 4
-    downsample_in_z: 1
-    methods: #unused, only for reference
-      phase_corr: "Phase Correlation" 
-      optical_flow: "Lucas-Kanade"  
-  filter_pairwise_shifts:
-    min_r: 0.7
-    max_shift_total: 50
-  global_optimization:
-    enabled: 1
-    method: TWO_ROUND_ITERATIVE
-    methods: #unused, only for reference
-      ONE_ROUND_SIMPLE: "One-Round"
-      ONE_ROUND_ITERATIVE: "One-Round with iterative dropping of bad links"
-      TWO_ROUND_SIMPLE:  "Two-Round using metadata to align unconnected Tiles"
-      TWO_ROUND_ITERATIVE: "Two-Round using Metadata to align unconnected Tiles and iterative dropping of bad links"
-
 
   fuse_dataset:
-    downsampling: 1
     block_size_x: 256 # for storage
     block_size_y: 256
     block_size_z: 8
@@ -90,6 +59,7 @@ bigstitcher:
 ome_zarr:
   #desc: mvstitchedraw #stitchedflatcorr
   desc: mvstitchedflatcorr
+  downsampling: 1 # downsampling rate (default 1 for no downsampling)
   max_downsampling_layers: 5 # e.g. 4 levels: { 0: orig, 1: ds2, 2: ds4, 3: ds8, 4: ds16}
   rechunk_size: #z, y, x 
     - 1 

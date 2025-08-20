@@ -1,6 +1,7 @@
-from jinja2 import Environment, FileSystemLoader
 import os.path as path
 from pathlib import Path
+
+from jinja2 import Environment, FileSystemLoader
 
 # load jinja template
 file_loader = FileSystemLoader(".")
@@ -27,8 +28,14 @@ ff_rel_path = Path(ff_html).relative_to(Path(sub_html).parent)
 vol_rel_path = Path(vol_html).relative_to(Path(sub_html).parent)
 
 # Fill in jinja template for subject html and write it out
-output = template.render(back_link="../qc_report.html",subject=subject,sample=sample,acq=acq,
-                         ffhtml=ff_rel_path,wshtml=ws_rel_path, volhtml=vol_rel_path)
-with open(sub_html, 'w') as f:
+output = template.render(
+    back_link="../qc_report.html",
+    subject=subject,
+    sample=sample,
+    acq=acq,
+    ffhtml=ff_rel_path,
+    wshtml=ws_rel_path,
+    volhtml=vol_rel_path,
+)
+with open(sub_html, "w") as f:
     f.write(output)
-

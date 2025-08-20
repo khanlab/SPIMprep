@@ -1,5 +1,3 @@
-
-
 rule zarr_to_ome_zarr:
     input:
         **get_storage_creds(),
@@ -23,7 +21,7 @@ rule zarr_to_ome_zarr:
         max_downsampling_layers=config["ome_zarr"]["max_downsampling_layers"],
         rechunk_size=config["ome_zarr"]["rechunk_size"],
         scaling_method=config["ome_zarr"]["scaling_method"],
-        downsampling=config["bigstitcher"]["fuse_dataset"]["downsampling"],
+        downsampling=config["ome_zarr"]["downsampling"],
         stains=get_stains,
         uri=get_output_ome_zarr_uri(),
         storage_provider_settings=workflow.storage_provider_settings,
@@ -41,8 +39,9 @@ rule zarr_to_ome_zarr:
             acq="{acq}",
             suffix="log.txt",
         ),
-    container: None
-#        config["containers"]["spimprep"]
+    container:
+        None
+    #        config["containers"]["spimprep"]
     group:
         "preproc"
     script:
@@ -62,7 +61,7 @@ rule tif_stacks_to_ome_zarr:
         max_downsampling_layers=config["ome_zarr"]["max_downsampling_layers"],
         rechunk_size=config["ome_zarr"]["rechunk_size"],
         scaling_method=config["ome_zarr"]["scaling_method"],
-        downsampling=config["bigstitcher"]["fuse_dataset"]["downsampling"],
+        downsampling=config["ome_zarr"]["downsampling"],
         stains=get_stains,
         uri=get_output_ome_zarr_uri(),
         storage_provider_settings=workflow.storage_provider_settings,
@@ -133,7 +132,8 @@ rule ome_zarr_to_nii:
     group:
         "preproc"
     threads: config["total_cores"]
-    container: None
-#        config["containers"]["spimprep"]
+    container:
+        None
+    #        config["containers"]["spimprep"]
     script:
         "../scripts/ome_zarr_to_nii.py"
