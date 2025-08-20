@@ -49,7 +49,6 @@ multiview_stitcher:
       x: 256
 
   fuse_dataset:
-    downsampling: 1
     block_size_x: 256 # for storage
     block_size_y: 256
     block_size_z: 8
@@ -60,6 +59,7 @@ multiview_stitcher:
 ome_zarr:
   #desc: mvstitchedraw #stitchedflatcorr
   desc: mvstitchedflatcorr
+  downsampling: 1 # downsampling rate (default 1 for no downsampling)
   max_downsampling_layers: 5 # e.g. 4 levels: { 0: orig, 1: ds2, 2: ds4, 3: ds8, 4: ds16}
   rechunk_size: #z, y, x 
     - 1 
