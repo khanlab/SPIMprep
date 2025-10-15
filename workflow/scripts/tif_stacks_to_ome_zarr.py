@@ -113,6 +113,11 @@ else:
 
 
 group = zarr.group(store, overwrite=True)
+
+# Add metadata for orientation
+group.attrs["orientation"] = "SAR"  # orientation for lifecanvas data
+group.attrs["xyz_orientation"] = "RAS"
+
 scaler = Scaler(max_layer=max_layer, method=scaling_method)
 
 with ProgressBar():

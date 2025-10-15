@@ -70,7 +70,7 @@ darr_channels = da.stack(darr_list)
 
 znimg = ZarrNii.from_darr(
     darr_channels,
-    orientation="IPL",
+    orientation="RPI",
     axes_order="ZYX",
     spacing=(
         float(metadata["physical_size_z"]) * float(downsampling) / 1000.0,
