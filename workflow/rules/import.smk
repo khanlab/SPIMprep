@@ -78,7 +78,7 @@ rule blaze_to_metadata_gcs:
 
 rule blaze_to_metadata:
     input:
-        ome_dir=get_input_sample,
+        ome_tif=get_input_sample,
     output:
         metadata_json=temp(
             bids(
@@ -293,19 +293,61 @@ rule bioformats_to_zarr:
     script:
         "../scripts/bioformats_to_zarr.py"
 
+rule import_ome_tif_to_zarr:
+    #takes one tif tile at a time
+    input: 
+        ome_tif=get_input_sample,
+    params:
+        chunk_depth=3072,
+        tile_height=2560,
+        tile_width=280,
+    output:
+        zarr = temp(directory(bids(
+                    root=work,
+                    subject="{subject}",
+                    datatype="micr",
+                    sample="{sample}",
+                    acq="{acq}",
+                    desc="raw",
+                    tilex="{tilex}",
+                    tiley="{tiley}",
+                    suffix="SPIM.tile.zarr",
+        ))),
+    group:
+        "preproc"
+    resources:
+        mem_mb=16000,
+    threads: 4
+    shadow: 'minimal'
+    log: 
+        bids(root='logs',suffix='import_ome_tiff.log', subject="{subject}",
+                    datatype="micr",
+                    sample="{sample}",
+                    acq="{acq}",
+                    desc="raw",
+                    tilex="{tilex}",
+                    tiley="{tiley}")
+    shell:
+        "bioformats2raw '{input.ome_tif}' {output.zarr} -h {params.tile_height} -w {params.tile_width} -p -r 1 --max-workers 4 &> {log}"
+        #"bioformats2raw '{input.ome_tif}' {output.zarr} --debug -p -r 1 --max-workers {threads} &> {log}"
+
+
 
 rule concat_tiles:
     """ read in zarrs created for each tile, and write out as a single zarr"""
     input:
-        tiles_dir=bids(
-            root=work,
-            subject="{subject}",
-            datatype="micr",
-            sample="{sample}",
-            acq="{acq}",
-            desc="raw",
-            suffix="SPIM.tiles",
-        ),
+        lambda wildcards: expand(bids(
+                    root=work,
+                    subject="{subject}",
+                    datatype="micr",
+                    sample="{sample}",
+                    acq="{acq}",
+                    desc="raw",
+                    tilex="{tilex}",
+                    tiley="{tiley}",
+                    suffix="SPIM.tile.zarr").format(**wildcards, tilex='{tilex}', tiley='{tiley}'),
+        zip,
+        **get_tile_ziplists(wildcards))
     params:
         intensity_rescaling=config["import_blaze"]["intensity_rescaling"],
     output:

@@ -176,6 +176,9 @@ def get_input_sample(wildcards):
 
     elif sample_path.suffixes[-1] == ".ims":
         return get_sample_path_remote(wildcards)
+    elif sample_path.suffixes[-1] == ".tif":
+        return get_sample_path_remote(wildcards)
+
     else:
         print(f"unsupported input: {sample_path}")
 
@@ -230,10 +233,32 @@ def get_sample_path_gs(wildcards):
 
 
 def get_sample_path(wildcards):
+        
     df = samples.query(
         f"subject=='{wildcards.subject}' and sample=='{wildcards.sample}' and acq=='{wildcards.acq}'"
     )
-    return df.sample_path.to_list()[0]
+    path = df.sample_path.to_list()[0]
+
+    if '{tilex}' in path and '{tiley}' in path:
+        if 'tilex' in wildcards and 'tiley' in wildcards:
+            return path.format(tilex=wildcards.tilex,tiley=wildcards.tiley)
+        else:
+            #just get the 00 00
+            return path.format(tilex='00', tiley='00')
+    else:
+        return path
+
+def get_tile_ziplists(wildcards):
+        
+    df = samples.query(
+        f"subject=='{wildcards.subject}' and sample=='{wildcards.sample}' and acq=='{wildcards.acq}'"
+    )
+    path = df.sample_path.to_list()[0]
+    tilex,tiley = glob_wildcards(path)
+
+    #tilex or tiley can be overriden with the config (eg to test say couple tiles at at time)
+    return {'tilex':config.get('tilex',tilex),'tiley':config.get('tiley',tiley)}
+
 
 
 def get_stains_by_row(i):
