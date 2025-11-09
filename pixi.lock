@@ -434,7 +434,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/9c/a9/33f799db5e6cb53755753d4ce44712b7019e94c4a6d3a0073ef20054e9c4/itk_io-5.4.4.post1-cp311-abi3-manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/6c/6a/2868a0cd0ae08506fede1ae37a251da10fa25b9ab56c173e26370d3a0d13/itk_numerics-5.4.4.post1-cp311-abi3-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/1d/df/5ba47e12638ac537a8166a454c497032af83f2d5eb826bca81024ac8f78c/itkwasm-1.0b195-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/16/fc/0e70d69ca0aaeb968aafb63a04692d3d4e8a27ccd4f2dc4836d7fb1301c7/itkwasm_downsample-1.7.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/12/c6/906a1c94a9e0d12b6cbc8a36d6fe284d06298d3d3eda14934d21609845ab/itkwasm_downsample-1.8.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/68/3f/08249cbd0370eeb762c0f3d706a70f8e8aab5a98df5765568001d2dc3d34/itkwasm_downsample_wasi-1.7.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/be/17/b1a8b50187cdc81a979eb0f23dba13133bc0c4b5a355fa02eac39108134f/itkwasm_image_io-1.6.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/c0/18/e284b2918dbd030945a6bad5e7e331d2b9d9fc43e3a9e32eeb320d20ed7a/itkwasm_image_io_wasi-1.6.0-py3-none-any.whl
@@ -442,7 +442,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/d8/a9/b98b86426c24900b0c754aad006dce2863df7ce0bb2bcc2c02f9cc7e8489/ml_dtypes-0.5.3-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/e2/de/21aa8394f16add8f7427f0a1326ccd2b3a2a8a3245c9252bc5ac034c6155/myst_parser-3.0.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/eb/8d/776adee7bbf76365fdd7f2552710282c79a4ead5d2a46408c9043a2b70ba/networkx-3.5-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/ec/84/0fac7104f46c8c0809487b6e973065df95645ab99cb08cf61a9e9dd2aa41/ngff_zarr-0.13.4-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/90/b8/c72c98004fac5e494a81570887d5cc06c6daa8898f32dc264b3ea6f17eb8/ngff_zarr-0.18.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/4f/21/59baa90924b815b70f88045f0b206b7eab0b68b461c0192692486b516ab7/ome_zarr-0.12.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/12/27/fb8d7338b4d551900fa3e580acbe7a0cf655d940e164cb5c00ec31961094/orderly_set-5.5.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b8/02/5bf3639f5b77e9b183011c08541c5039ba3d04f5316c70312b48a8e003a9/pims-0.7.tar.gz
@@ -911,7 +911,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/9c/a9/33f799db5e6cb53755753d4ce44712b7019e94c4a6d3a0073ef20054e9c4/itk_io-5.4.4.post1-cp311-abi3-manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/6c/6a/2868a0cd0ae08506fede1ae37a251da10fa25b9ab56c173e26370d3a0d13/itk_numerics-5.4.4.post1-cp311-abi3-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/1d/df/5ba47e12638ac537a8166a454c497032af83f2d5eb826bca81024ac8f78c/itkwasm-1.0b195-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/16/fc/0e70d69ca0aaeb968aafb63a04692d3d4e8a27ccd4f2dc4836d7fb1301c7/itkwasm_downsample-1.7.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/12/c6/906a1c94a9e0d12b6cbc8a36d6fe284d06298d3d3eda14934d21609845ab/itkwasm_downsample-1.8.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/68/3f/08249cbd0370eeb762c0f3d706a70f8e8aab5a98df5765568001d2dc3d34/itkwasm_downsample_wasi-1.7.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/be/17/b1a8b50187cdc81a979eb0f23dba13133bc0c4b5a355fa02eac39108134f/itkwasm_image_io-1.6.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/c0/18/e284b2918dbd030945a6bad5e7e331d2b9d9fc43e3a9e32eeb320d20ed7a/itkwasm_image_io_wasi-1.6.0-py3-none-any.whl
@@ -919,7 +919,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/d8/a9/b98b86426c24900b0c754aad006dce2863df7ce0bb2bcc2c02f9cc7e8489/ml_dtypes-0.5.3-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/e2/de/21aa8394f16add8f7427f0a1326ccd2b3a2a8a3245c9252bc5ac034c6155/myst_parser-3.0.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/eb/8d/776adee7bbf76365fdd7f2552710282c79a4ead5d2a46408c9043a2b70ba/networkx-3.5-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/ec/84/0fac7104f46c8c0809487b6e973065df95645ab99cb08cf61a9e9dd2aa41/ngff_zarr-0.13.4-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/90/b8/c72c98004fac5e494a81570887d5cc06c6daa8898f32dc264b3ea6f17eb8/ngff_zarr-0.18.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/4f/21/59baa90924b815b70f88045f0b206b7eab0b68b461c0192692486b516ab7/ome_zarr-0.12.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/12/27/fb8d7338b4d551900fa3e580acbe7a0cf655d940e164cb5c00ec31961094/orderly_set-5.5.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b8/02/5bf3639f5b77e9b183011c08541c5039ba3d04f5316c70312b48a8e003a9/pims-0.7.tar.gz
@@ -1036,7 +1036,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/9c/a9/33f799db5e6cb53755753d4ce44712b7019e94c4a6d3a0073ef20054e9c4/itk_io-5.4.4.post1-cp311-abi3-manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/6c/6a/2868a0cd0ae08506fede1ae37a251da10fa25b9ab56c173e26370d3a0d13/itk_numerics-5.4.4.post1-cp311-abi3-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/1d/df/5ba47e12638ac537a8166a454c497032af83f2d5eb826bca81024ac8f78c/itkwasm-1.0b195-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/16/fc/0e70d69ca0aaeb968aafb63a04692d3d4e8a27ccd4f2dc4836d7fb1301c7/itkwasm_downsample-1.7.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/12/c6/906a1c94a9e0d12b6cbc8a36d6fe284d06298d3d3eda14934d21609845ab/itkwasm_downsample-1.8.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/68/3f/08249cbd0370eeb762c0f3d706a70f8e8aab5a98df5765568001d2dc3d34/itkwasm_downsample_wasi-1.7.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/be/17/b1a8b50187cdc81a979eb0f23dba13133bc0c4b5a355fa02eac39108134f/itkwasm_image_io-1.6.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/c0/18/e284b2918dbd030945a6bad5e7e331d2b9d9fc43e3a9e32eeb320d20ed7a/itkwasm_image_io_wasi-1.6.0-py3-none-any.whl
@@ -1055,7 +1055,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/0d/e2/9baffdae21a76f77ef8447f1a05a96ec4bc0a24dae08767abc0a2fe680b8/multidict-6.7.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/e2/de/21aa8394f16add8f7427f0a1326ccd2b3a2a8a3245c9252bc5ac034c6155/myst_parser-3.0.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/eb/8d/776adee7bbf76365fdd7f2552710282c79a4ead5d2a46408c9043a2b70ba/networkx-3.5-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/ec/84/0fac7104f46c8c0809487b6e973065df95645ab99cb08cf61a9e9dd2aa41/ngff_zarr-0.13.4-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/90/b8/c72c98004fac5e494a81570887d5cc06c6daa8898f32dc264b3ea6f17eb8/ngff_zarr-0.18.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/43/b2/dc384197be44e2a640bb43311850e23c2c30f3b82ce7c8cdabbf0e53045e/nibabel-5.3.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/3b/64/7177bf632520705893683fa4ca202ed540450bf971c0453ad1351baa2007/numcodecs-0.16.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/59/ef/f96536f1df42c668cbacb727a8c6da7afc9c05ece6d558927fb1722693e1/numpy-2.3.2-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
@@ -3829,10 +3829,10 @@ packages:
   - typing-extensions
   - wasmtime>=28.0.0 ; sys_platform != 'emscripten'
   requires_python: '>=3.9'
-- pypi: https://files.pythonhosted.org/packages/16/fc/0e70d69ca0aaeb968aafb63a04692d3d4e8a27ccd4f2dc4836d7fb1301c7/itkwasm_downsample-1.7.1-py3-none-any.whl
+- pypi: https://files.pythonhosted.org/packages/12/c6/906a1c94a9e0d12b6cbc8a36d6fe284d06298d3d3eda14934d21609845ab/itkwasm_downsample-1.8.1-py3-none-any.whl
   name: itkwasm-downsample
-  version: 1.7.1
-  sha256: 16877cff883c5549f93634eb1fcb7f8bfe28a3d535353a303a344f62d4fd4cf4
+  version: 1.8.1
+  sha256: f1315d32a1d80a610c682c3a32ab41aa46b584f91f17a839a7c0b6e3796e60c7
   requires_dist:
   - itkwasm-downsample-emscripten ; sys_platform == 'emscripten'
   - itkwasm-downsample-wasi ; sys_platform != 'emscripten'
@@ -5430,14 +5430,14 @@ packages:
   - pytest-mpl ; extra == 'test-extras'
   - pytest-randomly ; extra == 'test-extras'
   requires_python: '>=3.11'
-- pypi: https://files.pythonhosted.org/packages/ec/84/0fac7104f46c8c0809487b6e973065df95645ab99cb08cf61a9e9dd2aa41/ngff_zarr-0.13.4-py3-none-any.whl
+- pypi: https://files.pythonhosted.org/packages/90/b8/c72c98004fac5e494a81570887d5cc06c6daa8898f32dc264b3ea6f17eb8/ngff_zarr-0.18.1-py3-none-any.whl
   name: ngff-zarr
-  version: 0.13.4
-  sha256: 01eda6eac5c9a5efb9a417799c1c0a958457ab2bc1f2f09f171afe389b5c48d3
+  version: 0.18.1
+  sha256: 84b728845d4cdd14ff4625c563f4a8b1b1c33e67041f78c01043b32c8801c0eb
   requires_dist:
   - dask[array]
   - importlib-resources
-  - itkwasm-downsample>=1.7.1
+  - itkwasm-downsample>=1.8.0
   - itkwasm>=1.0b183
   - numpy
   - platformdirs
@@ -5457,6 +5457,7 @@ packages:
   - itkwasm-image-io ; extra == 'all'
   - jsonschema ; extra == 'all'
   - myst-parser>=3.0.1,<4 ; extra == 'all'
+  - nibabel ; extra == 'all'
   - pooch ; extra == 'all'
   - pytest>=6 ; extra == 'all'
   - sphinx-autobuild>=2024.4.16,<2025 ; extra == 'all'
@@ -5474,6 +5475,7 @@ packages:
   - itk-filtering>=5.3.0 ; extra == 'cli'
   - itk-io>=5.3.0 ; extra == 'cli'
   - itkwasm-image-io ; extra == 'cli'
+  - nibabel ; extra == 'cli'
   - tifffile>=2024.7.24 ; extra == 'cli'
   - dask-image ; extra == 'dask-image'
   - furo>=2024.7.18,<2025 ; extra == 'docs'
