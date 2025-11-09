@@ -109,7 +109,7 @@ def get_all_targets():
                 datatype="micr",
                 sample="{sample}",
                 acq="{acq}",
-                res="{level}x",
+                level="{level}",
                 stain="{stain}",
                 suffix="SPIM.nii",
                 expand_kwargs=dict(

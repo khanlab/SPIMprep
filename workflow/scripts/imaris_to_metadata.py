@@ -1,11 +1,13 @@
 import json
 import re
+
 import h5py
 import xmltodict
 
 # -----------------------------
 # Helper functions
 # -----------------------------
+
 
 def parse_xml_bytes(xml_bytes):
     """Convert raw byte array to parsed XML dict with namespace separator."""
@@ -47,19 +49,37 @@ def build_bids_metadata(custom_attrs):
         "PixelSize": pixel_size,
         "PixelSizeUnits": unit_label,
         "Immersion": custom_attrs.get("ObjectiveMedium", {}).get("@ObjectiveMedium"),
-        "NumericalAperture": float(custom_attrs.get("ObjectiveNA", {}).get("@ObjectiveNA", 0.0)),
+        "NumericalAperture": float(
+            custom_attrs.get("ObjectiveNA", {}).get("@ObjectiveNA", 0.0)
+        ),
         "Magnification": magnification,
-        "OtherAcquisitionParameters": custom_attrs.get("MeasurementMode", {}).get("@MeasurementMode"),
-        "InstrumentModel": custom_attrs.get("InstrumentMode", {}).get("@InstrumentMode"),
-        "SoftwareVersions": custom_attrs.get("ImspectorVersion", {}).get("@ImspectorVersion"),
+        "OtherAcquisitionParameters": custom_attrs.get("MeasurementMode", {}).get(
+            "@MeasurementMode"
+        ),
+        "InstrumentModel": custom_attrs.get("InstrumentMode", {}).get(
+            "@InstrumentMode"
+        ),
+        "SoftwareVersions": custom_attrs.get("ImspectorVersion", {}).get(
+            "@ImspectorVersion"
+        ),
     }
 
     # --- Collect non-BIDS fields into ExtraMetadata ---
     excluded = {
-        "ObjectiveMedium", "ObjectiveNA", "ObjectiveID", "MeasurementMode",
-        "InstrumentMode", "ImspectorVersion", "DataAxis0", "DataAxis1", "DataAxis2", "AxesLabels"
+        "ObjectiveMedium",
+        "ObjectiveNA",
+        "ObjectiveID",
+        "MeasurementMode",
+        "InstrumentMode",
+        "ImspectorVersion",
+        "DataAxis0",
+        "DataAxis1",
+        "DataAxis2",
+        "AxesLabels",
     }
-    extra_metadata = {k: clean_keys(v) for k, v in custom_attrs.items() if k not in excluded}
+    extra_metadata = {
+        k: clean_keys(v) for k, v in custom_attrs.items() if k not in excluded
+    }
     bids_json["ExtraMetadata"] = extra_metadata
 
     return bids_json
@@ -84,5 +104,3 @@ bids_metadata = build_bids_metadata(custom_attrs)
 # -----------------------------
 with open(snakemake.output.metadata_json, "w", encoding="utf-8") as fp:
     json.dump(bids_metadata, fp, indent=4, ensure_ascii=False)
-
-

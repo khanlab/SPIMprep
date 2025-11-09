@@ -25,10 +25,16 @@ uri = snakemake.params.uri
 with open(metadata_json) as fp:
     metadata = json.load(fp)
 
+units = metadata.get("PixelSizeUnits", "um")
+if units == "um":
+    unit_convert = 1000.0
+elif units == "mm":
+    unit_convert = 1.0
+
 voxdim = [
-    float(metadata["physical_size_z"]) * float(downsampling) / 1000.0,
-    float(metadata["physical_size_y"]) * float(downsampling) / 1000.0,
-    float(metadata["physical_size_x"]) * float(downsampling) / 1000.0,
+    float(metadata["PixelSize"][2]) * float(downsampling) / unit_convert,
+    float(metadata["PixelSize"][1]) * float(downsampling) / unit_convert,
+    float(metadata["PixelSize"][0]) * float(downsampling) / unit_convert,
 ]
 
 
