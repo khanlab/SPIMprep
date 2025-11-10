@@ -91,6 +91,8 @@ rule tif_stacks_to_ome_zarr:
 rule ome_zarr_to_nii:
     input:
         zarr=get_input_ome_zarr_to_nii,
+    params:
+        zarrnii_kwargs={}
     output:
         nii=bids(
             root=resampled,

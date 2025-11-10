@@ -119,9 +119,16 @@ darr_channels = da.stack(darr_list)
 
 group = zarr.group(store, overwrite=True)
 
+
+
+# TODO: orientation was RAI for earlier scans but seems RPI for newer, need to confirm
+# whether brains were placed in a different orientation, or scanned differently, or maybe 
+# difference the related to MACsIq vs Imaris stitching implementation.. confirm with Shaz.
+# Also confirm L/R flip..
+
 # Add metadata for orientation
-group.attrs["orientation"] = "IAR"  # this is the updated orientation for imaris files
-group.attrs["xyz_orientation"] = "RAI"
+group.attrs["orientation"] = "IPR"  # this is the updated orientation for imaris files 
+group.attrs["xyz_orientation"] = "RPI"
 
 scaler = Scaler(max_layer=max_layer, method=scaling_method)
 
