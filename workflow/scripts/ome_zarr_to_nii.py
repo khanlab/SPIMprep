@@ -1,7 +1,5 @@
 from dask.diagnostics import ProgressBar
-
 from zarrnii import ZarrNii
-
 
 znimg = ZarrNii.from_ome_zarr(
     snakemake.input.zarr,
@@ -13,4 +11,3 @@ znimg = ZarrNii.from_ome_zarr(
 
 with ProgressBar():
     znimg.to_nifti(snakemake.output.nii)
-

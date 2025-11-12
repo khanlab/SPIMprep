@@ -1,9 +1,9 @@
+import html
 import json
 import re
 
 import h5py
 import xmltodict
-import html
 
 # -----------------------------
 # Helper functions
@@ -31,6 +31,7 @@ def parse_xml_str(xml_str):
     except Exception as e:
         print(f"Error parsing XML: {e}")
         return None
+
 
 def parse_xml_bytes(xml_bytes):
     """Convert raw byte array to parsed XML dict with namespace separator."""
