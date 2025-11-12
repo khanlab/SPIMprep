@@ -3,6 +3,7 @@ import re
 
 import h5py
 import xmltodict
+import html
 
 # -----------------------------
 # Helper functions
@@ -10,13 +11,26 @@ import xmltodict
 
 
 def parse_xml_str(xml_str):
-    """Convert str to XML dict"""
+    """Convert XML string to dict, decoding HTML entities (e.g. &#181; → µ)."""
+
+    def decode_entities(obj):
+        """Recursively decode HTML entities in all strings."""
+        if isinstance(obj, dict):
+            return {k: decode_entities(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [decode_entities(i) for i in obj]
+        elif isinstance(obj, str):
+            return html.unescape(obj)
+        else:
+            return obj
+
     try:
-        return xmltodict.parse(xml_str, namespace_separator=":")
+        parsed = xmltodict.parse(xml_str, namespace_separator=":")
+        return decode_entities(parsed)
+
     except Exception as e:
         print(f"Error parsing XML: {e}")
         return None
-
 
 def parse_xml_bytes(xml_bytes):
     """Convert raw byte array to parsed XML dict with namespace separator."""
