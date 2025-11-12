@@ -129,7 +129,7 @@ try:
         custom_attrs = xml_dict["root"]["ca:CustomAttributes"]
 except:
     print(
-        "error reading ome metadata from imaris, searching for tif file using standard folder structure, in ../../tif_4x*/"
+        "Warning: cannot find OME metadata from imaris file, searching for tif file using standard folder structure"
     )
 
     from glob import glob
@@ -146,7 +146,7 @@ except:
     raw_root = p.parents[2]  # -> '/nfs/trident3/.../raw'
 
     # 3) Construct the new path
-    new_path = str(raw_root / "tif_4x_*" / subj / "*")
+    new_path = str(raw_root / "tif_4x_*" / subj / "*.ome.tif")
     try:
         tif_file = sorted(glob(new_path))[0]
         with tifffile.TiffFile(tif_file) as tif:
