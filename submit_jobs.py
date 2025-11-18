@@ -46,8 +46,6 @@ def submit_job(
         slurm_config["time"],
         "--mem",
         slurm_config["mem"],
-        "--nodelist",
-        "rri-cbs-h2.schulich.uwo.ca",
         "--cpus-per-task",
         slurm_config["cpus"],
         "--tmp",

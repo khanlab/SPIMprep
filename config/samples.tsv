@@ -1,11 +1,3 @@
 subject	sample	acq	stain_0	stain_1	stain_2	sample_path
-F6A2Te3	brain	blaze	Abeta	PI	Lectin	/cifs/trident/projects/mouse_appmaptapoe/lightsheet/sourcedata/newBlaze/4x1/240801_13_F6_A2Te3_68_B_62_4x1_14-47-34
-F4A1Te3	brain	blaze	Abeta	PI	Lectin	/cifs/trident/projects/mouse_appmaptapoe/lightsheet/sourcedata/newBlaze/4x1/240802_1_F4_1e3_66_A_61_4x1_14-39-52
-M1A2Te3	brain	blaze	Abeta	PI	Lectin	/cifs/trident/projects/mouse_appmaptapoe/lightsheet/sourcedata/newBlaze/4x1/240803_18_M1_A2Te3_73_G_62_4x1_00-10-57
-M4A1Te3	brain	blaze	Abeta	PI	Lectin	/cifs/trident/projects/mouse_appmaptapoe/lightsheet/sourcedata/newBlaze/4x1/240828_8_M1_A1Te3_67_H_61_4x1_15-07-06
-F1A2Te3	brain	blaze	Abeta	PI	Lectin	/cifs/trident/projects/mouse_appmaptapoe/lightsheet/sourcedata/newBlaze/4x1/240829_14_F1_A2Te3_68_c_62_4x1_01-43-28
-F2A2Te3	brain	blaze	Abeta	PI	Lectin	/cifs/trident/projects/mouse_appmaptapoe/lightsheet/sourcedata/newBlaze/4x1/240903_15_F2_A2Te3_68_E_62_4x1_14-23-04
-M3A2Te3	brain	blaze	Abeta	PI	Lectin	/cifs/trident/projects/mouse_appmaptapoe/lightsheet/sourcedata/newBlaze/4x1/240904_19_M3_A2Te3_73_I_62_4x1_08-55-39
-F1A1Te4	brain	blaze	Abeta	PI	Lectin	/cifs/trident/projects/mouse_appmaptapoe/lightsheet/sourcedata/newBlaze/4x1/240904_4_F1_A1Te4_70_D_63_4x1_23-10-52
-M4A2Te3	brain	blaze	Abeta	PI	Lectin	/cifs/trident/projects/mouse_appmaptapoe/lightsheet/sourcedata/newBlaze/4x1/240906_20_M4_A2Te3_73_J_62_4x1_12-53-47
-M7A1Te4	brain	blaze	Abeta	PI	Lectin	/cifs/trident/projects/mouse_appmaptapoe/lightsheet/sourcedata/newBlaze/4x1/240907_16_M7_A1Te4_71_F_63_4x1_21-07-03
+AS134F3	brain	imaris4x	Iba1	Abeta	YoPro	/nfs/trident3/lightsheet/prado/mouse_app_lecanemab_ki3/raw/ims_4x_stitched/A_AS134F3/10-59-07_a- AS134F3 IK3 PBS IBA1 647 ab RedX YoPro 4X1_Blaze_C00.ome.ims
+AS135M5	brain	imaris4x	Iba1	Abeta	YoPro	/nfs/trident3/lightsheet/prado/mouse_app_lecanemab_ki3/raw/ims_4x_stitched/A_AS134F3/10-59-07_a- AS134F3 IK3 PBS IBA1 647 ab RedX YoPro 4X1_Blaze_C00.ome.ims

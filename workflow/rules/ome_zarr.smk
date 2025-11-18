@@ -90,12 +90,9 @@ rule tif_stacks_to_ome_zarr:
 
 rule ome_zarr_to_nii:
     input:
-        **get_storage_creds(),
         zarr=get_input_ome_zarr_to_nii,
     params:
-        channel_index=lambda wildcards: get_stains(wildcards).index(wildcards.stain),
-        uri=get_output_ome_zarr_uri(),
-        storage_provider_settings=workflow.storage_provider_settings,
+        zarrnii_kwargs={},
     output:
         nii=bids(
             root=resampled,
@@ -103,7 +100,7 @@ rule ome_zarr_to_nii:
             datatype="micr",
             sample="{sample}",
             acq="{acq}",
-            res="{level}x",
+            level="{level}",
             stain="{stain}",
             suffix="SPIM.nii",
         ),
@@ -114,7 +111,7 @@ rule ome_zarr_to_nii:
             subject="{subject}",
             sample="{sample}",
             acq="{acq}",
-            res="{level}x",
+            level="{level}",
             stain="{stain}",
             suffix="benchmark.tsv",
         )
@@ -125,7 +122,7 @@ rule ome_zarr_to_nii:
             subject="{subject}",
             sample="{sample}",
             acq="{acq}",
-            res="{level}x",
+            level="{level}",
             stain="{stain}",
             suffix="log.txt",
         ),

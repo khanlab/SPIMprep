@@ -1,6 +1,7 @@
 samples: 'config/samples.tsv'
 
-root: '/cifs/khan_new/datasets/MIND/mouse_appmaptapoe' # can use a s3:// or gcs:// prefix to write output to cloud storage
+root: ''
+#cifs/khan_new/datasets/MIND/mouse_appmaptapoe' # can use a s3:// or gcs:// prefix to write output to cloud storage
 work: ""
 
 remote_creds: '~/.config/gcloud/application_default_credentials.json' #this is needed so we can pass creds to container
