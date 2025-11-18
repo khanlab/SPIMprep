@@ -5,6 +5,7 @@ import zarr
 from dask.diagnostics import ProgressBar
 from lib.cloud_io import get_fsspec, is_remote
 from upath import UPath as Path
+
 from zarrnii import ZarrNii
 
 in_zarr = snakemake.input.zarr
