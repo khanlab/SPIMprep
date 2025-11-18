@@ -8,7 +8,6 @@ import dask.array as da
 import zarr
 from lib.cloud_io import get_fsspec, is_remote
 from upath import UPath as Path
-
 from zarrnii import ZarrNii
 
 # directory containing the volume rendering files

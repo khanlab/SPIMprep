@@ -179,6 +179,7 @@ except:
 if not xml_dict:
     raise ValueError("Failed to parse XML from .ims file")
 
+print(custom_attrs)
 bids_metadata = build_bids_metadata(custom_attrs)
 
 # -----------------------------
