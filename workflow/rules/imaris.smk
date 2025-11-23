@@ -10,6 +10,10 @@ rule imaris_to_metadata:
             acq="{acq,[a-zA-Z0-9]*imaris[a-zA-Z0-9]*}",
             suffix="SPIM.json",
         ),
+    threads: 1
+    resources:
+        mem_mb=2000,
+        runtime=60,
     benchmark:
         bids(
             root="benchmarks",
