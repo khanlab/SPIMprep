@@ -248,7 +248,7 @@ rule tif_to_zarr_gcs:
             acq="{acq}",
             suffix="log.txt",
         ),
-    threads: int(config["total_mem_mb"] / 8000)  #this is memory-limited -- seems to need ~8000mb for each thread, so threads=total_mem_mb / 8000 
+    threads: int(config["total_mem_mb"] / 8000)  # this is memory-limited -- seems to need ~8000mb for each thread, so threads=total_mem_mb / 8000 
     resources:
         mem_mb=config["total_mem_mb"],
         runtime=360,
@@ -307,7 +307,7 @@ rule bioformats_to_zarr:
         ),
     threads: 16
     resources:
-        mem_mb=config["total_mem_mb"],  #TODO update this, along with threads.. 
+        mem_mb=config["total_mem_mb"],  # TODO update this, along with threads.. 
         runtime=360,
         disk_mb=1000000,  #1TB
     group:
