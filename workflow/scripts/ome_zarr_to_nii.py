@@ -1,4 +1,5 @@
 from dask.diagnostics import ProgressBar
+
 from zarrnii import ZarrNii
 
 znimg = ZarrNii.from_ome_zarr(

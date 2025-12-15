@@ -45,13 +45,13 @@ print(
 )
 
 zarr.copy(
-   source[
-       "DataSet/ResolutionLevel 0/TimePoint 0/Channel {chan}/Data".format(
-           chan=snakemake.params.channel
-       )
-   ],
-   dest,
-   log=stdout,
-   compressor=None,
+    source[
+        "DataSet/ResolutionLevel 0/TimePoint 0/Channel {chan}/Data".format(
+            chan=snakemake.params.channel
+        )
+    ],
+    dest,
+    log=stdout,
+    compressor=None,
 )
 source.close()
