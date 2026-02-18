@@ -1,15 +1,9 @@
 import json
 
 import dask.array as da
-import zarr
 from dask.array.image import imread as dask_imread
 from dask.diagnostics import ProgressBar
-from lib.cloud_io import get_fsspec, is_remote
-from ome_zarr.format import format_from_version
-from ome_zarr.io import parse_url
-from ome_zarr.scale import Scaler
-from ome_zarr.writer import write_image
-from upath import UPath as Path
+from zarrnii import ZarrNii
 
 in_tif_glob = snakemake.params.in_tif_glob
 metadata_json = snakemake.input.metadata_json
@@ -27,38 +21,6 @@ uri = snakemake.params.uri
 # prepare metadata for ome-zarr
 with open(metadata_json) as fp:
     metadata = json.load(fp)
-
-voxdim = [
-    float(metadata["physical_size_z"]) * float(downsampling) / 1000.0,
-    float(metadata["physical_size_y"]) * float(downsampling) / 1000.0,
-    float(metadata["physical_size_x"]) * float(downsampling) / 1000.0,
-]
-
-
-coordinate_transformations = []
-# for each resolution (dataset), we have a list of dicts, transformations to apply..
-# in this case just a single one (scaling by voxel size)
-
-for l in range(max_layer + 1):
-
-    coordinate_transformations.append(
-        [
-            {
-                "scale": [
-                    1,
-                    voxdim[0],
-                    (2**l) * voxdim[1],
-                    (2**l) * voxdim[2],
-                ],  # image-pyramids in XY only
-                "type": "scale",
-            }
-        ]
-    )
-
-
-axes = [{"name": "c", "type": "channel"}] + [
-    {"name": ax, "type": "space", "unit": "millimeter"} for ax in ["z", "y", "x"]
-]
 
 
 # init omero metadata
@@ -95,37 +57,23 @@ for i, stain in enumerate(stains):
 
 darr_channels = da.stack(darr_list)
 
-
-if is_remote(uri):
-    fs_args = {
-        "storage_provider_settings": snakemake.params.storage_provider_settings,
-        "creds": snakemake.input.creds,
-    }
-    fs = get_fsspec(uri, **fs_args)
-    store = zarr.storage.FSStore(
-        Path(uri).path, fs=fs, dimension_separator="/", mode="w"
-    )
-else:
-    if Path(out_zarr).suffixes[-1] == ".zip":
-        store = zarr.ZipStore(out_zarr, dimension_separator="/", mode="x")
-    else:
-        store = zarr.DirectoryStore(out_zarr, dimension_separator="/")
-
-
-group = zarr.group(store, overwrite=True)
-
-# Add metadata for orientation
-group.attrs["orientation"] = "SAR"  # orientation for lifecanvas data
-group.attrs["xyz_orientation"] = "RAS"
-
-scaler = Scaler(max_layer=max_layer, method=scaling_method)
+# orientation="SAR" is ZYX order: z↑=Superior, y↑=Anterior, x↑=Right
+# (equivalent to xyz_orientation="RAS" in new zarrnii >=0.2.0)
+# NOTE: x/y directions assumed from LifeCanvas convention — verify
+# visually in a NIfTI viewer after first run. z-axis (Superior) is
+# correct for data where ascending TIF index = moving superiorly.
+znimg = ZarrNii.from_darr(
+    darr_channels,
+    orientation="SAR",
+    axes_order="ZYX",
+    spacing=(
+        float(metadata["physical_size_z"]) * float(downsampling) / 1000.0,
+        float(metadata["physical_size_y"]) * float(downsampling) / 1000.0,
+        float(metadata["physical_size_x"]) * float(downsampling) / 1000.0,
+    ),
+    unit="millimeter",
+    omero=omero,
+)
 
 with ProgressBar():
-    write_image(
-        image=darr_channels,
-        group=group,
-        scaler=scaler,
-        coordinate_transformations=coordinate_transformations,
-        axes=axes,
-        metadata={"omero": omero},
-    )
+    znimg.to_ome_zarr(out_zarr, version="0.4")

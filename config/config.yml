@@ -25,6 +25,28 @@ import_prestitched:
   physical_size_y_um: 1.8
   physical_size_z_um: 4
 
+  # resolution presets — override via CLI with --resolution-preset <name>
+  resolution_presets:
+    selma_blood_vessel:
+      stitched_tif_glob: "C01/*.tif"
+      physical_size_x_um: 1.625
+      physical_size_y_um: 1.625
+      physical_size_z_um: 3
+    selma_c_fos:
+      stitched_tif_glob: "C01/*.tif"
+      physical_size_x_um: 1.625
+      physical_size_y_um: 1.625
+      physical_size_z_um: 6
+    selma_cell_nucleus:
+      stitched_tif_glob: "C01/*.tif"
+      physical_size_x_um: 0.54
+      physical_size_y_um: 0.54
+      physical_size_z_um: 5
+    selma_abeta:
+      stitched_tif_glob: "C01/*.tif"
+      physical_size_x_um: 1.63
+      physical_size_y_um: 1.63
+      physical_size_z_um: 4
 
 basic_flatfield_corr:
   enabled: True
@@ -61,57 +83,77 @@ ome_zarr:
   #desc: mvstitchedraw #stitchedflatcorr
   desc: mvstitchedflatcorr
   downsampling: 1 # downsampling rate (default 1 for no downsampling)
-  max_downsampling_layers: 5 # e.g. 4 levels: { 0: orig, 1: ds2, 2: ds4, 3: ds8, 4: ds16}
-  rechunk_size: #z, y, x 
-    - 1 
+  max_downsampling_layers: 5 # e.g. 5 will produce 5 levels of downsampling by 2
+  rechunk_size:
+    - 1
     - 4096
     - 4096
-  scaling_method: 'local_mean' #can be nearest, gaussian, local_mean, zoom (zoom uses spline interp)
- 
+  scaling_method: "nearest"
+
   omero_metadata:
-    channels:
-      default_color: 'FFFFFF'
-      color_mapping:
-        autof: 'FFFFFF'
-        AutoF: 'FFFFFF'
-        abeta: '00FF00'
-        Abeta: '00FF00'
-        PI: 'FFFFFF'
-        AlphaSynuclein: '00FF00'
-      defaults:
-        active: True
-        coefficient: 1.0
-        inverted: False
-        family: linear
-        window: 
-          min: 0
-          max: 65535
-          start: 0
-          end: 65535
     defaults:
       rdefs:
         defaultT: 0
         defaultZ: 0
-        model: 'color'
+        model: "color"
       id: 0
-      name: spim
-      version: "0.4"  
+      name: "spim"
+      version: "0.4"
+    channels:
+      defaults:
+        active: True
+        coefficient: 1.0
+        inverted: False
+        family: "linear"
+        window:
+          min: 0
+          max: 65535
+          start: 0
+          end: 65535
+      default_color: "00FF00"
+      color_mapping:
+        autof: "00FF00"
+        PI: "FF0000"
+        cFos: "00FF00"
+        NeuN: "FF0000"
+        abeta: "FFFF00"
 
 nifti:
-  levels: #cannot be higher than max_downsampling_layers in ome_zarr
+  levels:
     - 3
     - 4
 
+containers:
+  spimprep: null
 
+report:
+  create_report: False
+  slices_along_x: 5
+  slices_along_y: 5
+  slices_along_z: 5 
+  colormap: "gray"
+
+dataset_description:
+  raw:
+    Name: "SPIM dataset"
+    BIDSVersion: "1.9.0"
+    DatasetType: "raw"
+    License: "CC0"
+  deriv:
+    Name: "resampled SPIM"
+    BIDSVersion: "1.9.0"
+    DatasetType: "derivative"
+    License: "CC0"
+    GeneratedBy:
+      - Name: "SPIMprep"
 bids:
   raw:
     Name: Name of the dataset
     BIDSVersion: v1.9.0
     DatasetType: raw
     License: The license for the dataset
-    Authors: 
+    Authors:
       - Author Name 1
-      - Author Name 2
     GeneratedBy:
       - Name: SPIMprep
       - Version: 0.1.0
@@ -120,21 +162,20 @@ bids:
     Name: Downsampled SPIM niftis
     BIDSVersion: v1.9.0
     DatasetType: derived
-    Authors: 
+    Authors:
       - Author Name 1
-      - Author Name 2
     GeneratedBy:
       - Name: SPIMprep
       - Version: 0.1.0
       - CodeURL: https://github.com/khanlab/SPIMprep
   readme_md: resources/bids_template_files/README.md
   samples_json: resources/bids_template_files/samples.json
-    
+
 report:
-  create_report: True
+  create_report: False
   flatfield_corrected:
     slice_start: 0
-    slice_step: 50 # Shows every nth slice
+    slice_step: 50
     colour_map: viridis
   whole_slice_viewer:
     slice_start: 0
@@ -147,8 +188,3 @@ report:
     report_html: resources/qc/qc_report_temp.html
     subject_html: resources/qc/subject_html_temp.html
     ws_html: resources/qc/ws_html_temp.html
-
-
-containers:
-  spimprep: 'docker://khanlab/spimprep-deps:v0.1.1'
-
