@@ -92,8 +92,9 @@ else:
 darr_list = []
 for zarr_i, in_zarr in enumerate(snakemake.input.zarr):
     # open zarr to get group name
-    zi = zarr.open(in_zarr)
-    darr_list.append(da.from_zarr(in_zarr, component="Data").rechunk(rechunk_size))
+    in_store = zarr.ZipStore(in_zarr, mode="r")
+    zi = zarr.open(in_store, mode="r")
+    darr_list.append(da.from_zarr(in_store, component="Data").rechunk(rechunk_size))
 
     # append to omero metadata
     channel_metadata = {
