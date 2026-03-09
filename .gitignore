@@ -11,3 +11,8 @@ benchmarks
 # pixi environments
 .pixi
 *.egg-info
+
+config/samples_AS11F3_only.tsv
+config/samples_ki3_batch2.tsv
+lecb2.log
+run_lecb2.sh

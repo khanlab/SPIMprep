@@ -63,6 +63,14 @@ def h5_attr_to_str(attr):
     return "".join(b.decode("utf-8") for b in attr)
 
 
+def _try_float(value, default=None):
+    """Try to convert value to float, return default if not possible."""
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return default
+
+
 def build_bids_metadata(custom_attrs):
     """Convert custom attribute dict into BIDS microscopy-compliant metadata."""
     # --- PixelSize and Units ---
@@ -84,8 +92,9 @@ def build_bids_metadata(custom_attrs):
         "PixelSize": pixel_size,
         "PixelSizeUnits": unit_label,
         "Immersion": custom_attrs.get("ObjectiveMedium", {}).get("@ObjectiveMedium"),
-        "NumericalAperture": float(
-            custom_attrs.get("ObjectiveNA", {}).get("@ObjectiveNA", 0.0)
+        "NumericalAperture": _try_float(
+            custom_attrs.get("ObjectiveNA", {}).get("@ObjectiveNA", None),
+            default=0.1,
         ),
         "Magnification": magnification,
         "OtherAcquisitionParameters": custom_attrs.get("MeasurementMode", {}).get(
@@ -160,8 +169,13 @@ def build_bids_metadata_from_native_imaris(hdf5_file):
     while f"DataSetInfo/Channel {ch_idx}" in hdf5_file:
         ch_grp = hdf5_file[f"DataSetInfo/Channel {ch_idx}"]
         ch_info = {}
-        for attr_name in ["Name", "LSMExcitationWavelength", "LSMEmissionWavelength",
-                          "Color", "Description"]:
+        for attr_name in [
+            "Name",
+            "LSMExcitationWavelength",
+            "LSMEmissionWavelength",
+            "Color",
+            "Description",
+        ]:
             val = ch_grp.attrs.get(attr_name, None)
             if val is not None:
                 ch_info[attr_name] = h5_attr_to_str(val)
@@ -186,7 +200,7 @@ def build_bids_metadata_from_native_imaris(hdf5_file):
         "PixelSize": pixel_size,
         "PixelSizeUnits": unit_label,
         "Immersion": None,
-        "NumericalAperture": 0.0,
+        "NumericalAperture": 0.1,
         "Magnification": None,
         "OtherAcquisitionParameters": None,
         "InstrumentModel": None,
