@@ -17,6 +17,10 @@ rule extract_sample:
                 )
             )
         ),
+    threads: 1
+    resources:
+        mem_mb=4000,
+        runtime=60,
     group:
         "preproc"
     log:
@@ -50,6 +54,10 @@ rule blaze_to_metadata_gcs:
             acq="{acq,[a-zA-Z0-9]*blaze[a-zA-Z0-9]*}",
             suffix="SPIM.json",
         ),
+    threads: 1
+    resources:
+        mem_mb=2000,
+        runtime=60,
     benchmark:
         bids(
             root="benchmarks",
@@ -91,6 +99,10 @@ rule blaze_to_metadata:
                 suffix="SPIM.json",
             )
         ),
+    threads: 1
+    resources:
+        mem_mb=2000,
+        runtime=60,
     benchmark:
         bids(
             root="benchmarks",
@@ -129,6 +141,10 @@ rule copy_blaze_metadata:
             acq="{acq,[a-zA-Z0-9]*blaze[a-zA-Z0-9]*}",
             suffix="SPIM.json",
         ),
+    threads: 1
+    resources:
+        mem_mb=1000,
+        runtime=10,
     log:
         bids(
             root="logs",
@@ -158,6 +174,10 @@ rule prestitched_to_metadata:
             acq="{acq,[a-zA-Z0-9]*prestitched[a-zA-Z0-9]*}",
             suffix="SPIM.json",
         ),
+    threads: 1
+    resources:
+        mem_mb=2000,
+        runtime=60,
     benchmark:
         bids(
             root="benchmarks",
@@ -228,11 +248,12 @@ rule tif_to_zarr_gcs:
             acq="{acq}",
             suffix="log.txt",
         ),
-    group:
-        "preproc"
+    threads: int(config["total_mem_mb"] / 8000)  # this is memory-limited -- seems to need ~8000mb for each thread, so threads=total_mem_mb / 8000 
     resources:
         mem_mb=config["total_mem_mb"],
-    threads: int(config["total_mem_mb"] / 8000)  #this is memory-limited -- seems to need ~8000mb for each thread, so threads=total_mem_mb / 8000 
+        runtime=360,
+    group:
+        "preproc"
     container:
         config["containers"]["spimprep"]
     script:
@@ -284,12 +305,13 @@ rule bioformats_to_zarr:
             acq="{acq}",
             suffix="log.txt",
         ),
+    threads: 16
+    resources:
+        mem_mb=config["total_mem_mb"],  # TODO update this, along with threads.. 
+        runtime=360,
+        disk_mb=1000000,  #1TB
     group:
         "preproc"
-    resources:
-        mem_mb=config["total_mem_mb"],  #TODO update this, along with threads.. 
-        disk_mb=1000000,  #1TB
-    threads: 16
     script:
         "../scripts/bioformats_to_zarr.py"
 
@@ -340,12 +362,13 @@ rule concat_tiles:
             acq="{acq}",
             suffix="log.txt",
         ),
-    group:
-        "preproc"
+    threads: 32
     resources:
         mem_mb=config["total_mem_mb"],
+        runtime=240,
         disk_mb=1000000,  #1TB
-    threads: 32
+    group:
+        "preproc"
     container:
         None
     script:

@@ -5,6 +5,10 @@ rule setup_qc_dir:
         readme_md=config["report"]["resources"]["readme_md"],
     output:
         readme_md=remote_file(Path(root) / "qc" / "README.md"),
+    threads: 1
+    resources:
+        mem_mb=1000,
+        runtime=10,
     log:
         "logs/setup_qc_dir_log.txt",
     shell:
@@ -57,6 +61,10 @@ rule generate_flatfield_qc:
             / "images"
             / "uncorr"
         ),
+    threads: 1
+    resources:
+        mem_mb=8000,
+        runtime=60,
     log:
         bids(
             root="logs",
@@ -103,6 +111,10 @@ rule generate_whole_slice_qc:
             / "images"
             / "whole"
         ),
+    threads: 1
+    resources:
+        mem_mb=8000,
+        runtime=60,
     log:
         bids(
             root="logs",
@@ -145,6 +157,10 @@ rule generate_volume_qc:
             / "sub-{subject}_sample-{sample}_acq-{acq}"
             / "volume_qc.html"
         ),
+    threads: 1
+    resources:
+        mem_mb=8000,
+        runtime=60,
     log:
         bids(
             root="logs",
@@ -172,6 +188,10 @@ rule generate_subject_qc:
             / "sub-{subject}_sample-{sample}_acq-{acq}"
             / "subject.html"
         ),
+    threads: 1
+    resources:
+        mem_mb=2000,
+        runtime=10,
     log:
         bids(
             root="logs",
@@ -193,6 +213,10 @@ rule generate_aggregate_qc:
         samples=samples,
     output:
         total_html=remote_file(Path(root) / "qc" / "qc_report.html"),
+    threads: 1
+    resources:
+        mem_mb=2000,
+        runtime=10,
     log:
         bids(
             root="logs",

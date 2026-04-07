@@ -61,6 +61,7 @@ rule mvstitcher_registration:
     threads: config["total_cores"]
     resources:
         mem_mb=config["total_mem_mb"],
+        runtime=240,
     group:
         "preproc"
     container:
@@ -101,6 +102,10 @@ rule mvstitcher_reg_plots:
             desc="mvstitched{desc}",
             suffix="groupwiseqc.png",
         ),
+    threads: 1
+    resources:
+        mem_mb=4000,
+        runtime=30,
     group:
         "preproc"
     container:
@@ -170,6 +175,7 @@ rule mvstitcher_fusion:
     threads: 128
     resources:
         mem_mb=config["total_mem_mb"],
+        runtime=480,
     group:
         "preproc"
     container:
