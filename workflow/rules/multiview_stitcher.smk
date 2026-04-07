@@ -12,13 +12,6 @@ rule mvstitcher_registration:
             suffix="SPIM.zarr",
         ),
         metadata_json=rules.copy_blaze_metadata.output.metadata_json,
-    params:
-        channels=get_stains,
-        registration_opts=config["multiview_stitcher"]["registration"],
-        fusion_opts=config["multiview_stitcher"]["fusion"],
-        reg_channel_index=1,  #later can make this a parameter chosen based on stains
-        uri=get_output_ome_zarr_uri(),
-        storage_provider_settings=workflow.storage_provider_settings,
     output:
         affines=bids(
             root=work,
@@ -38,16 +31,6 @@ rule mvstitcher_registration:
             desc="mvstitched{desc}",
             suffix="regresult.pkl",
         ),
-    benchmark:
-        bids(
-            root="benchmarks",
-            datatype="mvstitcher_registration",
-            subject="{subject}",
-            sample="{sample}",
-            acq="{acq}",
-            desc="{desc}",
-            suffix="benchmark.tsv",
-        )
     log:
         bids(
             root="logs",
@@ -58,16 +41,33 @@ rule mvstitcher_registration:
             desc="{desc}",
             suffix="log.txt",
         ),
+    benchmark:
+        bids(
+            root="benchmarks",
+            datatype="mvstitcher_registration",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            desc="{desc}",
+            suffix="benchmark.tsv",
+        )
+    group:
+        "preproc"
+    conda:
+        "../envs/multiview_stitcher.yml"
+    container:
+        None
     threads: config["total_cores"]
     resources:
         mem_mb=config["total_mem_mb"],
         runtime=240,
-    group:
-        "preproc"
-    container:
-        None
-    conda:
-        "../envs/multiview_stitcher.yml"
+    params:
+        channels=get_stains,
+        registration_opts=config["multiview_stitcher"]["registration"],
+        fusion_opts=config["multiview_stitcher"]["fusion"],
+        reg_channel_index=1,  #later can make this a parameter chosen based on stains
+        uri=get_output_ome_zarr_uri(),
+        storage_provider_settings=workflow.storage_provider_settings,
     script:
         "../scripts/mvstitcher_registration.py"
 
@@ -102,16 +102,16 @@ rule mvstitcher_reg_plots:
             desc="mvstitched{desc}",
             suffix="groupwiseqc.png",
         ),
+    group:
+        "preproc"
+    conda:
+        "../envs/multiview_stitcher.yml"
+    container:
+        None
     threads: 1
     resources:
         mem_mb=4000,
         runtime=30,
-    group:
-        "preproc"
-    container:
-        None
-    conda:
-        "../envs/multiview_stitcher.yml"
     script:
         "../scripts/mvstitcher_reg_plots.py"
 
@@ -145,24 +145,8 @@ rule mvstitcher_fusion:
             ),
             suffix="affines.npz",
         ),
-    params:
-        channels=get_stains,
-        registration_opts=config["multiview_stitcher"]["registration"],
-        fusion_opts=config["multiview_stitcher"]["fusion"],
-        reg_channel_index=1,  #later can make this a parameter chosen based on stains
-        uri=get_output_ome_zarr_uri(),
-        storage_provider_settings=workflow.storage_provider_settings,
     output:
-        **get_output_ome_zarr("blaze"),
-    benchmark:
-        bids(
-            root="benchmarks",
-            datatype="mvstitcher_fusion",
-            subject="{subject}",
-            sample="{sample}",
-            acq="{acq}",
-            suffix="benchmark.tsv",
-        )
+        **get_output_ome_zarr(),
     log:
         bids(
             root="logs",
@@ -172,15 +156,33 @@ rule mvstitcher_fusion:
             acq="{acq}",
             suffix="log.txt",
         ),
+    benchmark:
+        bids(
+            root="benchmarks",
+            datatype="mvstitcher_fusion",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="benchmark.tsv",
+        )
+    wildcard_constraints:
+        acq=get_acq_constraint("blaze"),
+    group:
+        "preproc"
+    conda:
+        "../envs/multiview_stitcher.yml"
+    container:
+        None
     threads: 128
     resources:
         mem_mb=config["total_mem_mb"],
         runtime=480,
-    group:
-        "preproc"
-    container:
-        None
-    conda:
-        "../envs/multiview_stitcher.yml"
+    params:
+        channels=get_stains,
+        registration_opts=config["multiview_stitcher"]["registration"],
+        fusion_opts=config["multiview_stitcher"]["fusion"],
+        reg_channel_index=1,  #later can make this a parameter chosen based on stains
+        uri=get_output_ome_zarr_uri(),
+        storage_provider_settings=workflow.storage_provider_settings,
     script:
         "../scripts/mvstitcher_fusion.py"
