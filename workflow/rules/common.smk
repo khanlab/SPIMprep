@@ -1,3 +1,4 @@
+import re
 import tarfile
 from snakebids import bids as _bids
 from upath import UPath as Path
@@ -255,6 +256,27 @@ def get_stains(wildcards):
     return df.iloc[0][stain_columns].dropna().tolist()
 
 
+def get_input_type(wildcards):
+    """Returns the input_type for a given sample (e.g. 'blaze', 'prestitched', 'imaris')."""
+    df = samples.query(
+        f"subject=='{wildcards.subject}' and sample=='{wildcards.sample}' and acq=='{wildcards.acq}'"
+    )
+    return df.input_type.to_list()[0]
+
+
+def get_acq_constraint(input_type_str):
+    """Returns a regex string constraining acq to values belonging to the given input_type.
+
+    Used in wildcard_constraints blocks to route samples to the correct rules based on the
+    explicit input_type column rather than fragile substring matching on acq."""
+    acqs = samples[samples["input_type"] == input_type_str]["acq"].unique().tolist()
+    if not acqs:
+        # Return a regex that matches nothing when no samples use this input_type;
+        # this prevents the rule from matching any wildcard value.
+        return "(?!x)x"
+    return "|".join(re.escape(acq) for acq in acqs)
+
+
 def get_output_ome_zarr_uri():
     uri = _bids(
         root=root,
@@ -272,7 +294,11 @@ def get_output_ome_zarr_uri():
         return "local://" + uri
 
 
-def get_output_ome_zarr(acq_type):
+def get_output_ome_zarr():
+    """Returns the output ome-zarr path dict.
+
+    Wildcard routing to the correct rule is handled by wildcard_constraints
+    in each rule using get_acq_constraint()."""
     if is_remote(config["root"]):
 
         if config["use_zipstore"]:
@@ -282,7 +308,7 @@ def get_output_ome_zarr(acq_type):
                     subject="{subject}",
                     datatype="micr",
                     sample="{sample}",
-                    acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
+                    acq="{acq}",
                     suffix="SPIM.ome.zarr.zip",
                 )
             }
@@ -294,7 +320,7 @@ def get_output_ome_zarr(acq_type):
                         subject="{subject}",
                         datatype="micr",
                         sample="{sample}",
-                        acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
+                        acq="{acq}",
                         suffix="SPIM.ome.zarr/.snakemake_touch",
                     )
                 )
@@ -307,7 +333,7 @@ def get_output_ome_zarr(acq_type):
                     subject="{subject}",
                     datatype="micr",
                     sample="{sample}",
-                    acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
+                    acq="{acq}",
                     suffix="SPIM.ome.zarr.zip",
                 )
             }
@@ -318,7 +344,7 @@ def get_output_ome_zarr(acq_type):
                     subject="{subject}",
                     datatype="micr",
                     sample="{sample}",
-                    acq=f"{{acq,[a-zA-Z0-9]*{acq_type}[a-zA-Z0-9]*}}",
+                    acq="{acq}",
                     suffix="SPIM.ome.zarr",
                 )
             }

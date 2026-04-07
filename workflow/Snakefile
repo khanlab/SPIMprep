@@ -13,9 +13,7 @@ container: config["containers"]["spimprep"]
 
 
 # use expandvars so we can use e.g. '$SLURM_TMPDIR'
-root = os.path.expandvars(config["root"])
 work = os.path.expandvars(config["work"])
-resampled = Path(root) / "derivatives" / "resampled"
 
 
 # this is needed to use the latest bids spec with the pre-release snakebids
@@ -24,6 +22,26 @@ set_bids_spec("v0_11_0")
 # read samples tsv
 dtype = defaultdict(lambda: str, num_tiles=int)
 samples = pd.read_csv(config["samples"], sep="\t", dtype=dtype)
+
+# Determine root: if output_bids_dataset column is present with a single
+# non-empty value, use it; otherwise fall back to the global root config.
+root = os.path.expandvars(config["root"])
+if "output_bids_dataset" in samples.columns:
+    non_null_roots = [
+        r for r in samples["output_bids_dataset"].dropna().tolist() if str(r).strip()
+    ]
+    unique_roots = list(dict.fromkeys(non_null_roots))  # deduplicate, preserve order
+    if len(unique_roots) == 1:
+        root = os.path.expandvars(str(unique_roots[0]))
+    elif len(unique_roots) > 1:
+        raise ValueError(
+            "Multiple distinct output_bids_dataset values found in samples.tsv. "
+            "Per-sample routing to different output datasets in a single run is "
+            "not yet supported. Use a single output_bids_dataset value or leave "
+            "the column empty to use the global root configuration."
+        )
+
+resampled = Path(root) / "derivatives" / "resampled"
 
 
 include: "rules/common.smk"

@@ -79,6 +79,21 @@ class SpimprepCLIConfig(PluginBase):
         )
         self.try_add_argument(
             group,
+            "--input-type",
+            action="store",
+            type=str,
+            default="blaze",
+            dest="input_type",
+            choices=["blaze", "prestitched", "imaris"],
+            help=(
+                "Set the input data type / workflow to use. "
+                "Choices: blaze (Blaze microscope tiled data), "
+                "prestitched (pre-stitched tif stacks), "
+                "imaris (Imaris .ims files)."
+            ),
+        )
+        self.try_add_argument(
+            group,
             "--acq",
             action="store",
             type=str,
@@ -128,6 +143,7 @@ class SpimprepCLIConfig(PluginBase):
             "subject": config["subject"],
             "sample": config["sample"],
             "acq": config["acq"],
+            "input_type": config["input_type"],
             "stain_0": config["stains"][0],
             "sample_path": config["input_path"],
         }

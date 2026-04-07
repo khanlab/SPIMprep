@@ -7,22 +7,9 @@ rule imaris_to_metadata:
             subject="{subject}",
             datatype="micr",
             sample="{sample}",
-            acq="{acq,[a-zA-Z0-9]*imaris[a-zA-Z0-9]*}",
+            acq="{acq}",
             suffix="SPIM.json",
         ),
-    threads: 1
-    resources:
-        mem_mb=2000,
-        runtime=60,
-    benchmark:
-        bids(
-            root="benchmarks",
-            datatype="imaris_to_metdata",
-            subject="{subject}",
-            sample="{sample}",
-            acq="{acq}",
-            suffix="benchmark.tsv",
-        )
     log:
         bids(
             root="logs",
@@ -32,10 +19,25 @@ rule imaris_to_metadata:
             acq="{acq}",
             suffix="log.txt",
         ),
+    benchmark:
+        bids(
+            root="benchmarks",
+            datatype="imaris_to_metdata",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="benchmark.tsv",
+        )
+    wildcard_constraints:
+        acq=get_acq_constraint("imaris"),
     group:
         "preproc"
     conda:
         "../envs/imaris.yml"
+    threads: 1
+    resources:
+        mem_mb=2000,
+        runtime=60,
     script:
         "../scripts/imaris_to_metadata.py"
 
@@ -43,8 +45,6 @@ rule imaris_to_metadata:
 rule imaris_channel_to_zarr:
     input:
         ims=get_input_sample,
-    params:
-        channel=lambda wildcards: get_stains(wildcards).index(wildcards.stain),
     output:
         zarr=temp(
             bids(
@@ -67,16 +67,18 @@ rule imaris_channel_to_zarr:
             stain="{stain}",
             suffix="log.txt",
         ),
-    conda:
-        "../envs/imaris.yml"
     group:
         "preproc"
+    shadow:
+        "minimal"
+    conda:
+        "../envs/imaris.yml"
     threads: 1
     resources:
         runtime=360,
         mem_mb=1000,
-    shadow:
-        "minimal"
+    params:
+        channel=lambda wildcards: get_stains(wildcards).index(wildcards.stain),
     script:
         "../scripts/imaris_channel_to_zarr.py"
 
@@ -96,17 +98,9 @@ rule imaris_to_ome_zarr:
             stain=get_stains(wildcards),
             allow_missing=True,
         ),
-        metadata_json=rules.prestitched_to_metadata.output.metadata_json,
-    params:
-        max_downsampling_layers=config["ome_zarr"]["max_downsampling_layers"],
-        rechunk_size=config["ome_zarr"]["rechunk_size"],
-        scaling_method=config["ome_zarr"]["scaling_method"],
-        downsampling=config["ome_zarr"]["downsampling"],
-        stains=get_stains,
-        uri=get_output_ome_zarr_uri(),
-        storage_provider_settings=workflow.storage_provider_settings,
+        metadata_json=rules.imaris_to_metadata.output.metadata_json,
     output:
-        **get_output_ome_zarr("imaris"),
+        **get_output_ome_zarr(),
     log:
         bids(
             root="logs",
@@ -116,15 +110,25 @@ rule imaris_to_ome_zarr:
             acq="{acq}",
             suffix="log.txt",
         ),
-    conda:
-        "../envs/imaris.yml"
+    wildcard_constraints:
+        acq=get_acq_constraint("imaris"),
     group:
         "preproc"
+    shadow:
+        "minimal"
+    conda:
+        "../envs/imaris.yml"
     threads: config["total_cores"]
     resources:
         runtime=360,
         mem_mb=config["total_mem_mb"],
-    shadow:
-        "minimal"
+    params:
+        max_downsampling_layers=config["ome_zarr"]["max_downsampling_layers"],
+        rechunk_size=config["ome_zarr"]["rechunk_size"],
+        scaling_method=config["ome_zarr"]["scaling_method"],
+        downsampling=config["ome_zarr"]["downsampling"],
+        stains=get_stains,
+        uri=get_output_ome_zarr_uri(),
+        storage_provider_settings=workflow.storage_provider_settings,
     script:
         "../scripts/imaris_to_ome_zarr.py"
