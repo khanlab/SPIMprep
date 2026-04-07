@@ -271,7 +271,9 @@ def get_acq_constraint(input_type_str):
     explicit input_type column rather than fragile substring matching on acq."""
     acqs = samples[samples["input_type"] == input_type_str]["acq"].unique().tolist()
     if not acqs:
-        return "NOMATCH_EMPTY"
+        # Return a regex that matches nothing when no samples use this input_type;
+        # this prevents the rule from matching any wildcard value.
+        return "(?!x)x"
     return "|".join(re.escape(acq) for acq in acqs)
 
 
