@@ -259,6 +259,55 @@ rule tif_to_zarr_gcs:
     script:
         "../scripts/tif_to_zarr_gcs.py"
 
+#keep old one around for comparison
+ruleorder: updated_tif_to_zarr > concat_tiles
+
+rule updated_tif_to_zarr:
+    input:
+        tif_dir=get_input_sample
+    output:
+        zarr=temp(
+            directory(
+                bids(
+                    root=work,
+                    subject="{subject}",
+                    datatype="micr",
+                    sample="{sample}",
+                    acq="{acq}",
+                    desc="raw",
+                    suffix="SPIM.zarr",
+                )
+            )
+        ),
+    benchmark:
+        bids(
+            root="benchmarks",
+            datatype="updated_tif_to_zarr",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="benchmark.tsv",
+        )
+    log:
+        bids(
+            root="logs",
+            datatype="updated_tiff_to_zarr",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="log.txt",
+        ),
+    threads: 16
+    resources:
+        mem_mb=config["total_mem_mb"],  # TODO update this, along with threads.. 
+        runtime=360,
+        disk_mb=1000000,  #1TB
+    group:
+        "preproc"
+    script:
+        "../scripts/tif_to_zarr_v3.py"
+
+
 
 rule bioformats_to_zarr:
     """
@@ -373,3 +422,6 @@ rule concat_tiles:
         None
     script:
         "../scripts/concat_tiles.py"
+
+
+
