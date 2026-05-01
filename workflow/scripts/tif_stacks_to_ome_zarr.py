@@ -5,9 +5,6 @@ import zarr
 from dask.array.image import imread as dask_imread
 from dask.diagnostics import ProgressBar
 from lib.cloud_io import get_fsspec, is_remote
-from ome_zarr.format import format_from_version
-from ome_zarr.io import parse_url
-from ome_zarr.scale import Scaler
 from ome_zarr.writer import write_image
 from upath import UPath as Path
 
@@ -36,6 +33,8 @@ voxdim = [
 
 
 coordinate_transformations = []
+scale_factors = []
+
 # for each resolution (dataset), we have a list of dicts, transformations to apply..
 # in this case just a single one (scaling by voxel size)
 
@@ -46,15 +45,17 @@ for l in range(max_layer + 1):
             {
                 "scale": [
                     1,
-                    voxdim[0],
+                    (2**l) * voxdim[0],
                     (2**l) * voxdim[1],
                     (2**l) * voxdim[2],
-                ],  # image-pyramids in XY only
+                ],  # image-pyramids in XYZ
                 "type": "scale",
             }
         ]
     )
 
+    if l > 0:
+        scale_factors.append({"z": 2**l, "y": 2**l, "x": 2**l})
 
 axes = [{"name": "c", "type": "channel"}] + [
     {"name": ax, "type": "space", "unit": "millimeter"} for ax in ["z", "y", "x"]
@@ -109,22 +110,19 @@ else:
     if Path(out_zarr).suffixes[-1] == ".zip":
         store = zarr.ZipStore(out_zarr, dimension_separator="/", mode="x")
     else:
-        store = zarr.DirectoryStore(out_zarr, dimension_separator="/")
-
+        store = zarr.storage.LocalStore(out_zarr)
 
 group = zarr.group(store, overwrite=True)
 
 # Add metadata for orientation
-group.attrs["orientation"] = "SAR"  # orientation for lifecanvas data
-group.attrs["xyz_orientation"] = "RAS"
-
-scaler = Scaler(max_layer=max_layer, method=scaling_method)
+group.attrs["orientation"] = "IPL"  # orientation for lifecanvas data
+group.attrs["xyz_orientation"] = "LPI"
 
 with ProgressBar():
     write_image(
         image=darr_channels,
         group=group,
-        scaler=scaler,
+        scale_factors=scale_factors,
         coordinate_transformations=coordinate_transformations,
         axes=axes,
         metadata={"omero": omero},

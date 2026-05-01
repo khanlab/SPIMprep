@@ -1,22 +1,21 @@
 import os
 import re
 import time
-from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from pathlib import Path
 
 import numpy as np
 import zarr
 from tifffile import TiffFile
 
-
 # ----------------------------
 # User settings
 # ----------------------------
-#INPUT_DIR = Path("/nfs/trident3/lightsheet/prado/mouse_app_lecanemab_ki3_batch3/raw/tif_4x/A_AS38F4")
-#OUTPUT_ZARR = Path("output_dataset.zarr")
+# INPUT_DIR = Path("/nfs/trident3/lightsheet/prado/mouse_app_lecanemab_ki3_batch3/raw/tif_4x/A_AS38F4")
+# OUTPUT_ZARR = Path("output_dataset.zarr")
 
-INPUT_DIR = snakemake.input.tif_dir
-OUTPUT_ZARR = snakemake.output.zarr
+INPUT_DIR = Path(snakemake.input.tif_dir)
+OUTPUT_ZARR = Path(snakemake.output.zarr)
 
 MAX_WORKERS = 16
 Z_CHUNK = 16
@@ -25,10 +24,8 @@ DATASET_NAME = "0"
 TEST_N_ROWS = 1000
 TEST_N_COLS = 1000
 
-#TODO: get this from config..
-FNAME_RE = re.compile(
-    r"Blaze\[(\d+)\s*x\s*(\d+)\]_C(\d+)\.ome\.tif$"
-)
+# TODO: get this from config..
+FNAME_RE = re.compile(r"Blaze\[(\d+)\s*x\s*(\d+)\]_C(\d+)\.ome\.tif$")
 
 
 def parse_file_info(path: Path):
@@ -50,7 +47,9 @@ def validate_and_get_shape(path: Path):
         p0 = pages[0]
 
         if p0.compression != 1:
-            raise ValueError(f"{path}: expected uncompressed TIFF, got compression={p0.compression}")
+            raise ValueError(
+                f"{path}: expected uncompressed TIFF, got compression={p0.compression}"
+            )
         if p0.is_tiled:
             raise ValueError(f"{path}: expected striped TIFF, got tiled TIFF")
 
@@ -228,11 +227,8 @@ def main():
     print(f"TOTAL elapsed: {total_dt:.2f}s")
 
     if failures:
-        raise RuntimeError(
-            f"{len(failures)} file(s) failed:\n" + "\n".join(failures)
-        )
+        raise RuntimeError(f"{len(failures)} file(s) failed:\n" + "\n".join(failures))
 
 
 if __name__ == "__main__":
     main()
-

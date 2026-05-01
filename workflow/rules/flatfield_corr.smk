@@ -1,6 +1,6 @@
 
 rule fit_basic_flatfield_corr:
-    """ BaSiC flatfield correction"""
+    """BaSiC flatfield correction"""
     input:
         zarr=lambda wildcards: bids(
             root=work,
@@ -11,10 +11,6 @@ rule fit_basic_flatfield_corr:
             desc="rawfromgcs" if sample_is_remote(wildcards) else "raw",
             suffix="SPIM.zarr",
         ).format(**wildcards),
-    params:
-        channel=lambda wildcards: get_stains(wildcards).index(wildcards.stain),
-        max_n_images=config["basic_flatfield_corr"]["max_n_images"],
-        basic_opts=config["basic_flatfield_corr"]["fitting_opts"],
     output:
         model_dir=temp(
             directory(
@@ -29,20 +25,6 @@ rule fit_basic_flatfield_corr:
                 )
             )
         ),
-    resources:
-        runtime=90,
-        mem_mb=64000,
-    threads: 8
-    benchmark:
-        bids(
-            root="benchmarks",
-            datatype="fit_basic_flatfield",
-            subject="{subject}",
-            sample="{sample}",
-            acq="{acq}",
-            stain="{stain}",
-            suffix="benchmark.tsv",
-        )
     log:
         bids(
             root="logs",
@@ -53,18 +35,34 @@ rule fit_basic_flatfield_corr:
             stain="{stain}",
             suffix="log.txt",
         ),
-    group:
-        "preproc"
-    container:
-        config["containers"]["spimprep"]
+    benchmark:
+        bids(
+            root="benchmarks",
+            datatype="fit_basic_flatfield",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            stain="{stain}",
+            suffix="benchmark.tsv",
+        )
     conda:
         "../envs/basicpy.yml"
+    container:
+        config["containers"]["spimprep"]
+    threads: 8
+    resources:
+        runtime=90,
+        mem_mb=64000,
+    params:
+        channel=lambda wildcards: get_stains(wildcards).index(wildcards.stain),
+        max_n_images=config["basic_flatfield_corr"]["max_n_images"],
+        basic_opts=config["basic_flatfield_corr"]["fitting_opts"],
     script:
         "../scripts/fit_basic_flatfield_corr_zarr.py"
 
 
 rule apply_basic_flatfield_corr:
-    """ apply BaSiC flatfield correction """
+    """apply BaSiC flatfield correction"""
     input:
         zarr=lambda wildcards: bids(
             root=work,
@@ -80,8 +78,6 @@ rule apply_basic_flatfield_corr:
             stain=get_stains(wildcards),
             allow_missing=True,
         ),
-    params:
-        out_chunks=[256, 256, 256],
     output:
         zarr=temp(
             directory(
@@ -96,15 +92,6 @@ rule apply_basic_flatfield_corr:
                 )
             )
         ),
-    benchmark:
-        bids(
-            root="benchmarks",
-            datatype="apply_basic_flatfield",
-            subject="{subject}",
-            sample="{sample}",
-            acq="{acq}",
-            suffix="benchmark.tsv",
-        )
     log:
         bids(
             root="logs",
@@ -114,14 +101,23 @@ rule apply_basic_flatfield_corr:
             acq="{acq}",
             suffix="log.txt",
         ),
+    benchmark:
+        bids(
+            root="benchmarks",
+            datatype="apply_basic_flatfield",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="benchmark.tsv",
+        )
+    conda:
+        "../envs/basicpy.yml"
+    threads: 32
     resources:
         runtime=60,
         mem_mb=32000,
         disk_mb=1000000,  #1TB
-    threads: 32
-    group:
-        "preproc"
-    conda:
-        "../envs/basicpy.yml"
+    params:
+        out_chunks=[256, 256, 256],
     script:
         "../scripts/apply_basic_flatfield_corr_zarr.py"

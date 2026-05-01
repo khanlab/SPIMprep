@@ -5,12 +5,12 @@ rule setup_qc_dir:
         readme_md=config["report"]["resources"]["readme_md"],
     output:
         readme_md=remote_file(Path(root) / "qc" / "README.md"),
+    log:
+        "logs/setup_qc_dir_log.txt",
     threads: 1
     resources:
         mem_mb=1000,
         runtime=10,
-    log:
-        "logs/setup_qc_dir_log.txt",
     shell:
         "cp {input.readme_md} {output.readme_md}"
 
@@ -37,10 +37,6 @@ rule generate_flatfield_qc:
             suffix="SPIM.zarr",
         ),
         ff_html=config["report"]["resources"]["ff_html"],
-    params:
-        ff_s_start=config["report"]["flatfield_corrected"]["slice_start"],
-        ff_s_step=config["report"]["flatfield_corrected"]["slice_step"],
-        ff_cmap=config["report"]["flatfield_corrected"]["colour_map"],
     output:
         html=remote_file(
             Path(root)
@@ -61,10 +57,6 @@ rule generate_flatfield_qc:
             / "images"
             / "uncorr"
         ),
-    threads: 1
-    resources:
-        mem_mb=8000,
-        runtime=60,
     log:
         bids(
             root="logs",
@@ -74,6 +66,14 @@ rule generate_flatfield_qc:
             acq="{acq}",
             suffix="log.txt",
         ),
+    threads: 1
+    resources:
+        mem_mb=8000,
+        runtime=60,
+    params:
+        ff_s_start=config["report"]["flatfield_corrected"]["slice_start"],
+        ff_s_step=config["report"]["flatfield_corrected"]["slice_step"],
+        ff_cmap=config["report"]["flatfield_corrected"]["colour_map"],
     script:
         "../scripts/generate_flatfield_qc.py"
 
@@ -91,12 +91,6 @@ rule generate_whole_slice_qc:
             suffix="SPIM.{ext}".format(ext=get_extension_ome_zarr()),
         ),
         ws_html=config["report"]["resources"]["ws_html"],
-    params:
-        ws_s_start=config["report"]["whole_slice_viewer"]["slice_start"],
-        ws_s_step=config["report"]["whole_slice_viewer"]["slice_step"],
-        ws_cmap=config["report"]["whole_slice_viewer"]["colour_map"],
-        uri=get_output_ome_zarr_uri(),
-        storage_provider_settings=workflow.storage_provider_settings,
     output:
         html=remote_file(
             Path(root)
@@ -111,10 +105,6 @@ rule generate_whole_slice_qc:
             / "images"
             / "whole"
         ),
-    threads: 1
-    resources:
-        mem_mb=8000,
-        runtime=60,
     log:
         bids(
             root="logs",
@@ -124,6 +114,16 @@ rule generate_whole_slice_qc:
             acq="{acq}",
             suffix="log.txt",
         ),
+    threads: 1
+    resources:
+        mem_mb=8000,
+        runtime=60,
+    params:
+        ws_s_start=config["report"]["whole_slice_viewer"]["slice_start"],
+        ws_s_step=config["report"]["whole_slice_viewer"]["slice_step"],
+        ws_cmap=config["report"]["whole_slice_viewer"]["colour_map"],
+        uri=get_output_ome_zarr_uri(),
+        storage_provider_settings=workflow.storage_provider_settings,
     script:
         "../scripts/generate_whole_slice_qc.py"
 
@@ -141,9 +141,6 @@ rule generate_volume_qc:
             suffix="SPIM.{ext}".format(ext=get_extension_ome_zarr()),
         ),
         vol_viewer_dir=config["report"]["resources"]["vol_viewer_dir"],
-    params:
-        uri=get_output_ome_zarr_uri(),
-        storage_provider_settings=workflow.storage_provider_settings,
     output:
         resources=remote_directory(
             Path(root)
@@ -157,10 +154,6 @@ rule generate_volume_qc:
             / "sub-{subject}_sample-{sample}_acq-{acq}"
             / "volume_qc.html"
         ),
-    threads: 1
-    resources:
-        mem_mb=8000,
-        runtime=60,
     log:
         bids(
             root="logs",
@@ -170,6 +163,13 @@ rule generate_volume_qc:
             acq="{acq}",
             suffix="log.txt",
         ),
+    threads: 1
+    resources:
+        mem_mb=8000,
+        runtime=60,
+    params:
+        uri=get_output_ome_zarr_uri(),
+        storage_provider_settings=workflow.storage_provider_settings,
     script:
         "../scripts/generate_volume_qc.py"
 
@@ -188,10 +188,6 @@ rule generate_subject_qc:
             / "sub-{subject}_sample-{sample}_acq-{acq}"
             / "subject.html"
         ),
-    threads: 1
-    resources:
-        mem_mb=2000,
-        runtime=10,
     log:
         bids(
             root="logs",
@@ -201,6 +197,10 @@ rule generate_subject_qc:
             acq="{acq}",
             suffix="log.txt",
         ),
+    threads: 1
+    resources:
+        mem_mb=2000,
+        runtime=10,
     script:
         "../scripts/generate_subject_qc.py"
 
@@ -209,19 +209,19 @@ rule generate_aggregate_qc:
     input:
         report_html=config["report"]["resources"]["report_html"],
         subj_htmls=get_all_subj_html,
-    params:
-        samples=samples,
     output:
         total_html=remote_file(Path(root) / "qc" / "qc_report.html"),
-    threads: 1
-    resources:
-        mem_mb=2000,
-        runtime=10,
     log:
         bids(
             root="logs",
             datatype="generate_aggregate_qc",
             suffix="log.txt",
         ),
+    threads: 1
+    resources:
+        mem_mb=2000,
+        runtime=10,
+    params:
+        samples=samples,
     script:
         "../scripts/generate_aggregate_qc.py"

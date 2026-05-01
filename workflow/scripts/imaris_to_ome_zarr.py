@@ -4,8 +4,6 @@ import dask.array as da
 import zarr
 from dask.diagnostics import ProgressBar
 from lib.cloud_io import get_fsspec, is_remote
-from ome_zarr.format import format_from_version
-from ome_zarr.scale import Scaler
 from ome_zarr.writer import write_image
 from upath import UPath as Path
 
@@ -39,6 +37,8 @@ voxdim = [
 
 
 coordinate_transformations = []
+scale_factors = []
+
 # for each resolution (dataset), we have a list of dicts, transformations to apply..
 # in this case just a single one (scaling by voxel size)
 
@@ -49,14 +49,17 @@ for l in range(max_layer + 1):
             {
                 "scale": [
                     1,
-                    voxdim[0],
+                    (2**l) * voxdim[0],
                     (2**l) * voxdim[1],
                     (2**l) * voxdim[2],
-                ],  # image-pyramids in XY only
+                ],  # image-pyramids in XYZ
                 "type": "scale",
             }
         ]
     )
+
+    if l > 0:
+        scale_factors.append({"z": 2**l, "y": 2**l, "x": 2**l})
 
 
 axes = [{"name": "c", "type": "channel"}] + [
@@ -84,17 +87,20 @@ if is_remote(uri):
     )
 else:
     if Path(out_zarr).suffixes[-1] == ".zip":
-        store = zarr.ZipStore(out_zarr, dimension_separator="/", mode="x")
+        store = zarr.storage.ZipStore(out_zarr, dimension_separator="/", mode="x")
     else:
-        store = zarr.DirectoryStore(out_zarr, dimension_separator="/")
+        store = zarr.storage.LocalStore(out_zarr)
 
 
 darr_list = []
 for zarr_i, in_zarr in enumerate(snakemake.input.zarr):
     # open zarr to get group name
-    in_store = zarr.ZipStore(in_zarr, mode="r")
-    zi = zarr.open(in_store, mode="r")
-    darr_list.append(da.from_zarr(in_store, component="Data").rechunk(rechunk_size))
+    if Path(in_zarr).suffixes[-1] == ".zip":
+        in_store = zarr.storage.ZipStore(in_zarr, mode="r")
+    else:
+        in_store = zarr.storage.LocalStore(in_zarr)
+
+    darr_list.append(da.from_zarr(in_store, component="data").rechunk(rechunk_size))
 
     # append to omero metadata
     channel_metadata = {
@@ -130,14 +136,12 @@ group = zarr.group(store, overwrite=True)
 group.attrs["orientation"] = "IPR"  # this is the updated orientation for imaris files
 group.attrs["xyz_orientation"] = "RPI"
 
-scaler = Scaler(max_layer=max_layer, method=scaling_method)
-
 
 with ProgressBar():
     write_image(
         image=darr_channels,
         group=group,
-        scaler=scaler,
+        scale_factors=scale_factors,
         coordinate_transformations=coordinate_transformations,
         axes=axes,
         metadata={"omero": omero},

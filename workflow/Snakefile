@@ -9,7 +9,7 @@ import os
 configfile: "config/config.yml"
 
 
-container: config["containers"]["spimprep"]
+# container: config["containers"]["spimprep"]
 
 
 # use expandvars so we can use e.g. '$SLURM_TMPDIR'

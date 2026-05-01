@@ -28,9 +28,9 @@ dask.config.set(scheduler="threads", num_workers=min(32, snakemake.threads))
 
 in_zarr = snakemake.input.zarr
 
-darr = da.from_zarr(in_zarr)
+darr = da.from_zarr(in_zarr, component="0")
 
-(n_tiles, n_chans, n_z, n_x, n_y) = darr.shape
+n_tiles, n_chans, n_z, n_x, n_y = darr.shape
 
 # read metadata json
 with open(snakemake.input.metadata_json) as fp:

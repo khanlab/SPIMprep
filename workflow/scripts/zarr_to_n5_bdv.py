@@ -38,7 +38,7 @@ max_downsampling_layers = snakemake.params.max_downsampling_layers
 # load data  (tiles,chans,zslices,x,y)
 darr = da.from_zarr(in_zarr)
 
-(n_tiles, n_chans, n_z, n_x, n_y) = darr.shape
+n_tiles, n_chans, n_z, n_x, n_y = darr.shape
 
 # read metadata json
 with open(snakemake.input.metadata_json) as fp:

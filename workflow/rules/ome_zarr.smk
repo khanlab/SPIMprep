@@ -17,20 +17,8 @@ rule zarr_to_ome_zarr:
             allow_missing=True,
         ),
         metadata_json=rules.copy_blaze_metadata.output.metadata_json,
-    params:
-        max_downsampling_layers=config["ome_zarr"]["max_downsampling_layers"],
-        rechunk_size=config["ome_zarr"]["rechunk_size"],
-        scaling_method=config["ome_zarr"]["scaling_method"],
-        downsampling=config["ome_zarr"]["downsampling"],
-        stains=get_stains,
-        uri=get_output_ome_zarr_uri(),
-        storage_provider_settings=workflow.storage_provider_settings,
     output:
         **get_output_ome_zarr("blaze"),
-    threads: config["total_cores"]
-    resources:
-        mem_mb=config["total_mem_mb"],
-        runtime=480,
     log:
         bids(
             root="logs",
@@ -42,9 +30,19 @@ rule zarr_to_ome_zarr:
         ),
     container:
         None
+    threads: config["total_cores"]
+    resources:
+        mem_mb=config["total_mem_mb"],
+        runtime=480,
+    params:
+        max_downsampling_layers=config["ome_zarr"]["max_downsampling_layers"],
+        rechunk_size=config["ome_zarr"]["rechunk_size"],
+        scaling_method=config["ome_zarr"]["scaling_method"],
+        downsampling=config["ome_zarr"]["downsampling"],
+        stains=get_stains,
+        uri=get_output_ome_zarr_uri(),
+        storage_provider_settings=workflow.storage_provider_settings,
     #        config["containers"]["spimprep"]
-    group:
-        "preproc"
     script:
         "../scripts/zarr_to_ome_zarr.py"
 
@@ -54,6 +52,21 @@ rule tif_stacks_to_ome_zarr:
         **get_storage_creds(),
         tif_dir=get_input_sample,
         metadata_json=rules.prestitched_to_metadata.output.metadata_json,
+    output:
+        **get_output_ome_zarr("prestitched"),
+    log:
+        bids(
+            root="logs",
+            subject="{subject}",
+            datatype="tif_stacks_to_ome_zarr",
+            sample="{sample}",
+            acq="{acq}",
+            suffix="log.txt",
+        ),
+    threads: config["total_cores"]
+    resources:
+        runtime=720,
+        mem_mb=config["total_mem_mb"],
     params:
         in_tif_glob=lambda wildcards, input: os.path.join(
             input.tif_dir,
@@ -66,25 +79,6 @@ rule tif_stacks_to_ome_zarr:
         stains=get_stains,
         uri=get_output_ome_zarr_uri(),
         storage_provider_settings=workflow.storage_provider_settings,
-    output:
-        **get_output_ome_zarr("prestitched"),
-    threads: config["total_cores"]
-    resources:
-        runtime=720,
-        mem_mb=config["total_mem_mb"],
-    log:
-        bids(
-            root="logs",
-            subject="{subject}",
-            datatype="tif_stacks_to_ome_zarr",
-            sample="{sample}",
-            acq="{acq}",
-            suffix="log.txt",
-        ),
-    container:
-        config["containers"]["spimprep"]
-    group:
-        "preproc"
     script:
         "../scripts/tif_stacks_to_ome_zarr.py"
 
@@ -92,8 +86,6 @@ rule tif_stacks_to_ome_zarr:
 rule ome_zarr_to_nii:
     input:
         zarr=get_input_ome_zarr_to_nii,
-    params:
-        zarrnii_kwargs={},
     output:
         nii=bids(
             root=resampled,
@@ -104,6 +96,17 @@ rule ome_zarr_to_nii:
             level="{level}",
             stain="{stain}",
             suffix="SPIM.nii",
+        ),
+    log:
+        bids(
+            root="logs",
+            datatype="ome_zarr_to_nifti",
+            subject="{subject}",
+            sample="{sample}",
+            acq="{acq}",
+            level="{level}",
+            stain="{stain}",
+            suffix="log.txt",
         ),
     benchmark:
         bids(
@@ -116,25 +119,11 @@ rule ome_zarr_to_nii:
             stain="{stain}",
             suffix="benchmark.tsv",
         )
-    log:
-        bids(
-            root="logs",
-            datatype="ome_zarr_to_nifti",
-            subject="{subject}",
-            sample="{sample}",
-            acq="{acq}",
-            level="{level}",
-            stain="{stain}",
-            suffix="log.txt",
-        ),
     threads: config["total_cores"]
     resources:
         mem_mb=16000,
         runtime=120,
-    group:
-        "preproc"
-    container:
-        None
-    #        config["containers"]["spimprep"]
+    params:
+        zarrnii_kwargs={},
     script:
         "../scripts/ome_zarr_to_nii.py"
